@@ -3489,9 +3489,9 @@ plot(
   xlim = c(0, 20),
   xlab = paste(flood),
   title = "")
-}
+} 
 
-### Rule Base Construction
+### Single Hazard Rule Base Construction
 
 # results in rb_droughtc
 rb_droughtc_make_f <- function(drought){
@@ -3542,7 +3542,7 @@ rb_floodf_make_f <- function(flood){
            "_o") := c("optimal", "suboptimal"))))
 }
 
-### Fuzzy Partition Matrix Prediction lower
+### Single Hazard Fuzzy Partition Matrix Prediction lower
 
 
 # results in fpm_droughtc_l
@@ -3600,7 +3600,7 @@ fpm_floodf_l_make_f <- function(rb_floodf, dB_impact, fp_flood_l){
 
 }
 
-### Fuzzy Partition Matrix Prediction upper
+### Single Hazard Fuzzy Partition Matrix Prediction upper
 
 
 # results in fpm_droughtc_u
@@ -3657,3 +3657,1952 @@ fpm_floodf_u_make_f <- function(rb_floodf, dB_impact, fp_flood_u){
           floodf = fp_flood_u)
 
 }
+
+### Multiple Hazard Rule Base Construction
+
+# results in rb_droughtc_heatc
+rb_droughtc_heatc_make_f <- function(drought, heat){
+    
+  RuleBase(new("Proposition", table = cross_df(tibble(!!paste0(as.character("droughtc")) := c("low", "high"), !!paste0(as.character("heatc")) := c("low", "high")))), 
+    new("Conclusion", table = tibble(!!paste0(as.character("droughtc_heatc_o")) := c("optimal", "drought", "heat", "drought_heat"))))
+}
+
+# results in rb_droughtc_floodc
+rb_droughtc_floodc_make_f <- function(drought, flood){
+    
+  RuleBase(new("Proposition", table = cross_df(tibble(!!paste0(as.character("droughtc")) := c("low", "high"), !!paste0(as.character("floodc")) := c("low", "high")))), 
+    new("Conclusion", table = tibble(!!paste0(as.character("droughtc_floodc_o")) := c("optimal", "drought", "flood", "drought_flood"))))
+}
+
+# results in rb_heatc_floodc
+rb_heatc_floodc_make_f <- function(heat, flood){
+    
+  RuleBase(new("Proposition", table = cross_df(tibble(!!paste0(as.character("heatc")) := c("low", "high"), !!paste0(as.character("floodc")) := c("low", "high")))), 
+    new("Conclusion", table = tibble(!!paste0(as.character("heatc_floodc_o")) := c("optimal", "heat", "flood", "heat_flood"))))
+}
+
+# results in rb_droughtc_heatc_floodc
+rb_droughtc_heatc_floodc_make_f <- function(drought, heat, flood){
+    
+  RuleBase(new("Proposition", table = cross_df(tibble(!!paste0(as.character("droughtc")) := c("low", "high"), 
+                                                      !!paste0(as.character("heatc")) := c("low", "high"),
+                                                      !!paste0(as.character("floodc")) := c("low", "high")))), 
+    new("Conclusion", table = tibble(!!paste0(as.character("droughtc_heatc_floodc_o")) := c("optimal", "drought","heat", "drought_heat", "flood", "drought_flood", "heat_flood", "drought_heat_flood"))))
+}
+
+# results in rb_droughtf_heatf
+rb_droughtf_heatf_make_f <- function(drought, heat){
+    
+  RuleBase(new("Proposition", table = cross_df(tibble(!!paste0(as.character("droughtf")) := c("low", "high"), !!paste0(as.character("heatf")) := c("low", "high")))), 
+    new("Conclusion", table = tibble(!!paste0(as.character("droughtf_heatf_o")) := c("optimal", "drought", "heat", "drought_heat"))))
+}
+
+# results in rb_droughtf_floodf
+rb_droughtf_floodf_make_f <- function(drought, flood){
+    
+  RuleBase(new("Proposition", table = cross_df(tibble(!!paste0(as.character("droughtf")) := c("low", "high"), !!paste0(as.character("floodf")) := c("low", "high")))), 
+    new("Conclusion", table = tibble(!!paste0(as.character("droughtf_floodf_o")) := c("optimal", "drought", "flood", "drought_flood"))))
+}
+
+# results in rb_heatf_floodf
+rb_heatf_floodf_make_f <- function(heat, flood){
+    
+  RuleBase(new("Proposition", table = cross_df(tibble(!!paste0(as.character("heatf")) := c("low", "high"), !!paste0(as.character("floodf")) := c("low", "high")))), 
+    new("Conclusion", table = tibble(!!paste0(as.character("heatf_floodf_o")) := c("optimal", "heat", "flood", "heat_flood"))))
+}
+
+# results in rb_droughtf_heatf_floodf
+rb_droughtf_heatf_floodf_make_f <- function(drought, heat, flood){
+    
+  RuleBase(new("Proposition", table = cross_df(tibble(!!paste0(as.character("droughtf")) := c("low", "high"), 
+                                                      !!paste0(as.character("heatf")) := c("low", "high"),
+                                                      !!paste0(as.character("floodf")) := c("low", "high")))), 
+    new("Conclusion", table = tibble(!!paste0(as.character("droughtf_heatf_floodf_o")) := c("optimal", "drought","heat", "drought_heat", "flood", "drought_flood", "heat_flood", "drought_heat_flood"))))
+}
+
+### Multiple Hazard Fuzzy Partition Matrix Prediction
+
+#### Lower Threshold
+
+# results in fpm_droughtc_l_heatc_l
+fpm_droughtc_l_heatc_l_make_f <- function(rb_droughtc_heatc, dB_impact, fp_drought_l, fp_heat_l){
+
+  predict(rb_droughtc_heatc,
+          newdata = dB_impact,
+          droughtc = fp_drought_l,
+          heatc = fp_heat_l)
+}
+
+# results in fpm_droughtc_l_floodc_l
+fpm_droughtc_l_floodc_l_make_f <- function(rb_droughtc_floodc, dB_impact, fp_drought_l, fp_flood_l){
+
+  predict(rb_droughtc_floodc,
+          newdata = dB_impact,
+          droughtc = fp_drought_l,         
+          floodc = fp_flood_l)
+}
+
+# results in fpm_heatc_l_floodc_l
+fpm_heatc_l_floodc_l_make_f <- function(rb_heatc_floodc, dB_impact, fp_heat_l, fp_flood_l){
+
+  predict(rb_heatc_floodc,
+          newdata = dB_impact,
+          heatc = fp_heat_l,
+          floodc = fp_flood_l)
+}
+
+# results in fpm_droughtc_l_heatc_l_floodc_l
+fpm_droughtc_l_heatc_l_floodc_l_make_f <- function(rb_droughtc_heatc_floodc, dB_impact, fp_drought_l, fp_heat_l, fp_flood_l){
+
+  predict(rb_droughtc_heatc_floodc,
+          newdata = dB_impact,
+          droughtc = fp_drought_l,
+          heatc = fp_heat_l,
+          floodc = fp_flood_l)
+}
+
+# results in fpm_droughtf_l_heatf_l
+fpm_droughtf_l_heatf_l_make_f <- function(rb_droughtf_heatf, dB_impact, fp_drought_l, fp_heat_l){
+
+  predict(rb_droughtf_heatf,
+          newdata = dB_impact,
+          droughtf = fp_drought_l,
+          heatf = fp_heat_l)
+}
+
+# results in fpm_droughtf_l_floodf_l
+fpm_droughtf_l_floodf_l_make_f <- function(rb_droughtf_floodf, dB_impact, fp_drought_l, fp_flood_l){
+
+  predict(rb_droughtf_floodf,
+          newdata = dB_impact,
+          droughtf = fp_drought_l,         
+          floodf = fp_flood_l)
+}
+
+# results in fpm_heatf_l_floodf_l
+fpm_heatf_l_floodf_l_make_f <- function(rb_heatf_floodf, dB_impact, fp_heat_l, fp_flood_l){
+
+  predict(rb_heatf_floodf,
+          newdata = dB_impact,
+          heatf = fp_heat_l,
+          floodf = fp_flood_l)
+}
+
+# results in fpm_droughtf_l_heatf_l_floodf_l
+fpm_droughtf_l_heatf_l_floodf_l_make_f <- function(rb_droughtf_heatf_floodf, dB_impact, fp_drought_l, fp_heat_l, fp_flood_l){
+
+  predict(rb_droughtf_heatf_floodf,
+          newdata = dB_impact,
+          droughtf = fp_drought_l,
+          heatf = fp_heat_l,
+          floodf = fp_flood_l)
+}
+
+#### Upper Threshold
+
+# results in fpm_droughtc_u_heatc_u
+fpm_droughtc_u_heatc_u_make_f <- function(rb_droughtc_heatc, dB_impact, fp_drought_u, fp_heat_u){
+
+  predict(rb_droughtc_heatc,
+          newdata = dB_impact,
+          droughtc = fp_drought_u,
+          heatc = fp_heat_u)
+}
+
+# results in fpm_droughtc_u_floodc_u
+fpm_droughtc_u_floodc_u_make_f <- function(rb_droughtc_floodc, dB_impact, fp_drought_u, fp_flood_u){
+
+  predict(rb_droughtc_floodc,
+          newdata = dB_impact,
+          droughtc = fp_drought_u,         
+          floodc = fp_flood_u)
+}
+
+# results in fpm_heatc_u_floodc_u
+fpm_heatc_u_floodc_u_make_f <- function(rb_heatc_floodc, dB_impact, fp_heat_u, fp_flood_u){
+
+  predict(rb_heatc_floodc,
+          newdata = dB_impact,
+          heatc = fp_heat_u,
+          floodc = fp_flood_u)
+}
+
+# results in fpm_droughtc_u_heatc_u_floodc_u
+fpm_droughtc_u_heatc_u_floodc_u_make_f <- function(rb_droughtc_heatc_floodc, dB_impact, fp_drought_u, fp_heat_u, fp_flood_u){
+
+  predict(rb_droughtc_heatc_floodc,
+          newdata = dB_impact,
+          droughtc = fp_drought_u,
+          heatc = fp_heat_u,
+          floodc = fp_flood_u)
+}
+
+# results in fpm_droughtf_u_heatf_u
+fpm_droughtf_u_heatf_u_make_f <- function(rb_droughtf_heatf, dB_impact, fp_drought_u, fp_heat_u){
+
+  predict(rb_droughtf_heatf,
+          newdata = dB_impact,
+          droughtf = fp_drought_u,
+          heatf = fp_heat_u)
+}
+
+# results in fpm_droughtf_u_floodf_u
+fpm_droughtf_u_floodf_u_make_f <- function(rb_droughtf_floodf, dB_impact, fp_drought_u, fp_flood_u){
+
+  predict(rb_droughtf_floodf,
+          newdata = dB_impact,
+          droughtf = fp_drought_u,         
+          floodf = fp_flood_u)
+}
+
+# results in fpm_heatf_u_floodf_u
+fpm_heatf_u_floodf_u_make_f <- function(rb_heatf_floodf, dB_impact, fp_heat_u, fp_flood_u){
+
+  predict(rb_heatf_floodf,
+          newdata = dB_impact,
+          heatf = fp_heat_u,
+          floodf = fp_flood_u)
+}
+
+# results in fpm_droughtf_u_heatf_u_floodf_u
+fpm_droughtf_u_heatf_u_floodf_u_make_f <- function(rb_droughtf_heatf_floodf, dB_impact, fp_drought_u, fp_heat_u, fp_flood_u){
+
+  predict(rb_droughtf_heatf_floodf,
+          newdata = dB_impact,
+          droughtf = fp_drought_u,
+          heatf = fp_heat_u,
+          floodf = fp_flood_u)
+}
+
+
+#### Mixed Thresholds
+
+##### Past
+
+
+# results in fpm_droughtc_l_heatc_u
+fpm_droughtc_l_heatc_u_make_f <- function(rb_droughtc_heatc, dB_impact, fp_drought_l, fp_heat_u){
+
+  predict(rb_droughtc_heatc,
+          newdata = dB_impact,
+          droughtc = fp_drought_l,
+          heatc = fp_heat_u)
+}
+
+# results in fpm_droughtc_u_heatc_l
+fpm_droughtc_u_heatc_l_make_f <- function(rb_droughtc_heatc, dB_impact, fp_drought_u, fp_heat_l){
+
+  predict(rb_droughtc_heatc,
+          newdata = dB_impact,
+          droughtc = fp_drought_u,
+          heatc = fp_heat_l)
+}
+
+# results in fpm_droughtc_l_floodc_u
+fpm_droughtc_l_floodc_u_make_f <- function(rb_droughtc_floodc, dB_impact, fp_drought_l, fp_flood_u){
+
+  predict(rb_droughtc_floodc,
+          newdata = dB_impact,
+          droughtc = fp_drought_l,         
+          floodc = fp_flood_u)
+}
+
+# results in fpm_droughtc_u_floodc_l
+fpm_droughtc_u_floodc_l_make_f <- function(rb_droughtc_floodc, dB_impact, fp_drought_u, fp_flood_l){
+
+  predict(rb_droughtc_floodc,
+          newdata = dB_impact,
+          droughtc = fp_drought_u,         
+          floodc = fp_flood_l)
+}
+
+# results in fpm_heatc_l_floodc_u
+fpm_heatc_l_floodc_u_make_f <- function(rb_heatc_floodc, dB_impact, fp_heat_l, fp_flood_u){
+
+  predict(rb_heatc_floodc,
+          newdata = dB_impact,
+          heatc = fp_heat_l,
+          floodc = fp_flood_u)
+}
+
+# results in fpm_heatc_u_floodc_l
+fpm_heatc_u_floodc_l_make_f <- function(rb_heatc_floodc, dB_impact, fp_heat_u, fp_flood_l){
+
+  predict(rb_heatc_floodc,
+          newdata = dB_impact,
+          heatc = fp_heat_u,
+          floodc = fp_flood_l)
+}
+
+# results in fpm_droughtc_l_heatc_l_floodc_u
+fpm_droughtc_l_heatc_l_floodc_u_make_f <- function(rb_droughtc_heatc_floodc, dB_impact, fp_drought_l, fp_heat_l, fp_flood_u){
+
+  predict(rb_droughtc_heatc_floodc,
+          newdata = dB_impact,
+          droughtc = fp_drought_l,
+          heatc = fp_heat_l,
+          floodc = fp_flood_u)
+}
+
+# results in fpm_droughtc_l_heatc_u_floodc_l
+fpm_droughtc_l_heatc_u_floodc_l_make_f <- function(rb_droughtc_heatc_floodc, dB_impact, fp_drought_l, fp_heat_u, fp_flood_l){
+
+  predict(rb_droughtc_heatc_floodc,
+          newdata = dB_impact,
+          droughtc = fp_drought_l,
+          heatc = fp_heat_u,
+          floodc = fp_flood_l)
+}
+
+# results in fpm_droughtc_u_heatc_l_floodc_u
+fpm_droughtc_u_heatc_l_floodc_u_make_f <- function(rb_droughtc_heatc_floodc, dB_impact, fp_drought_u, fp_heat_l, fp_flood_u){
+
+  predict(rb_droughtc_heatc_floodc,
+          newdata = dB_impact,
+          droughtc = fp_drought_u,
+          heatc = fp_heat_l,
+          floodc = fp_flood_u)
+}
+
+# results in fpm_droughtc_u_heatc_l_floodc_l
+fpm_droughtc_u_heatc_l_floodc_l_make_f <- function(rb_droughtc_heatc_floodc, dB_impact, fp_drought_u, fp_heat_l, fp_flood_l){
+
+  predict(rb_droughtc_heatc_floodc,
+          newdata = dB_impact,
+          droughtc = fp_drought_u,
+          heatc = fp_heat_l,
+          floodc = fp_flood_l)
+}
+
+# results in fpm_droughtc_u_heatc_u_floodc_l
+fpm_droughtc_u_heatc_u_floodc_l_make_f <- function(rb_droughtc_heatc_floodc, dB_impact, fp_drought_u, fp_heat_u, fp_flood_l){
+
+  predict(rb_droughtc_heatc_floodc,
+          newdata = dB_impact,
+          droughtc = fp_drought_u,
+          heatc = fp_heat_u,
+          floodc = fp_flood_l)
+}
+
+# results in fpm_droughtc_l_heatc_u_floodc_u
+fpm_droughtc_l_heatc_u_floodc_u_make_f <- function(rb_droughtc_heatc_floodc, dB_impact, fp_drought_l, fp_heat_u, fp_flood_u){
+
+  predict(rb_droughtc_heatc_floodc,
+          newdata = dB_impact,
+          droughtc = fp_drought_l,
+          heatc = fp_heat_u,
+          floodc = fp_flood_u)
+}
+
+##### Future
+
+# results in fpm_droughtf_l_heatf_u
+fpm_droughtf_l_heatf_u_make_f <- function(rb_droughtf_heatf, dB_impact, fp_drought_l, fp_heat_u){
+
+  predict(rb_droughtf_heatf,
+          newdata = dB_impact,
+          droughtf = fp_drought_l,
+          heatf = fp_heat_u)
+}
+
+# results in fpm_droughtf_u_heatf_l
+fpm_droughtf_u_heatf_l_make_f <- function(rb_droughtf_heatf, dB_impact, fp_drought_u, fp_heat_l){
+
+  predict(rb_droughtf_heatf,
+          newdata = dB_impact,
+          droughtf = fp_drought_u,
+          heatf = fp_heat_l)
+}
+
+# results in fpm_droughtf_l_floodf_u
+fpm_droughtf_l_floodf_u_make_f <- function(rb_droughtf_floodf, dB_impact, fp_drought_l, fp_flood_u){
+
+  predict(rb_droughtf_floodf,
+          newdata = dB_impact,
+          droughtf = fp_drought_l,         
+          floodf = fp_flood_u)
+}
+
+# results in fpm_droughtf_u_floodf_l
+fpm_droughtf_u_floodf_l_make_f <- function(rb_droughtf_floodf, dB_impact, fp_drought_u, fp_flood_l){
+
+  predict(rb_droughtf_floodf,
+          newdata = dB_impact,
+          droughtf = fp_drought_u,         
+          floodf = fp_flood_l)
+}
+
+# results in fpm_heatf_l_floodf_u
+fpm_heatf_l_floodf_u_make_f <- function(rb_heatf_floodf, dB_impact, fp_heat_l, fp_flood_u){
+
+  predict(rb_heatf_floodf,
+          newdata = dB_impact,
+          heatf = fp_heat_l,
+          floodf = fp_flood_u)
+}
+
+# results in fpm_heatf_u_floodf_l
+fpm_heatf_u_floodf_l_make_f <- function(rb_heatf_floodf, dB_impact, fp_heat_u, fp_flood_l){
+
+  predict(rb_heatf_floodf,
+          newdata = dB_impact,
+          heatf = fp_heat_u,
+          floodf = fp_flood_l)
+}
+
+# results in fpm_droughtf_l_heatf_l_floodf_u
+fpm_droughtf_l_heatf_l_floodf_u_make_f <- function(rb_droughtf_heatf_floodf, dB_impact, fp_drought_l, fp_heat_l, fp_flood_u){
+
+  predict(rb_droughtf_heatf_floodf,
+          newdata = dB_impact,
+          droughtf = fp_drought_l,
+          heatf = fp_heat_l,
+          floodf = fp_flood_u)
+}
+
+# results in fpm_droughtf_l_heatf_u_floodf_l
+fpm_droughtf_l_heatf_u_floodf_l_make_f <- function(rb_droughtf_heatf_floodf, dB_impact, fp_drought_l, fp_heat_u, fp_flood_l){
+
+  predict(rb_droughtf_heatf_floodf,
+          newdata = dB_impact,
+          droughtf = fp_drought_l,
+          heatf = fp_heat_u,
+          floodf = fp_flood_l)
+}
+
+# results in fpm_droughtf_u_heatf_l_floodf_u
+fpm_droughtf_u_heatf_l_floodf_u_make_f <- function(rb_droughtf_heatf_floodf, dB_impact, fp_drought_u, fp_heat_l, fp_flood_u){
+
+  predict(rb_droughtf_heatf_floodf,
+          newdata = dB_impact,
+          droughtf = fp_drought_u,
+          heatf = fp_heat_l,
+          floodf = fp_flood_u)
+}
+
+# results in fpm_droughtf_u_heatf_l_floodf_l
+fpm_droughtf_u_heatf_l_floodf_l_make_f <- function(rb_droughtf_heatf_floodf, dB_impact, fp_drought_u, fp_heat_l, fp_flood_l){
+
+  predict(rb_droughtf_heatf_floodf,
+          newdata = dB_impact,
+          droughtf = fp_drought_u,
+          heatf = fp_heat_l,
+          floodf = fp_flood_l)
+}
+
+# results in fpm_droughtf_u_heatf_u_floodf_l
+fpm_droughtf_u_heatf_u_floodf_l_make_f <- function(rb_droughtf_heatf_floodf, dB_impact, fp_drought_u, fp_heat_u, fp_flood_l){
+
+  predict(rb_droughtf_heatf_floodf,
+          newdata = dB_impact,
+          droughtf = fp_drought_u,
+          heatf = fp_heat_u,
+          floodf = fp_flood_l)
+}
+
+# results in fpm_droughtf_l_heatf_u_floodf_u
+fpm_droughtf_l_heatf_u_floodf_u_make_f <- function(rb_droughtf_heatf_floodf, dB_impact, fp_drought_l, fp_heat_u, fp_flood_u){
+
+  predict(rb_droughtf_heatf_floodf,
+          newdata = dB_impact,
+          droughtf = fp_drought_l,
+          heatf = fp_heat_u,
+          floodf = fp_flood_u)
+}
+
+### Finalise Impact Data
+
+# results in dB_impact_full
+dB_impact_full_make_f <- function(dB_impact,
+      fpm_droughtc_l,
+      fpm_heatc_l,
+      fpm_floodc_l,
+      fpm_droughtf_l,
+      fpm_heatf_l,
+      fpm_floodf_l,
+      fpm_droughtc_l_heatc_l,
+      fpm_droughtc_l_floodc_l,
+      fpm_heatc_l_floodc_l,
+      fpm_droughtc_l_heatc_l_floodc_l,
+      fpm_droughtf_l_heatf_l,
+      fpm_droughtf_l_floodf_l,
+      fpm_heatf_l_floodf_l,
+      fpm_droughtf_l_heatf_l_floodf_l,
+      fpm_droughtc_u,
+      fpm_heatc_u,
+      fpm_floodc_u,
+      fpm_droughtf_u,
+      fpm_heatf_u,
+      fpm_floodf_u,
+      fpm_droughtc_u_heatc_u,
+      fpm_droughtc_u_floodc_u,
+      fpm_heatc_u_floodc_u,
+      fpm_droughtc_u_heatc_u_floodc_u,
+      fpm_droughtf_u_heatf_u,
+      fpm_droughtf_u_floodf_u,
+      fpm_heatf_u_floodf_u,
+      fpm_droughtf_u_heatf_u_floodf_u,
+      fpm_droughtc_l_heatc_u,
+      fpm_droughtc_u_heatc_l,
+      fpm_droughtc_l_floodc_u,
+      fpm_droughtc_u_floodc_l,
+      fpm_heatc_l_floodc_u,
+      fpm_heatc_u_floodc_l,
+      fpm_droughtc_l_heatc_l_floodc_u,
+      fpm_droughtc_l_heatc_u_floodc_l,
+      fpm_droughtc_u_heatc_l_floodc_u,
+      fpm_droughtc_u_heatc_l_floodc_l,
+      fpm_droughtc_u_heatc_u_floodc_l,
+      fpm_droughtc_l_heatc_u_floodc_u,
+      fpm_droughtf_l_heatf_u,
+      fpm_droughtf_u_heatf_l,
+      fpm_droughtf_l_floodf_u,
+      fpm_droughtf_u_floodf_l,
+      fpm_heatf_l_floodf_u,
+      fpm_heatf_u_floodf_l,
+      fpm_droughtf_l_heatf_l_floodf_u,
+      fpm_droughtf_l_heatf_u_floodf_l,
+      fpm_droughtf_u_heatf_l_floodf_u,
+      fpm_droughtf_u_heatf_l_floodf_l,
+      fpm_droughtf_u_heatf_u_floodf_l,
+      fpm_droughtf_l_heatf_u_floodf_u
+      ) {
+  dB_impact %>% mutate(droughtc_l_s = getMembership(fpm_droughtc_l$suboptimal)) %>%
+
+  # lower thresholds
+
+                mutate(droughtc_l_o = getMembership(fpm_droughtc_l$optimal)) %>%
+                mutate(heatc_l_s = getMembership(fpm_heatc_l$suboptimal)) %>%
+                mutate(heatc_l_o = getMembership(fpm_heatc_l$optimal)) %>%
+                mutate(floodc_l_s = getMembership(fpm_floodc_l$suboptimal)) %>%
+                mutate(floodc_l_o = getMembership(fpm_floodc_l$optimal)) %>%
+                mutate(droughtf_l_s = getMembership(fpm_droughtf_l$suboptimal)) %>%
+                mutate(droughtf_l_o = getMembership(fpm_droughtf_l$optimal)) %>%
+                mutate(heatf_l_s = getMembership(fpm_heatf_l$suboptimal)) %>%
+                mutate(heatf_l_o = getMembership(fpm_heatf_l$optimal)) %>%
+                mutate(floodf_l_s = getMembership(fpm_floodf_l$suboptimal)) %>%
+                mutate(floodf_l_o = getMembership(fpm_floodf_l$optimal)) %>%
+
+                mutate(droughtchange_l_o  = (droughtf_l_o -  droughtc_l_o)) %>% 
+                mutate(droughtchange_l_s  = (droughtf_l_s -  droughtc_l_s)) %>% 
+                mutate(heatchange_l_o  = (heatf_l_o -  heatc_l_o)) %>% 
+                mutate(heatchange_l_s  = (heatf_l_s -  heatc_l_s)) %>%
+                mutate(floodchange_l_o  = (floodf_l_o -  floodc_l_o)) %>% 
+                mutate(floodchange_l_s  = (floodf_l_s -  floodc_l_s)) %>%
+
+                mutate(droughtc_l_heatc_l_o = getMembership(fpm_droughtc_l_heatc_l$optimal)) %>%
+                mutate(droughtc_l_heatc_l_d = getMembership(fpm_droughtc_l_heatc_l$drought)) %>%
+                mutate(droughtc_l_heatc_l_h = getMembership(fpm_droughtc_l_heatc_l$heat)) %>%
+                mutate(droughtc_l_heatc_l_dh = getMembership(fpm_droughtc_l_heatc_l$drought_heat)) %>%
+                mutate(droughtc_l_heatc_l_max = 
+                  ifelse(droughtc_l_heatc_l_o > 0.5, 0, 
+                    ifelse(droughtc_l_heatc_l_d > 0.5, 1, 
+                      ifelse(droughtc_l_heatc_l_h > 0.5, 2, 4)))) %>% 
+
+                mutate(droughtc_l_floodc_l_o = getMembership(fpm_droughtc_l_floodc_l$optimal)) %>%
+                mutate(droughtc_l_floodc_l_d = getMembership(fpm_droughtc_l_floodc_l$drought)) %>%
+                mutate(droughtc_l_floodc_l_f = getMembership(fpm_droughtc_l_floodc_l$flood)) %>%
+                mutate(droughtc_l_floodc_l_df = getMembership(fpm_droughtc_l_floodc_l$drought_flood)) %>%
+                mutate(droughtc_l_floodc_l_max = 
+                  ifelse(droughtc_l_floodc_l_o > 0.5, 0, 
+                    ifelse(droughtc_l_floodc_l_d > 0.5, 1, 
+                      ifelse(droughtc_l_floodc_l_f > 0.5, 3, 5)))) %>%
+
+                mutate(heatc_l_floodc_l_o = getMembership(fpm_heatc_l_floodc_l$optimal)) %>%
+                mutate(heatc_l_floodc_l_h = getMembership(fpm_heatc_l_floodc_l$heat)) %>%
+                mutate(heatc_l_floodc_l_f = getMembership(fpm_heatc_l_floodc_l$flood)) %>%
+                mutate(heatc_l_floodc_l_hf = getMembership(fpm_heatc_l_floodc_l$heat_flood)) %>%
+                mutate(heatc_l_floodc_l_max = 
+                  ifelse(heatc_l_floodc_l_o > 0.5, 0, 
+                    ifelse(heatc_l_floodc_l_h > 0.5, 2, 
+                      ifelse(heatc_l_floodc_l_f > 0.5, 3, 6)))) %>%
+
+                mutate(droughtc_l_heatc_l_floodc_l_o = getMembership(fpm_droughtc_l_heatc_l_floodc_l$optimal)) %>%
+                mutate(droughtc_l_heatc_l_floodc_l_d = getMembership(fpm_droughtc_l_heatc_l_floodc_l$drought)) %>%
+                mutate(droughtc_l_heatc_l_floodc_l_h = getMembership(fpm_droughtc_l_heatc_l_floodc_l$heat)) %>%
+                mutate(droughtc_l_heatc_l_floodc_l_f = getMembership(fpm_droughtc_l_heatc_l_floodc_l$flood)) %>%
+                mutate(droughtc_l_heatc_l_floodc_l_dh = getMembership(fpm_droughtc_l_heatc_l_floodc_l$drought_heat)) %>%
+                mutate(droughtc_l_heatc_l_floodc_l_df = getMembership(fpm_droughtc_l_heatc_l_floodc_l$drought_flood)) %>%
+                mutate(droughtc_l_heatc_l_floodc_l_hf = getMembership(fpm_droughtc_l_heatc_l_floodc_l$heat_flood)) %>%
+                mutate(droughtc_l_heatc_l_floodc_l_dhf = getMembership(fpm_droughtc_l_heatc_l_floodc_l$drought_heat_flood)) %>%
+                mutate(droughtc_l_heatc_l_floodc_l_max = 
+                  ifelse(droughtc_l_heatc_l_floodc_l_o > 0.5, 0, 
+                    ifelse(droughtc_l_heatc_l_floodc_l_d > 0.5, 1, 
+                      ifelse(droughtc_l_heatc_l_floodc_l_h > 0.5, 2, 
+                        ifelse(droughtc_l_heatc_l_floodc_l_f > 0.5, 3,
+                          ifelse(droughtc_l_heatc_l_floodc_l_dh > 0.5, 4, 
+                            ifelse(droughtc_l_heatc_l_floodc_l_df > 0.5, 5,
+                              ifelse(droughtc_l_heatc_l_floodc_l_hf > 0.5, 6, 7)))))))) %>%
+
+                mutate(droughtf_l_heatf_l_o = getMembership(fpm_droughtf_l_heatf_l$optimal)) %>%
+                mutate(droughtf_l_heatf_l_d = getMembership(fpm_droughtf_l_heatf_l$drought)) %>%
+                mutate(droughtf_l_heatf_l_h = getMembership(fpm_droughtf_l_heatf_l$heat)) %>%
+                mutate(droughtf_l_heatf_l_dh = getMembership(fpm_droughtf_l_heatf_l$drought_heat)) %>%
+                mutate(droughtf_l_heatf_l_max = 
+                  ifelse(droughtf_l_heatf_l_o > 0.5, 0, 
+                    ifelse(droughtf_l_heatf_l_d > 0.5, 1, 
+                      ifelse(droughtf_l_heatf_l_h > 0.5, 2, 4)))) %>% 
+
+                mutate(droughtf_l_floodf_l_o = getMembership(fpm_droughtf_l_floodf_l$optimal)) %>%
+                mutate(droughtf_l_floodf_l_d = getMembership(fpm_droughtf_l_floodf_l$drought)) %>%
+                mutate(droughtf_l_floodf_l_f = getMembership(fpm_droughtf_l_floodf_l$flood)) %>%
+                mutate(droughtf_l_floodf_l_df = getMembership(fpm_droughtf_l_floodf_l$drought_flood)) %>%
+                mutate(droughtf_l_floodf_l_max = 
+                  ifelse(droughtf_l_floodf_l_o > 0.5, 0, 
+                    ifelse(droughtf_l_floodf_l_d > 0.5, 1, 
+                      ifelse(droughtf_l_floodf_l_f > 0.5, 3, 5)))) %>%
+
+                mutate(heatf_l_floodf_l_o = getMembership(fpm_heatf_l_floodf_l$optimal)) %>%
+                mutate(heatf_l_floodf_l_h = getMembership(fpm_heatf_l_floodf_l$heat)) %>%
+                mutate(heatf_l_floodf_l_f = getMembership(fpm_heatf_l_floodf_l$flood)) %>%
+                mutate(heatf_l_floodf_l_hf = getMembership(fpm_heatf_l_floodf_l$heat_flood)) %>%
+                mutate(heatf_l_floodf_l_max = 
+                  ifelse(heatf_l_floodf_l_o > 0.5, 0, 
+                    ifelse(heatf_l_floodf_l_h > 0.5, 2, 
+                      ifelse(heatf_l_floodf_l_f > 0.5, 3, 6)))) %>%
+
+
+                mutate(droughtf_l_heatf_l_floodf_l_o = getMembership(fpm_droughtf_l_heatf_l_floodf_l$optimal)) %>%
+                mutate(droughtf_l_heatf_l_floodf_l_d = getMembership(fpm_droughtf_l_heatf_l_floodf_l$drought)) %>%
+                mutate(droughtf_l_heatf_l_floodf_l_h = getMembership(fpm_droughtf_l_heatf_l_floodf_l$heat)) %>%
+                mutate(droughtf_l_heatf_l_floodf_l_f = getMembership(fpm_droughtf_l_heatf_l_floodf_l$flood)) %>%
+                mutate(droughtf_l_heatf_l_floodf_l_dh = getMembership(fpm_droughtf_l_heatf_l_floodf_l$drought_heat)) %>%
+                mutate(droughtf_l_heatf_l_floodf_l_df = getMembership(fpm_droughtf_l_heatf_l_floodf_l$drought_flood)) %>%
+                mutate(droughtf_l_heatf_l_floodf_l_hf = getMembership(fpm_droughtf_l_heatf_l_floodf_l$heat_flood)) %>%
+                mutate(droughtf_l_heatf_l_floodf_l_dhf = getMembership(fpm_droughtf_l_heatf_l_floodf_l$drought_heat_flood)) %>%
+                mutate(droughtf_l_heatf_l_floodf_l_max = 
+                  ifelse(droughtf_l_heatf_l_floodf_l_o > 0.5, 0, 
+                    ifelse(droughtf_l_heatf_l_floodf_l_d > 0.5, 1, 
+                      ifelse(droughtf_l_heatf_l_floodf_l_h > 0.5, 2, 
+                        ifelse(droughtf_l_heatf_l_floodf_l_f > 0.5, 3,
+                          ifelse(droughtf_l_heatf_l_floodf_l_dh > 0.5, 4, 
+                            ifelse(droughtf_l_heatf_l_floodf_l_df > 0.5, 5,
+                              ifelse(droughtf_l_heatf_l_floodf_l_hf > 0.5, 6, 7)))))))) %>%
+# upper thresholds
+
+                mutate(droughtc_u_s = getMembership(fpm_droughtc_u$suboptimal)) %>%
+                mutate(droughtc_u_o = getMembership(fpm_droughtc_u$optimal)) %>%
+                mutate(heatc_u_s = getMembership(fpm_heatc_u$suboptimal)) %>%
+                mutate(heatc_u_o = getMembership(fpm_heatc_u$optimal)) %>%
+                mutate(floodc_u_s = getMembership(fpm_floodc_u$suboptimal)) %>%
+                mutate(floodc_u_o = getMembership(fpm_floodc_u$optimal)) %>%
+                mutate(droughtf_u_s = getMembership(fpm_droughtf_u$suboptimal)) %>%
+                mutate(droughtf_u_o = getMembership(fpm_droughtf_u$optimal)) %>%
+                mutate(heatf_u_s = getMembership(fpm_heatf_u$suboptimal)) %>%
+                mutate(heatf_u_o = getMembership(fpm_heatf_u$optimal)) %>%
+                mutate(floodf_u_s = getMembership(fpm_floodf_u$suboptimal)) %>%
+                mutate(floodf_u_o = getMembership(fpm_floodf_u$optimal)) %>%
+
+                mutate(droughtchange_u_o  = (droughtf_u_o -  droughtc_u_o)) %>% 
+                mutate(droughtchange_u_s  = (droughtf_u_s -  droughtc_u_s)) %>% 
+                mutate(heatchange_u_o  = (heatf_u_o -  heatc_u_o)) %>% 
+                mutate(heatchange_u_s  = (heatf_u_s -  heatc_u_s)) %>%
+                mutate(floodchange_u_o  = (floodf_u_o -  floodc_u_o)) %>% 
+                mutate(floodchange_u_s  = (floodf_u_s -  floodc_u_s)) %>%
+
+                mutate(droughtc_u_heatc_u_o = getMembership(fpm_droughtc_u_heatc_u$optimal)) %>%
+                mutate(droughtc_u_heatc_u_d = getMembership(fpm_droughtc_u_heatc_u$drought)) %>%
+                mutate(droughtc_u_heatc_u_h = getMembership(fpm_droughtc_u_heatc_u$heat)) %>%
+                mutate(droughtc_u_heatc_u_dh = getMembership(fpm_droughtc_u_heatc_u$drought_heat)) %>%
+                mutate(droughtc_u_heatc_u_max = 
+                  ifelse(droughtc_u_heatc_u_o > 0.5, 0, 
+                    ifelse(droughtc_u_heatc_u_d > 0.5, 1, 
+                      ifelse(droughtc_u_heatc_u_h > 0.5, 2, 4)))) %>% 
+
+                mutate(droughtc_u_floodc_u_o = getMembership(fpm_droughtc_u_floodc_u$optimal)) %>%
+                mutate(droughtc_u_floodc_u_d = getMembership(fpm_droughtc_u_floodc_u$drought)) %>%
+                mutate(droughtc_u_floodc_u_f = getMembership(fpm_droughtc_u_floodc_u$flood)) %>%
+                mutate(droughtc_u_floodc_u_df = getMembership(fpm_droughtc_u_floodc_u$drought_flood)) %>%
+                mutate(droughtc_u_floodc_u_max = 
+                  ifelse(droughtc_u_floodc_u_o > 0.5, 0, 
+                    ifelse(droughtc_u_floodc_u_d > 0.5, 1, 
+                      ifelse(droughtc_u_floodc_u_f > 0.5, 3, 5)))) %>%
+
+                mutate(heatc_u_floodc_u_o = getMembership(fpm_heatc_u_floodc_u$optimal)) %>%
+                mutate(heatc_u_floodc_u_h = getMembership(fpm_heatc_u_floodc_u$heat)) %>%
+                mutate(heatc_u_floodc_u_f = getMembership(fpm_heatc_u_floodc_u$flood)) %>%
+                mutate(heatc_u_floodc_u_hf = getMembership(fpm_heatc_u_floodc_u$heat_flood)) %>%
+                mutate(heatc_u_floodc_u_max = 
+                  ifelse(heatc_u_floodc_u_o > 0.5, 0, 
+                    ifelse(heatc_u_floodc_u_h > 0.5, 2, 
+                      ifelse(heatc_u_floodc_u_f > 0.5, 3, 6)))) %>%
+
+                mutate(droughtc_u_heatc_u_floodc_u_o = getMembership(fpm_droughtc_u_heatc_u_floodc_u$optimal)) %>%
+                mutate(droughtc_u_heatc_u_floodc_u_d = getMembership(fpm_droughtc_u_heatc_u_floodc_u$drought)) %>%
+                mutate(droughtc_u_heatc_u_floodc_u_h = getMembership(fpm_droughtc_u_heatc_u_floodc_u$heat)) %>%
+                mutate(droughtc_u_heatc_u_floodc_u_f = getMembership(fpm_droughtc_u_heatc_u_floodc_u$flood)) %>%
+                mutate(droughtc_u_heatc_u_floodc_u_dh = getMembership(fpm_droughtc_u_heatc_u_floodc_u$drought_heat)) %>%
+                mutate(droughtc_u_heatc_u_floodc_u_df = getMembership(fpm_droughtc_u_heatc_u_floodc_u$drought_flood)) %>%
+                mutate(droughtc_u_heatc_u_floodc_u_hf = getMembership(fpm_droughtc_u_heatc_u_floodc_u$heat_flood)) %>%
+                mutate(droughtc_u_heatc_u_floodc_u_dhf = getMembership(fpm_droughtc_u_heatc_u_floodc_u$drought_heat_flood)) %>%
+                mutate(droughtc_u_heatc_u_floodc_u_max = 
+                  ifelse(droughtc_u_heatc_u_floodc_u_o > 0.5, 0, 
+                    ifelse(droughtc_u_heatc_u_floodc_u_d > 0.5, 1, 
+                      ifelse(droughtc_u_heatc_u_floodc_u_h > 0.5, 2, 
+                        ifelse(droughtc_u_heatc_u_floodc_u_f > 0.5, 3,
+                          ifelse(droughtc_u_heatc_u_floodc_u_dh > 0.5, 4, 
+                            ifelse(droughtc_u_heatc_u_floodc_u_df > 0.5, 5,
+                              ifelse(droughtc_u_heatc_u_floodc_u_hf > 0.5, 6, 7)))))))) %>%
+
+                mutate(droughtf_u_heatf_u_o = getMembership(fpm_droughtf_u_heatf_u$optimal)) %>%
+                mutate(droughtf_u_heatf_u_d = getMembership(fpm_droughtf_u_heatf_u$drought)) %>%
+                mutate(droughtf_u_heatf_u_h = getMembership(fpm_droughtf_u_heatf_u$heat)) %>%
+                mutate(droughtf_u_heatf_u_dh = getMembership(fpm_droughtf_u_heatf_u$drought_heat)) %>%
+                mutate(droughtf_u_heatf_u_max = 
+                  ifelse(droughtf_u_heatf_u_o > 0.5, 0, 
+                    ifelse(droughtf_u_heatf_u_d > 0.5, 1, 
+                      ifelse(droughtf_u_heatf_u_h > 0.5, 2, 4)))) %>% 
+
+                mutate(droughtf_u_floodf_u_o = getMembership(fpm_droughtf_u_floodf_u$optimal)) %>%
+                mutate(droughtf_u_floodf_u_d = getMembership(fpm_droughtf_u_floodf_u$drought)) %>%
+                mutate(droughtf_u_floodf_u_f = getMembership(fpm_droughtf_u_floodf_u$flood)) %>%
+                mutate(droughtf_u_floodf_u_df = getMembership(fpm_droughtf_u_floodf_u$drought_flood)) %>%
+                mutate(droughtf_u_floodf_u_max = 
+                  ifelse(droughtf_u_floodf_u_o > 0.5, 0, 
+                    ifelse(droughtf_u_floodf_u_d > 0.5, 1, 
+                      ifelse(droughtf_u_floodf_u_f > 0.5, 3, 5)))) %>%
+
+                mutate(heatf_u_floodf_u_o = getMembership(fpm_heatf_u_floodf_u$optimal)) %>%
+                mutate(heatf_u_floodf_u_h = getMembership(fpm_heatf_u_floodf_u$heat)) %>%
+                mutate(heatf_u_floodf_u_f = getMembership(fpm_heatf_u_floodf_u$flood)) %>%
+                mutate(heatf_u_floodf_u_hf = getMembership(fpm_heatf_u_floodf_u$heat_flood)) %>%
+                mutate(heatf_u_floodf_u_max = 
+                  ifelse(heatf_u_floodf_u_o > 0.5, 0, 
+                    ifelse(heatf_u_floodf_u_h > 0.5, 2, 
+                      ifelse(heatf_u_floodf_u_f > 0.5, 3, 6)))) %>%
+
+
+                mutate(droughtf_u_heatf_u_floodf_u_o = getMembership(fpm_droughtf_u_heatf_u_floodf_u$optimal)) %>%
+                mutate(droughtf_u_heatf_u_floodf_u_d = getMembership(fpm_droughtf_u_heatf_u_floodf_u$drought)) %>%
+                mutate(droughtf_u_heatf_u_floodf_u_h = getMembership(fpm_droughtf_u_heatf_u_floodf_u$heat)) %>%
+                mutate(droughtf_u_heatf_u_floodf_u_f = getMembership(fpm_droughtf_u_heatf_u_floodf_u$flood)) %>%
+                mutate(droughtf_u_heatf_u_floodf_u_dh = getMembership(fpm_droughtf_u_heatf_u_floodf_u$drought_heat)) %>%
+                mutate(droughtf_u_heatf_u_floodf_u_df = getMembership(fpm_droughtf_u_heatf_u_floodf_u$drought_flood)) %>%
+                mutate(droughtf_u_heatf_u_floodf_u_hf = getMembership(fpm_droughtf_u_heatf_u_floodf_u$heat_flood)) %>%
+                mutate(droughtf_u_heatf_u_floodf_u_dhf = getMembership(fpm_droughtf_u_heatf_u_floodf_u$drought_heat_flood)) %>%
+                mutate(droughtf_u_heatf_u_floodf_u_max = 
+                  ifelse(droughtf_u_heatf_u_floodf_u_o > 0.5, 0, 
+                    ifelse(droughtf_u_heatf_u_floodf_u_d > 0.5, 1, 
+                      ifelse(droughtf_u_heatf_u_floodf_u_h > 0.5, 2, 
+                        ifelse(droughtf_u_heatf_u_floodf_u_f > 0.5, 3,
+                          ifelse(droughtf_u_heatf_u_floodf_u_dh > 0.5, 4, 
+                            ifelse(droughtf_u_heatf_u_floodf_u_df > 0.5, 5,
+                              ifelse(droughtf_u_heatf_u_floodf_u_hf > 0.5, 6, 7)))))))) %>%
+
+# mixed thresholds
+
+                mutate(droughtc_l_heatc_u_o = getMembership(fpm_droughtc_l_heatc_u$optimal)) %>%
+                mutate(droughtc_l_heatc_u_d = getMembership(fpm_droughtc_l_heatc_u$drought)) %>%
+                mutate(droughtc_l_heatc_u_h = getMembership(fpm_droughtc_l_heatc_u$heat)) %>%
+                mutate(droughtc_l_heatc_u_dh = getMembership(fpm_droughtc_l_heatc_u$drought_heat)) %>%
+                mutate(droughtc_l_heatc_u_max = 
+                  ifelse(droughtc_l_heatc_u_o > 0.5, 0, 
+                    ifelse(droughtc_l_heatc_u_d > 0.5, 1, 
+                      ifelse(droughtc_l_heatc_u_h > 0.5, 2, 4)))) %>% 
+
+
+                mutate(droughtc_u_heatc_l_o = getMembership(fpm_droughtc_u_heatc_l$optimal)) %>%
+                mutate(droughtc_u_heatc_l_d = getMembership(fpm_droughtc_u_heatc_l$drought)) %>%
+                mutate(droughtc_u_heatc_l_h = getMembership(fpm_droughtc_u_heatc_l$heat)) %>%
+                mutate(droughtc_u_heatc_l_dh = getMembership(fpm_droughtc_u_heatc_l$drought_heat)) %>%
+                mutate(droughtc_u_heatc_l_max = 
+                  ifelse(droughtc_u_heatc_l_o > 0.5, 0, 
+                    ifelse(droughtc_u_heatc_l_d > 0.5, 1, 
+                      ifelse(droughtc_u_heatc_l_h > 0.5, 2, 4)))) %>% 
+
+
+                mutate(droughtc_l_floodc_u_o = getMembership(fpm_droughtc_l_floodc_u$optimal)) %>%
+                mutate(droughtc_l_floodc_u_d = getMembership(fpm_droughtc_l_floodc_u$drought)) %>%
+                mutate(droughtc_l_floodc_u_f = getMembership(fpm_droughtc_l_floodc_u$flood)) %>%
+                mutate(droughtc_l_floodc_u_df = getMembership(fpm_droughtc_l_floodc_u$drought_flood)) %>%
+                mutate(droughtc_l_floodc_u_max = 
+                  ifelse(droughtc_l_floodc_u_o > 0.5, 0, 
+                    ifelse(droughtc_l_floodc_u_d > 0.5, 1, 
+                      ifelse(droughtc_l_floodc_u_f > 0.5, 3, 5)))) %>% 
+
+
+                mutate(droughtc_u_floodc_l_o = getMembership(fpm_droughtc_u_floodc_l$optimal)) %>%
+                mutate(droughtc_u_floodc_l_d = getMembership(fpm_droughtc_u_floodc_l$drought)) %>%
+                mutate(droughtc_u_floodc_l_f = getMembership(fpm_droughtc_u_floodc_l$flood)) %>%
+                mutate(droughtc_u_floodc_l_df = getMembership(fpm_droughtc_u_floodc_l$drought_flood)) %>%
+                mutate(droughtc_u_floodc_l_max = 
+                  ifelse(droughtc_u_floodc_l_o > 0.5, 0, 
+                    ifelse(droughtc_u_floodc_l_d > 0.5, 1, 
+                      ifelse(droughtc_u_floodc_l_f > 0.5, 3, 5)))) %>% 
+
+
+                mutate(heatc_l_floodc_u_o = getMembership(fpm_heatc_l_floodc_u$optimal)) %>%
+                mutate(heatc_l_floodc_u_h = getMembership(fpm_heatc_l_floodc_u$heat)) %>%
+                mutate(heatc_l_floodc_u_f = getMembership(fpm_heatc_l_floodc_u$flood)) %>%
+                mutate(heatc_l_floodc_u_hf = getMembership(fpm_heatc_l_floodc_u$heat_flood)) %>%
+                mutate(heatc_l_floodc_u_max = 
+                  ifelse(heatc_l_floodc_u_o > 0.5, 0, 
+                    ifelse(heatc_l_floodc_u_h > 0.5, 2, 
+                      ifelse(heatc_l_floodc_u_f > 0.5, 3, 6)))) %>% 
+
+
+                mutate(heatc_u_floodc_l_o = getMembership(fpm_heatc_u_floodc_l$optimal)) %>%
+                mutate(heatc_u_floodc_l_h = getMembership(fpm_heatc_u_floodc_l$heat)) %>%
+                mutate(heatc_u_floodc_l_f = getMembership(fpm_heatc_u_floodc_l$flood)) %>%
+                mutate(heatc_u_floodc_l_hf = getMembership(fpm_heatc_u_floodc_l$heat_flood)) %>%
+                mutate(heatc_u_floodc_l_max = 
+                  ifelse(heatc_u_floodc_l_o > 0.5, 0, 
+                    ifelse(heatc_u_floodc_l_h > 0.5, 2, 
+                      ifelse(heatc_u_floodc_l_f > 0.5, 3, 6)))) %>% 
+
+
+                mutate(droughtc_l_heatc_l_floodc_u_o = getMembership(fpm_droughtc_l_heatc_l_floodc_u$optimal)) %>%
+                mutate(droughtc_l_heatc_l_floodc_u_d = getMembership(fpm_droughtc_l_heatc_l_floodc_u$drought)) %>%
+                mutate(droughtc_l_heatc_l_floodc_u_h = getMembership(fpm_droughtc_l_heatc_l_floodc_u$heat)) %>%
+                mutate(droughtc_l_heatc_l_floodc_u_f = getMembership(fpm_droughtc_l_heatc_l_floodc_u$flood)) %>%
+                mutate(droughtc_l_heatc_l_floodc_u_dh = getMembership(fpm_droughtc_l_heatc_l_floodc_u$drought_heat)) %>%
+                mutate(droughtc_l_heatc_l_floodc_u_df = getMembership(fpm_droughtc_l_heatc_l_floodc_u$drought_flood)) %>%
+                mutate(droughtc_l_heatc_l_floodc_u_hf = getMembership(fpm_droughtc_l_heatc_l_floodc_u$heat_flood)) %>%
+                mutate(droughtc_l_heatc_l_floodc_u_dhf = getMembership(fpm_droughtc_l_heatc_l_floodc_u$drought_heat_flood)) %>%
+                mutate(droughtc_l_heatc_l_floodc_u_max = 
+                  ifelse(droughtc_l_heatc_l_floodc_u_o > 0.5, 0, 
+                    ifelse(droughtc_l_heatc_l_floodc_u_d > 0.5, 1, 
+                      ifelse(droughtc_l_heatc_l_floodc_u_h > 0.5, 2, 
+                        ifelse(droughtc_l_heatc_l_floodc_u_f > 0.5, 3,
+                          ifelse(droughtc_l_heatc_l_floodc_u_dh > 0.5, 4, 
+                            ifelse(droughtc_l_heatc_l_floodc_u_df > 0.5, 5,
+                              ifelse(droughtc_l_heatc_l_floodc_u_hf > 0.5, 6, 7)))))))) %>%                  
+
+
+                mutate(droughtc_l_heatc_u_floodc_l_o = getMembership(fpm_droughtc_l_heatc_u_floodc_l$optimal)) %>%
+                mutate(droughtc_l_heatc_u_floodc_l_d = getMembership(fpm_droughtc_l_heatc_u_floodc_l$drought)) %>%
+                mutate(droughtc_l_heatc_u_floodc_l_h = getMembership(fpm_droughtc_l_heatc_u_floodc_l$heat)) %>%
+                mutate(droughtc_l_heatc_u_floodc_l_f = getMembership(fpm_droughtc_l_heatc_u_floodc_l$flood)) %>%
+                mutate(droughtc_l_heatc_u_floodc_l_dh = getMembership(fpm_droughtc_l_heatc_u_floodc_l$drought_heat)) %>%
+                mutate(droughtc_l_heatc_u_floodc_l_df = getMembership(fpm_droughtc_l_heatc_u_floodc_l$drought_flood)) %>%
+                mutate(droughtc_l_heatc_u_floodc_l_hf = getMembership(fpm_droughtc_l_heatc_u_floodc_l$heat_flood)) %>%
+                mutate(droughtc_l_heatc_u_floodc_l_dhf = getMembership(fpm_droughtc_l_heatc_u_floodc_l$drought_heat_flood)) %>%
+                mutate(droughtc_l_heatc_u_floodc_l_max = 
+                  ifelse(droughtc_l_heatc_u_floodc_l_o > 0.5, 0, 
+                    ifelse(droughtc_l_heatc_u_floodc_l_d > 0.5, 1, 
+                      ifelse(droughtc_l_heatc_u_floodc_l_h > 0.5, 2, 
+                        ifelse(droughtc_l_heatc_u_floodc_l_f > 0.5, 3,
+                          ifelse(droughtc_l_heatc_u_floodc_l_dh > 0.5, 4, 
+                            ifelse(droughtc_l_heatc_u_floodc_l_df > 0.5, 5,
+                              ifelse(droughtc_l_heatc_u_floodc_l_hf > 0.5, 6, 7)))))))) %>% 
+
+
+                mutate(droughtc_u_heatc_l_floodc_u_o = getMembership(fpm_droughtc_u_heatc_l_floodc_u$optimal)) %>%
+                mutate(droughtc_u_heatc_l_floodc_u_d = getMembership(fpm_droughtc_u_heatc_l_floodc_u$drought)) %>%
+                mutate(droughtc_u_heatc_l_floodc_u_h = getMembership(fpm_droughtc_u_heatc_l_floodc_u$heat)) %>%
+                mutate(droughtc_u_heatc_l_floodc_u_f = getMembership(fpm_droughtc_u_heatc_l_floodc_u$flood)) %>%
+                mutate(droughtc_u_heatc_l_floodc_u_dh = getMembership(fpm_droughtc_u_heatc_l_floodc_u$drought_heat)) %>%
+                mutate(droughtc_u_heatc_l_floodc_u_df = getMembership(fpm_droughtc_u_heatc_l_floodc_u$drought_flood)) %>%
+                mutate(droughtc_u_heatc_l_floodc_u_hf = getMembership(fpm_droughtc_u_heatc_l_floodc_u$heat_flood)) %>%
+                mutate(droughtc_u_heatc_l_floodc_u_dhf = getMembership(fpm_droughtc_u_heatc_l_floodc_u$drought_heat_flood)) %>%
+                mutate(droughtc_u_heatc_l_floodc_u_max = 
+                  ifelse(droughtc_u_heatc_l_floodc_u_o > 0.5, 0, 
+                    ifelse(droughtc_u_heatc_l_floodc_u_d > 0.5, 1, 
+                      ifelse(droughtc_u_heatc_l_floodc_u_h > 0.5, 2, 
+                        ifelse(droughtc_u_heatc_l_floodc_u_f > 0.5, 3,
+                          ifelse(droughtc_u_heatc_l_floodc_u_dh > 0.5, 4, 
+                            ifelse(droughtc_u_heatc_l_floodc_u_df > 0.5, 5,
+                              ifelse(droughtc_u_heatc_l_floodc_u_hf > 0.5, 6, 7)))))))) %>% 
+
+
+                mutate(droughtc_u_heatc_l_floodc_l_o = getMembership(fpm_droughtc_u_heatc_l_floodc_l$optimal)) %>%
+                mutate(droughtc_u_heatc_l_floodc_l_d = getMembership(fpm_droughtc_u_heatc_l_floodc_l$drought)) %>%
+                mutate(droughtc_u_heatc_l_floodc_l_h = getMembership(fpm_droughtc_u_heatc_l_floodc_l$heat)) %>%
+                mutate(droughtc_u_heatc_l_floodc_l_f = getMembership(fpm_droughtc_u_heatc_l_floodc_l$flood)) %>%
+                mutate(droughtc_u_heatc_l_floodc_l_dh = getMembership(fpm_droughtc_u_heatc_l_floodc_l$drought_heat)) %>%
+                mutate(droughtc_u_heatc_l_floodc_l_df = getMembership(fpm_droughtc_u_heatc_l_floodc_l$drought_flood)) %>%
+                mutate(droughtc_u_heatc_l_floodc_l_hf = getMembership(fpm_droughtc_u_heatc_l_floodc_l$heat_flood)) %>%
+                mutate(droughtc_u_heatc_l_floodc_l_dhf = getMembership(fpm_droughtc_u_heatc_l_floodc_l$drought_heat_flood)) %>%
+                mutate(droughtc_u_heatc_l_floodc_l_max = 
+                  ifelse(droughtc_u_heatc_l_floodc_l_o > 0.5, 0, 
+                    ifelse(droughtc_u_heatc_l_floodc_l_d > 0.5, 1, 
+                      ifelse(droughtc_u_heatc_l_floodc_l_h > 0.5, 2, 
+                        ifelse(droughtc_u_heatc_l_floodc_l_f > 0.5, 3,
+                          ifelse(droughtc_u_heatc_l_floodc_l_dh > 0.5, 4, 
+                            ifelse(droughtc_u_heatc_l_floodc_l_df > 0.5, 5,
+                              ifelse(droughtc_u_heatc_l_floodc_l_hf > 0.5, 6, 7)))))))) %>% 
+
+
+                mutate(droughtc_u_heatc_u_floodc_l_o = getMembership(fpm_droughtc_u_heatc_u_floodc_l$optimal)) %>%
+                mutate(droughtc_u_heatc_u_floodc_l_d = getMembership(fpm_droughtc_u_heatc_u_floodc_l$drought)) %>%
+                mutate(droughtc_u_heatc_u_floodc_l_h = getMembership(fpm_droughtc_u_heatc_u_floodc_l$heat)) %>%
+                mutate(droughtc_u_heatc_u_floodc_l_f = getMembership(fpm_droughtc_u_heatc_u_floodc_l$flood)) %>%
+                mutate(droughtc_u_heatc_u_floodc_l_dh = getMembership(fpm_droughtc_u_heatc_u_floodc_l$drought_heat)) %>%
+                mutate(droughtc_u_heatc_u_floodc_l_df = getMembership(fpm_droughtc_u_heatc_u_floodc_l$drought_flood)) %>%
+                mutate(droughtc_u_heatc_u_floodc_l_hf = getMembership(fpm_droughtc_u_heatc_u_floodc_l$heat_flood)) %>%
+                mutate(droughtc_u_heatc_u_floodc_l_dhf = getMembership(fpm_droughtc_u_heatc_u_floodc_l$drought_heat_flood)) %>%
+                mutate(droughtc_u_heatc_u_floodc_l_max = 
+                  ifelse(droughtc_u_heatc_u_floodc_l_o > 0.5, 0, 
+                    ifelse(droughtc_u_heatc_u_floodc_l_d > 0.5, 1, 
+                      ifelse(droughtc_u_heatc_u_floodc_l_h > 0.5, 2, 
+                        ifelse(droughtc_u_heatc_u_floodc_l_f > 0.5, 3,
+                          ifelse(droughtc_u_heatc_u_floodc_l_dh > 0.5, 4, 
+                            ifelse(droughtc_u_heatc_u_floodc_l_df > 0.5, 5,
+                              ifelse(droughtc_u_heatc_u_floodc_l_hf > 0.5, 6, 7)))))))) %>% 
+
+
+                mutate(droughtc_l_heatc_u_floodc_u_o = getMembership(fpm_droughtc_l_heatc_u_floodc_u$optimal)) %>%
+                mutate(droughtc_l_heatc_u_floodc_u_d = getMembership(fpm_droughtc_l_heatc_u_floodc_u$drought)) %>%
+                mutate(droughtc_l_heatc_u_floodc_u_h = getMembership(fpm_droughtc_l_heatc_u_floodc_u$heat)) %>%
+                mutate(droughtc_l_heatc_u_floodc_u_f = getMembership(fpm_droughtc_l_heatc_u_floodc_u$flood)) %>%
+                mutate(droughtc_l_heatc_u_floodc_u_dh = getMembership(fpm_droughtc_l_heatc_u_floodc_u$drought_heat)) %>%
+                mutate(droughtc_l_heatc_u_floodc_u_df = getMembership(fpm_droughtc_l_heatc_u_floodc_u$drought_flood)) %>%
+                mutate(droughtc_l_heatc_u_floodc_u_hf = getMembership(fpm_droughtc_l_heatc_u_floodc_u$heat_flood)) %>%
+                mutate(droughtc_l_heatc_u_floodc_u_dhf = getMembership(fpm_droughtc_l_heatc_u_floodc_u$drought_heat_flood)) %>%
+                mutate(droughtc_l_heatc_u_floodc_u_max = 
+                  ifelse(droughtc_l_heatc_u_floodc_u_o > 0.5, 0, 
+                    ifelse(droughtc_l_heatc_u_floodc_u_d > 0.5, 1, 
+                      ifelse(droughtc_l_heatc_u_floodc_u_h > 0.5, 2, 
+                        ifelse(droughtc_l_heatc_u_floodc_u_f > 0.5, 3,
+                          ifelse(droughtc_l_heatc_u_floodc_u_dh > 0.5, 4, 
+                            ifelse(droughtc_l_heatc_u_floodc_u_df > 0.5, 5,
+                              ifelse(droughtc_l_heatc_u_floodc_u_hf > 0.5, 6, 7)))))))) %>% 
+
+
+                mutate(droughtf_l_heatf_u_o = getMembership(fpm_droughtf_l_heatf_u$optimal)) %>%
+                mutate(droughtf_l_heatf_u_d = getMembership(fpm_droughtf_l_heatf_u$drought)) %>%
+                mutate(droughtf_l_heatf_u_h = getMembership(fpm_droughtf_l_heatf_u$heat)) %>%
+                mutate(droughtf_l_heatf_u_dh = getMembership(fpm_droughtf_l_heatf_u$drought_heat)) %>%
+                mutate(droughtf_l_heatf_u_max = 
+                  ifelse(droughtf_l_heatf_u_o > 0.5, 0, 
+                    ifelse(droughtf_l_heatf_u_d > 0.5, 1, 
+                      ifelse(droughtf_l_heatf_u_h > 0.5, 2, 4)))) %>% 
+
+
+                mutate(droughtf_u_heatf_l_o = getMembership(fpm_droughtf_u_heatf_l$optimal)) %>%
+                mutate(droughtf_u_heatf_l_d = getMembership(fpm_droughtf_u_heatf_l$drought)) %>%
+                mutate(droughtf_u_heatf_l_h = getMembership(fpm_droughtf_u_heatf_l$heat)) %>%
+                mutate(droughtf_u_heatf_l_dh = getMembership(fpm_droughtf_u_heatf_l$drought_heat)) %>%
+                mutate(droughtf_u_heatf_l_max = 
+                  ifelse(droughtf_u_heatf_l_o > 0.5, 0, 
+                    ifelse(droughtf_u_heatf_l_d > 0.5, 1, 
+                      ifelse(droughtf_u_heatf_l_h > 0.5, 2, 4)))) %>% 
+
+
+                mutate(droughtf_l_floodf_u_o = getMembership(fpm_droughtf_l_floodf_u$optimal)) %>%
+                mutate(droughtf_l_floodf_u_d = getMembership(fpm_droughtf_l_floodf_u$drought)) %>%
+                mutate(droughtf_l_floodf_u_f = getMembership(fpm_droughtf_l_floodf_u$flood)) %>%
+                mutate(droughtf_l_floodf_u_df = getMembership(fpm_droughtf_l_floodf_u$drought_flood)) %>%
+                mutate(droughtf_l_floodf_u_max = 
+                  ifelse(droughtf_l_floodf_u_o > 0.5, 0, 
+                    ifelse(droughtf_l_floodf_u_d > 0.5, 1, 
+                      ifelse(droughtf_l_floodf_u_f > 0.5, 3, 5)))) %>% 
+
+
+                mutate(droughtf_u_floodf_l_o = getMembership(fpm_droughtf_u_floodf_l$optimal)) %>%
+                mutate(droughtf_u_floodf_l_d = getMembership(fpm_droughtf_u_floodf_l$drought)) %>%
+                mutate(droughtf_u_floodf_l_f = getMembership(fpm_droughtf_u_floodf_l$flood)) %>%
+                mutate(droughtf_u_floodf_l_df = getMembership(fpm_droughtf_u_floodf_l$drought_flood)) %>%
+                mutate(droughtf_u_floodf_l_max = 
+                  ifelse(droughtf_u_floodf_l_o > 0.5, 0, 
+                    ifelse(droughtf_u_floodf_l_d > 0.5, 1, 
+                      ifelse(droughtf_u_floodf_l_f > 0.5, 3, 5)))) %>% 
+
+
+                mutate(heatf_l_floodf_u_o = getMembership(fpm_heatf_l_floodf_u$optimal)) %>%
+                mutate(heatf_l_floodf_u_h = getMembership(fpm_heatf_l_floodf_u$heat)) %>%
+                mutate(heatf_l_floodf_u_f = getMembership(fpm_heatf_l_floodf_u$flood)) %>%
+                mutate(heatf_l_floodf_u_hf = getMembership(fpm_heatf_l_floodf_u$heat_flood)) %>%
+                mutate(heatf_l_floodf_u_max = 
+                  ifelse(heatf_l_floodf_u_o > 0.5, 0, 
+                    ifelse(heatf_l_floodf_u_h > 0.5, 2, 
+                      ifelse(heatf_l_floodf_u_f > 0.5, 3, 6)))) %>% 
+
+
+                mutate(heatf_u_floodf_l_o = getMembership(fpm_heatf_u_floodf_l$optimal)) %>%
+                mutate(heatf_u_floodf_l_h = getMembership(fpm_heatf_u_floodf_l$heat)) %>%
+                mutate(heatf_u_floodf_l_f = getMembership(fpm_heatf_u_floodf_l$flood)) %>%
+                mutate(heatf_u_floodf_l_hf = getMembership(fpm_heatf_u_floodf_l$heat_flood)) %>%
+                mutate(heatf_u_floodf_l_max = 
+                  ifelse(heatf_u_floodf_l_o > 0.5, 0, 
+                    ifelse(heatf_u_floodf_l_h > 0.5, 2, 
+                      ifelse(heatf_u_floodf_l_f > 0.5, 3, 6)))) %>% 
+
+
+                mutate(droughtf_l_heatf_l_floodf_u_o = getMembership(fpm_droughtf_l_heatf_l_floodf_u$optimal)) %>%
+                mutate(droughtf_l_heatf_l_floodf_u_d = getMembership(fpm_droughtf_l_heatf_l_floodf_u$drought)) %>%
+                mutate(droughtf_l_heatf_l_floodf_u_h = getMembership(fpm_droughtf_l_heatf_l_floodf_u$heat)) %>%
+                mutate(droughtf_l_heatf_l_floodf_u_f = getMembership(fpm_droughtf_l_heatf_l_floodf_u$flood)) %>%
+                mutate(droughtf_l_heatf_l_floodf_u_dh = getMembership(fpm_droughtf_l_heatf_l_floodf_u$drought_heat)) %>%
+                mutate(droughtf_l_heatf_l_floodf_u_df = getMembership(fpm_droughtf_l_heatf_l_floodf_u$drought_flood)) %>%
+                mutate(droughtf_l_heatf_l_floodf_u_hf = getMembership(fpm_droughtf_l_heatf_l_floodf_u$heat_flood)) %>%
+                mutate(droughtf_l_heatf_l_floodf_u_dhf = getMembership(fpm_droughtf_l_heatf_l_floodf_u$drought_heat_flood)) %>%
+                mutate(droughtf_l_heatf_l_floodf_u_max = 
+                  ifelse(droughtf_l_heatf_l_floodf_u_o > 0.5, 0, 
+                    ifelse(droughtf_l_heatf_l_floodf_u_d > 0.5, 1, 
+                      ifelse(droughtf_l_heatf_l_floodf_u_h > 0.5, 2, 
+                        ifelse(droughtf_l_heatf_l_floodf_u_f > 0.5, 3,
+                          ifelse(droughtf_l_heatf_l_floodf_u_dh > 0.5, 4, 
+                            ifelse(droughtf_l_heatf_l_floodf_u_df > 0.5, 5,
+                              ifelse(droughtf_l_heatf_l_floodf_u_hf > 0.5, 6, 7)))))))) %>%                  
+
+
+                mutate(droughtf_l_heatf_u_floodf_l_o = getMembership(fpm_droughtf_l_heatf_u_floodf_l$optimal)) %>%
+                mutate(droughtf_l_heatf_u_floodf_l_d = getMembership(fpm_droughtf_l_heatf_u_floodf_l$drought)) %>%
+                mutate(droughtf_l_heatf_u_floodf_l_h = getMembership(fpm_droughtf_l_heatf_u_floodf_l$heat)) %>%
+                mutate(droughtf_l_heatf_u_floodf_l_f = getMembership(fpm_droughtf_l_heatf_u_floodf_l$flood)) %>%
+                mutate(droughtf_l_heatf_u_floodf_l_dh = getMembership(fpm_droughtf_l_heatf_u_floodf_l$drought_heat)) %>%
+                mutate(droughtf_l_heatf_u_floodf_l_df = getMembership(fpm_droughtf_l_heatf_u_floodf_l$drought_flood)) %>%
+                mutate(droughtf_l_heatf_u_floodf_l_hf = getMembership(fpm_droughtf_l_heatf_u_floodf_l$heat_flood)) %>%
+                mutate(droughtf_l_heatf_u_floodf_l_dhf = getMembership(fpm_droughtf_l_heatf_u_floodf_l$drought_heat_flood)) %>%
+                mutate(droughtf_l_heatf_u_floodf_l_max = 
+                  ifelse(droughtf_l_heatf_u_floodf_l_o > 0.5, 0, 
+                    ifelse(droughtf_l_heatf_u_floodf_l_d > 0.5, 1, 
+                      ifelse(droughtf_l_heatf_u_floodf_l_h > 0.5, 2, 
+                        ifelse(droughtf_l_heatf_u_floodf_l_f > 0.5, 3,
+                          ifelse(droughtf_l_heatf_u_floodf_l_dh > 0.5, 4, 
+                            ifelse(droughtf_l_heatf_u_floodf_l_df > 0.5, 5,
+                              ifelse(droughtf_l_heatf_u_floodf_l_hf > 0.5, 6, 7)))))))) %>% 
+
+
+                mutate(droughtf_u_heatf_l_floodf_u_o = getMembership(fpm_droughtf_u_heatf_l_floodf_u$optimal)) %>%
+                mutate(droughtf_u_heatf_l_floodf_u_d = getMembership(fpm_droughtf_u_heatf_l_floodf_u$drought)) %>%
+                mutate(droughtf_u_heatf_l_floodf_u_h = getMembership(fpm_droughtf_u_heatf_l_floodf_u$heat)) %>%
+                mutate(droughtf_u_heatf_l_floodf_u_f = getMembership(fpm_droughtf_u_heatf_l_floodf_u$flood)) %>%
+                mutate(droughtf_u_heatf_l_floodf_u_dh = getMembership(fpm_droughtf_u_heatf_l_floodf_u$drought_heat)) %>%
+                mutate(droughtf_u_heatf_l_floodf_u_df = getMembership(fpm_droughtf_u_heatf_l_floodf_u$drought_flood)) %>%
+                mutate(droughtf_u_heatf_l_floodf_u_hf = getMembership(fpm_droughtf_u_heatf_l_floodf_u$heat_flood)) %>%
+                mutate(droughtf_u_heatf_l_floodf_u_dhf = getMembership(fpm_droughtf_u_heatf_l_floodf_u$drought_heat_flood)) %>%
+                mutate(droughtf_u_heatf_l_floodf_u_max = 
+                  ifelse(droughtf_u_heatf_l_floodf_u_o > 0.5, 0, 
+                    ifelse(droughtf_u_heatf_l_floodf_u_d > 0.5, 1, 
+                      ifelse(droughtf_u_heatf_l_floodf_u_h > 0.5, 2, 
+                        ifelse(droughtf_u_heatf_l_floodf_u_f > 0.5, 3,
+                          ifelse(droughtf_u_heatf_l_floodf_u_dh > 0.5, 4, 
+                            ifelse(droughtf_u_heatf_l_floodf_u_df > 0.5, 5,
+                              ifelse(droughtf_u_heatf_l_floodf_u_hf > 0.5, 6, 7)))))))) %>% 
+
+
+                mutate(droughtf_u_heatf_l_floodf_l_o = getMembership(fpm_droughtf_u_heatf_l_floodf_l$optimal)) %>%
+                mutate(droughtf_u_heatf_l_floodf_l_d = getMembership(fpm_droughtf_u_heatf_l_floodf_l$drought)) %>%
+                mutate(droughtf_u_heatf_l_floodf_l_h = getMembership(fpm_droughtf_u_heatf_l_floodf_l$heat)) %>%
+                mutate(droughtf_u_heatf_l_floodf_l_f = getMembership(fpm_droughtf_u_heatf_l_floodf_l$flood)) %>%
+                mutate(droughtf_u_heatf_l_floodf_l_dh = getMembership(fpm_droughtf_u_heatf_l_floodf_l$drought_heat)) %>%
+                mutate(droughtf_u_heatf_l_floodf_l_df = getMembership(fpm_droughtf_u_heatf_l_floodf_l$drought_flood)) %>%
+                mutate(droughtf_u_heatf_l_floodf_l_hf = getMembership(fpm_droughtf_u_heatf_l_floodf_l$heat_flood)) %>%
+                mutate(droughtf_u_heatf_l_floodf_l_dhf = getMembership(fpm_droughtf_u_heatf_l_floodf_l$drought_heat_flood)) %>%
+                mutate(droughtf_u_heatf_l_floodf_l_max = 
+                  ifelse(droughtf_u_heatf_l_floodf_l_o > 0.5, 0, 
+                    ifelse(droughtf_u_heatf_l_floodf_l_d > 0.5, 1, 
+                      ifelse(droughtf_u_heatf_l_floodf_l_h > 0.5, 2, 
+                        ifelse(droughtf_u_heatf_l_floodf_l_f > 0.5, 3,
+                          ifelse(droughtf_u_heatf_l_floodf_l_dh > 0.5, 4, 
+                            ifelse(droughtf_u_heatf_l_floodf_l_df > 0.5, 5,
+                              ifelse(droughtf_u_heatf_l_floodf_l_hf > 0.5, 6, 7)))))))) %>% 
+
+
+                mutate(droughtf_u_heatf_u_floodf_l_o = getMembership(fpm_droughtf_u_heatf_u_floodf_l$optimal)) %>%
+                mutate(droughtf_u_heatf_u_floodf_l_d = getMembership(fpm_droughtf_u_heatf_u_floodf_l$drought)) %>%
+                mutate(droughtf_u_heatf_u_floodf_l_h = getMembership(fpm_droughtf_u_heatf_u_floodf_l$heat)) %>%
+                mutate(droughtf_u_heatf_u_floodf_l_f = getMembership(fpm_droughtf_u_heatf_u_floodf_l$flood)) %>%
+                mutate(droughtf_u_heatf_u_floodf_l_dh = getMembership(fpm_droughtf_u_heatf_u_floodf_l$drought_heat)) %>%
+                mutate(droughtf_u_heatf_u_floodf_l_df = getMembership(fpm_droughtf_u_heatf_u_floodf_l$drought_flood)) %>%
+                mutate(droughtf_u_heatf_u_floodf_l_hf = getMembership(fpm_droughtf_u_heatf_u_floodf_l$heat_flood)) %>%
+                mutate(droughtf_u_heatf_u_floodf_l_dhf = getMembership(fpm_droughtf_u_heatf_u_floodf_l$drought_heat_flood)) %>%
+                mutate(droughtf_u_heatf_u_floodf_l_max = 
+                  ifelse(droughtf_u_heatf_u_floodf_l_o > 0.5, 0, 
+                    ifelse(droughtf_u_heatf_u_floodf_l_d > 0.5, 1, 
+                      ifelse(droughtf_u_heatf_u_floodf_l_h > 0.5, 2, 
+                        ifelse(droughtf_u_heatf_u_floodf_l_f > 0.5, 3,
+                          ifelse(droughtf_u_heatf_u_floodf_l_dh > 0.5, 4, 
+                            ifelse(droughtf_u_heatf_u_floodf_l_df > 0.5, 5,
+                              ifelse(droughtf_u_heatf_u_floodf_l_hf > 0.5, 6, 7)))))))) %>% 
+
+
+                mutate(droughtf_l_heatf_u_floodf_u_o = getMembership(fpm_droughtf_l_heatf_u_floodf_u$optimal)) %>%
+                mutate(droughtf_l_heatf_u_floodf_u_d = getMembership(fpm_droughtf_l_heatf_u_floodf_u$drought)) %>%
+                mutate(droughtf_l_heatf_u_floodf_u_h = getMembership(fpm_droughtf_l_heatf_u_floodf_u$heat)) %>%
+                mutate(droughtf_l_heatf_u_floodf_u_f = getMembership(fpm_droughtf_l_heatf_u_floodf_u$flood)) %>%
+                mutate(droughtf_l_heatf_u_floodf_u_dh = getMembership(fpm_droughtf_l_heatf_u_floodf_u$drought_heat)) %>%
+                mutate(droughtf_l_heatf_u_floodf_u_df = getMembership(fpm_droughtf_l_heatf_u_floodf_u$drought_flood)) %>%
+                mutate(droughtf_l_heatf_u_floodf_u_hf = getMembership(fpm_droughtf_l_heatf_u_floodf_u$heat_flood)) %>%
+                mutate(droughtf_l_heatf_u_floodf_u_dhf = getMembership(fpm_droughtf_l_heatf_u_floodf_u$drought_heat_flood)) %>%
+                mutate(droughtf_l_heatf_u_floodf_u_max = 
+                  ifelse(droughtf_l_heatf_u_floodf_u_o > 0.5, 0, 
+                    ifelse(droughtf_l_heatf_u_floodf_u_d > 0.5, 1, 
+                      ifelse(droughtf_l_heatf_u_floodf_u_h > 0.5, 2, 
+                        ifelse(droughtf_l_heatf_u_floodf_u_f > 0.5, 3,
+                          ifelse(droughtf_l_heatf_u_floodf_u_dh > 0.5, 4, 
+                            ifelse(droughtf_l_heatf_u_floodf_u_df > 0.5, 5,
+                              ifelse(droughtf_l_heatf_u_floodf_u_hf > 0.5, 6, 7))))))))
+           
+} 
+
+### Spatialise Impact Data
+
+# results in v_impact
+v_impact_make_f <- function(dB_impact_full){
+dB_impact_full %>% st_as_sf(coords = c("x", "y"), crs = st_crs(4326))  
+}              
+
+# results in rB_impact_prelim
+rB_impact_prelim_make_f <- function(v_impact, r_droughtc) {
+rasterize(v_impact, r_droughtc, field = 'droughtc_l_o') %>% brick 
+}
+
+# results in rB_impact
+rB_impact_make_f <- function(v_impact, r_droughtc, rB_impact_prelim) {
+rB_impact_prelim %>% 
+
+# lower thresholds
+
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_s')) %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_l_o')) %>%
+addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_l_s')) %>%
+addLayer(rasterize(v_impact, r_droughtc, field = 'floodc_l_o')) %>%
+addLayer(rasterize(v_impact, r_droughtc, field = 'floodc_l_s')) %>%
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_o')) %>%
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_s')) %>%
+addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_l_o')) %>%
+addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_l_s')) %>%
+addLayer(rasterize(v_impact, r_droughtc, field = 'floodf_l_o')) %>%
+addLayer(rasterize(v_impact, r_droughtc, field = 'floodf_l_s'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtchange_l_o')) %>%
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtchange_l_s')) %>%
+addLayer(rasterize(v_impact, r_droughtc, field = 'heatchange_l_o')) %>%
+addLayer(rasterize(v_impact, r_droughtc, field = 'heatchange_l_s')) %>%
+addLayer(rasterize(v_impact, r_droughtc, field = 'floodchange_l_o')) %>%
+addLayer(rasterize(v_impact, r_droughtc, field = 'floodchange_l_s'))  %>% 
+
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_o'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_d'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_h'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_dh'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_max'))  %>% 
+
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_floodc_l_o'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_floodc_l_d'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_floodc_l_f'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_floodc_l_df'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_floodc_l_max'))  %>% 
+
+addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_l_floodc_l_o'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_l_floodc_l_h'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_l_floodc_l_f'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_l_floodc_l_hf'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_l_floodc_l_max'))  %>% 
+
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_floodc_l_o'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_floodc_l_d'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_floodc_l_h'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_floodc_l_f'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_floodc_l_dh'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_floodc_l_df'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_floodc_l_hf'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_floodc_l_dhf'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_floodc_l_max'))  %>% 
+
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_o'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_d'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_h'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_dh'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_max'))  %>% 
+
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_floodf_l_o'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_floodf_l_d'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_floodf_l_f'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_floodf_l_df'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_floodf_l_max'))  %>% 
+
+addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_l_floodf_l_o'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_l_floodf_l_h'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_l_floodf_l_f'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_l_floodf_l_hf'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_l_floodf_l_max'))  %>% 
+
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_floodf_l_o'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_floodf_l_d'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_floodf_l_h'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_floodf_l_f'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_floodf_l_dh'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_floodf_l_df'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_floodf_l_hf'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_floodf_l_dhf'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_floodf_l_max'))  %>% 
+
+# upper thresholds
+
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_o')) %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_s')) %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_u_o')) %>%
+addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_u_s')) %>%
+addLayer(rasterize(v_impact, r_droughtc, field = 'floodc_u_o')) %>%
+addLayer(rasterize(v_impact, r_droughtc, field = 'floodc_u_s')) %>%
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_o')) %>%
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_s')) %>%
+addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_u_o')) %>%
+addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_u_s')) %>%
+addLayer(rasterize(v_impact, r_droughtc, field = 'floodf_u_o')) %>%
+addLayer(rasterize(v_impact, r_droughtc, field = 'floodf_u_s'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtchange_u_o')) %>%
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtchange_u_s')) %>%
+addLayer(rasterize(v_impact, r_droughtc, field = 'heatchange_u_o')) %>%
+addLayer(rasterize(v_impact, r_droughtc, field = 'heatchange_u_s')) %>%
+addLayer(rasterize(v_impact, r_droughtc, field = 'floodchange_u_o')) %>%
+addLayer(rasterize(v_impact, r_droughtc, field = 'floodchange_u_s'))  %>% 
+
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_o'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_d'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_h'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_dh'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_max'))  %>% 
+
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_floodc_u_o'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_floodc_u_d'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_floodc_u_f'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_floodc_u_df'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_floodc_u_max'))  %>% 
+
+addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_u_floodc_u_o'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_u_floodc_u_h'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_u_floodc_u_f'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_u_floodc_u_hf'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_u_floodc_u_max'))  %>% 
+
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_floodc_u_o'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_floodc_u_d'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_floodc_u_h'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_floodc_u_f'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_floodc_u_dh'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_floodc_u_df'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_floodc_u_hf'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_floodc_u_dhf'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_floodc_u_max'))  %>% 
+
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_o'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_d'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_h'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_dh'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_max'))  %>% 
+
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_floodf_u_o'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_floodf_u_d'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_floodf_u_f'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_floodf_u_df'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_floodf_u_max'))  %>% 
+
+addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_u_floodf_u_o'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_u_floodf_u_h'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_u_floodf_u_f'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_u_floodf_u_hf'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_u_floodf_u_max'))  %>% 
+
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_floodf_u_o'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_floodf_u_d'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_floodf_u_h'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_floodf_u_f'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_floodf_u_dh'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_floodf_u_df'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_floodf_u_hf'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_floodf_u_dhf'))  %>% 
+addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_floodf_u_max'))    %>% 
+
+# mixed thresholds
+
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_o')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_d')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_h')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_dh')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_max')) %>% 
+
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_o')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_d')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_h')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_dh')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_max')) %>% 
+
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_floodc_u_o')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_floodc_u_d')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_floodc_u_f')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_floodc_u_df')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_floodc_u_max')) %>% 
+
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_floodc_l_o')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_floodc_l_d')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_floodc_l_f')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_floodc_l_df')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_floodc_l_max')) %>% 
+
+                addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_l_floodc_u_o')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_l_floodc_u_h')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_l_floodc_u_f')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_l_floodc_u_hf')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_l_floodc_u_max')) %>% 
+
+                addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_u_floodc_l_o')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_u_floodc_l_h')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_u_floodc_l_f')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_u_floodc_l_hf')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_u_floodc_l_max')) %>% 
+
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_floodc_u_o')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_floodc_u_d')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_floodc_u_h')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_floodc_u_f')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_floodc_u_dh')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_floodc_u_df')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_floodc_u_hf')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_floodc_u_dhf')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_floodc_u_max')) %>% 
+
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_floodc_l_o')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_floodc_l_d')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_floodc_l_h')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_floodc_l_f')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_floodc_l_dh')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_floodc_l_df')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_floodc_l_hf')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_floodc_l_dhf')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_floodc_l_max')) %>% 
+
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_floodc_u_o')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_floodc_u_d')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_floodc_u_h')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_floodc_u_f')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_floodc_u_dh')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_floodc_u_df')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_floodc_u_hf')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_floodc_u_dhf')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_floodc_u_max')) %>% 
+
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_floodc_l_o')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_floodc_l_d')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_floodc_l_h')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_floodc_l_f')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_floodc_l_dh')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_floodc_l_df')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_floodc_l_hf')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_floodc_l_dhf')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_floodc_l_max')) %>% 
+
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_floodc_l_o')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_floodc_l_d')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_floodc_l_h')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_floodc_l_f')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_floodc_l_dh')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_floodc_l_df')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_floodc_l_hf')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_floodc_l_dhf')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_floodc_l_max')) %>% 
+
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_floodc_u_o')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_floodc_u_d')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_floodc_u_h')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_floodc_u_f')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_floodc_u_dh')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_floodc_u_df')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_floodc_u_hf')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_floodc_u_dhf')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_floodc_u_max')) %>% 
+
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_o')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_d')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_h')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_dh')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_max')) %>% 
+
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_o')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_d')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_h')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_dh')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_max')) %>% 
+
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_floodf_u_o')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_floodf_u_d')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_floodf_u_f')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_floodf_u_df')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_floodf_u_max')) %>% 
+
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_floodf_l_o')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_floodf_l_d')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_floodf_l_f')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_floodf_l_df')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_floodf_l_max')) %>% 
+
+                addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_l_floodf_u_o')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_l_floodf_u_h')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_l_floodf_u_f')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_l_floodf_u_hf')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_l_floodf_u_max')) %>% 
+
+                addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_u_floodf_l_o')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_u_floodf_l_h')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_u_floodf_l_f')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_u_floodf_l_hf')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_u_floodf_l_max')) %>% 
+
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_floodf_u_o')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_floodf_u_d')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_floodf_u_h')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_floodf_u_f')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_floodf_u_dh')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_floodf_u_df')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_floodf_u_hf')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_floodf_u_dhf')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_floodf_u_max')) %>% 
+
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_floodf_l_o')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_floodf_l_d')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_floodf_l_h')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_floodf_l_f')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_floodf_l_dh')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_floodf_l_df')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_floodf_l_hf')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_floodf_l_dhf')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_floodf_l_max')) %>% 
+
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_floodf_u_o')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_floodf_u_d')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_floodf_u_h')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_floodf_u_f')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_floodf_u_dh')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_floodf_u_df')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_floodf_u_hf')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_floodf_u_dhf')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_floodf_u_max')) %>% 
+
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_floodf_l_o')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_floodf_l_d')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_floodf_l_h')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_floodf_l_f')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_floodf_l_dh')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_floodf_l_df')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_floodf_l_hf')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_floodf_l_dhf')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_floodf_l_max')) %>% 
+
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_floodf_l_o')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_floodf_l_d')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_floodf_l_h')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_floodf_l_f')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_floodf_l_dh')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_floodf_l_df')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_floodf_l_hf')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_floodf_l_dhf')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_floodf_l_max')) %>% 
+
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_floodf_u_o')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_floodf_u_d')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_floodf_u_h')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_floodf_u_f')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_floodf_u_dh')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_floodf_u_df')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_floodf_u_hf')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_floodf_u_dhf')) %>%
+                addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_floodf_u_max')) %>%
+
+
+# names
+
+`names<-`(c(
+"hist drought l opt",
+"hist drought l sub",
+"hist heat l opt", 
+"hist heat l sub",
+"hist flood l opt", 
+"hist flood l sub",
+"future drought l opt", 
+"future drought l sub",
+"future heat l opt", 
+"future heat l sub",
+"future flood l opt", 
+"future flood l sub",
+"drought l change opt", 
+"drought l change sub",
+"heat l change opt", 
+"heat l change sub",
+"flood l change opt", 
+"flood l change sub",
+
+"hist drought l opt heat l opt" ,
+"hist drought l sub heat l opt" ,
+"hist drought l opt heat l sub" ,
+"hist drought l sub heat l sub" ,
+"hist drought l heat l max",
+
+"hist drought l opt flood l opt",
+"hist drought l sub flood l opt" ,
+"hist drought l opt flood l sub" ,
+"hist drought l sub flood l sub" ,
+"hist drought l flood l max",
+
+"hist heat l opt flood l opt" ,
+"hist heat l sub flood l opt" ,
+"hist heat l opt flood l sub" ,
+"hist heat l sub flood l sub" ,
+"hist heat l flood l max",
+
+"hist drought l opt heat l opt flood l opt" ,
+"hist drought l sub heat l opt flood l opt" ,
+"hist drought l opt heat l sub flood l opt" ,
+"hist drought l opt heat l opt flood l sub" ,
+"hist drought l sub heat l sub flood l opt" ,
+"hist drought l sub heat l opt flood l sub" ,
+"hist drought l opt heat l sub flood l sub" ,
+"hist drought l sub heat l sub flood l sub" ,
+"hist drought l heat l flood l max",
+
+"future drought l opt heat l opt" ,
+"future drought l sub heat l opt" ,
+"future drought l opt heat l sub" ,
+"future drought l sub heat l sub" ,
+"future drought l heat l max",
+
+"future drought l opt flood l opt",
+"future drought l sub flood l opt" ,
+"future drought l opt flood l sub" ,
+"future drought l sub flood l sub" ,
+"future drought l flood l max",
+
+"future heat l opt flood l opt" ,
+"future heat l sub flood l opt" ,
+"future heat l opt flood l sub" ,
+"future heat l sub flood l sub" ,
+"future heat l flood l max",
+
+"future drought l opt heat l opt flood l opt" ,
+"future drought l sub heat l opt flood l opt" ,
+"future drought l opt heat l sub flood l opt" ,
+"future drought l opt heat l opt flood l sub" ,
+"future drought l sub heat l sub flood l opt" ,
+"future drought l sub heat l opt flood l sub" ,
+"future drought l opt heat l sub flood l sub" ,
+"future drought l sub heat l sub flood l sub", 
+"future drought l heat l flood l max",
+
+#upper thresholds
+
+"hist drought u opt",
+"hist drought u sub",
+"hist heat u opt", 
+"hist heat u sub",
+"hist flood u opt", 
+"hist flood u sub",
+"future drought u opt", 
+"future drought u sub",
+"future heat u opt", 
+"future heat u sub",
+"future flood u opt", 
+"future flood u sub",
+"drought u change opt", 
+"drought u change sub",
+"heat u change opt", 
+"heat u change sub",
+"flood u change opt", 
+"flood u change sub",
+
+"hist drought u opt heat u opt" ,
+"hist drought u sub heat u opt" ,
+"hist drought u opt heat u sub" ,
+"hist drought u sub heat u sub" ,
+"hist drought u heat u max",
+
+"hist drought u opt flood u opt",
+"hist drought u sub flood u opt" ,
+"hist drought u opt flood u sub" ,
+"hist drought u sub flood u sub" ,
+"hist drought u flood u max",
+
+"hist heat u opt flood u opt" ,
+"hist heat u sub flood u opt" ,
+"hist heat u opt flood u sub" ,
+"hist heat u sub flood u sub" ,
+"hist heat u flood u max",
+
+"hist drought u opt heat u opt flood u opt" ,
+"hist drought u sub heat u opt flood u opt" ,
+"hist drought u opt heat u sub flood u opt" ,
+"hist drought u opt heat u opt flood u sub" ,
+"hist drought u sub heat u sub flood u opt" ,
+"hist drought u sub heat u opt flood u sub" ,
+"hist drought u opt heat u sub flood u sub" ,
+"hist drought u sub heat u sub flood u sub" ,
+"hist drought u heat u flood u max",
+
+"future drought u opt heat u opt" ,
+"future drought u sub heat u opt" ,
+"future drought u opt heat u sub" ,
+"future drought u sub heat u sub" ,
+"future drought u heat u max",
+
+"future drought u opt flood u opt",
+"future drought u sub flood u opt" ,
+"future drought u opt flood u sub" ,
+"future drought u sub flood u sub" ,
+"future drought u flood u max",
+
+"future heat u opt flood u opt" ,
+"future heat u sub flood u opt" ,
+"future heat u opt flood u sub" ,
+"future heat u sub flood u sub" ,
+"future heat u flood u max",
+
+"future drought u opt heat u opt flood u opt" ,
+"future drought u sub heat u opt flood u opt" ,
+"future drought u opt heat u sub flood u opt" ,
+"future drought u opt heat u opt flood u sub" ,
+"future drought u sub heat u sub flood u opt" ,
+"future drought u sub heat u opt flood u sub" ,
+"future drought u opt heat u sub flood u sub" ,
+"future drought u sub heat u sub flood u sub", 
+"future drought u heat u flood u max",
+
+#mixed thresholds
+
+"hist drought l opt heat u opt",
+"hist drought l sub heat u opt",
+"hist drought l opt heat u sub",
+"hist drought l sub heat u sub",
+"hist drought l heat u max",
+
+"hist drought u opt heat l opt",
+"hist drought u sub heat l opt",
+"hist drought u opt heat l sub",
+"hist drought u sub heat l sub",
+"hist drought u heat l max",
+
+"hist drought l opt flood u opt",
+"hist drought l sub flood u opt",
+"hist drought l opt flood u sub",
+"hist drought l sub flood u sub",
+"hist drought l flood u max",
+
+"hist drought u opt flood l opt",
+"hist drought u sub flood l opt",
+"hist drought u opt flood l sub",
+"hist drought u sub flood l sub",
+"hist drought u flood l max",
+
+"hist heat l opt flood u opt",
+"hist heat l sub flood u opt",
+"hist heat l opt flood u sub",
+"hist heat l sub flood u sub",
+"hist heat l flood u max",
+
+"hist heat u opt flood l opt",
+"hist heat u sub flood l opt",
+"hist heat u opt flood l sub",
+"hist heat u sub flood l sub",
+"hist heat u flood l max",
+
+"hist drought l opt heat l opt flood u opt",
+"hist drought l sub heat l opt flood u opt",
+"hist drought l opt heat l sub flood u opt",
+"hist drought l opt heat l opt flood u sub",
+"hist drought l sub heat l sub flood u opt",
+"hist drought l sub heat l opt flood u sub",
+"hist drought l opt heat l sub flood u sub",
+"hist drought l sub heat l sub flood u sub",
+"hist drought l heat l flood u max",
+
+"hist drought l opt heat u opt flood l opt",
+"hist drought l sub heat u opt flood l opt",
+"hist drought l opt heat u sub flood l opt",
+"hist drought l opt heat u opt flood l sub",
+"hist drought l sub heat u sub flood l opt",
+"hist drought l sub heat u opt flood l sub",
+"hist drought l opt heat u sub flood l sub",
+"hist drought l sub heat u sub flood l sub",
+"hist drought l heat u flood l max",
+
+"hist drought u opt heat l opt flood u opt",
+"hist drought u sub heat l opt flood u opt",
+"hist drought u opt heat l sub flood u opt",
+"hist drought u opt heat l opt flood u sub",
+"hist drought u sub heat l sub flood u opt",
+"hist drought u sub heat l opt flood u sub",
+"hist drought u opt heat l sub flood u sub",
+"hist drought u sub heat l sub flood u sub",
+"hist drought u heat l flood u max",
+
+"hist drought u opt heat l opt flood l opt",
+"hist drought u sub heat l opt flood l opt",
+"hist drought u opt heat l sub flood l opt",
+"hist drought u opt heat l opt flood l sub",
+"hist drought u sub heat l sub flood l opt",
+"hist drought u sub heat l opt flood l sub",
+"hist drought u opt heat l sub flood l sub",
+"hist drought u sub heat l sub flood l sub",
+"hist drought u heat l flood l max",
+
+"hist drought u opt heat u opt flood l opt",
+"hist drought u sub heat u opt flood l opt",
+"hist drought u opt heat u sub flood l opt",
+"hist drought u opt heat u opt flood l sub",
+"hist drought u sub heat u sub flood l opt",
+"hist drought u sub heat u opt flood l sub",
+"hist drought u opt heat u sub flood l sub",
+"hist drought u sub heat u sub flood l sub",
+"hist drought u heat u flood l max",
+
+"hist drought l opt heat u opt flood u opt",
+"hist drought l sub heat u opt flood u opt",
+"hist drought l opt heat u sub flood u opt",
+"hist drought l opt heat u opt flood u sub",
+"hist drought l sub heat u sub flood u opt",
+"hist drought l sub heat u opt flood u sub",
+"hist drought l opt heat u sub flood u sub",
+"hist drought l sub heat u sub flood u sub",
+"hist drought l heat u flood u max",
+
+"future drought l opt heat u opt",
+"future drought l sub heat u opt",
+"future drought l opt heat u sub",
+"future drought l sub heat u sub",
+"future drought l heat u max",
+
+"future drought u opt heat l opt",
+"future drought u sub heat l opt",
+"future drought u opt heat l sub",
+"future drought u sub heat l sub",
+"future drought u heat l max",
+
+"future drought l opt flood u opt",
+"future drought l sub flood u opt",
+"future drought l opt flood u sub",
+"future drought l sub flood u sub",
+"future drought l flood u max",
+
+"future drought u opt flood l opt",
+"future drought u sub flood l opt",
+"future drought u opt flood l sub",
+"future drought u sub flood l sub",
+"future drought u flood l max", 
+
+"future heat l opt flood u opt",
+"future heat l sub flood u opt",
+"future heat l opt flood u sub",
+"future heat l sub flood u sub",
+"future heat l flood u max", 
+
+"future heat u opt flood l opt",
+"future heat u sub flood l opt",
+"future heat u opt flood l sub",
+"future heat u sub flood l sub",
+"future heat u flood l max", 
+
+"future drought l opt heat l opt flood u opt",
+"future drought l sub heat l opt flood u opt",
+"future drought l opt heat l sub flood u opt",
+"future drought l opt heat l opt flood u sub",
+"future drought l sub heat l sub flood u opt",
+"future drought l sub heat l opt flood u sub",
+"future drought l opt heat l sub flood u sub",
+"future drought l sub heat l sub flood u sub",
+"future drought l heat l flood u max", 
+
+"future drought l opt heat u opt flood l opt",
+"future drought l sub heat u opt flood l opt",
+"future drought l opt heat u sub flood l opt",
+"future drought l opt heat u opt flood l sub",
+"future drought l sub heat u sub flood l opt",
+"future drought l sub heat u opt flood l sub",
+"future drought l opt heat u sub flood l sub",
+"future drought l sub heat u sub flood l sub",
+"future drought l heat u flood l max",
+
+"future drought u opt heat l opt flood u opt",
+"future drought u sub heat l opt flood u opt",
+"future drought u opt heat l sub flood u opt",
+"future drought u opt heat l opt flood u sub",
+"future drought u sub heat l sub flood u opt",
+"future drought u sub heat l opt flood u sub",
+"future drought u opt heat l sub flood u sub",
+"future drought u sub heat l sub flood u sub",
+"future drought u heat l flood u max", 
+
+"future drought u opt heat l opt flood l opt",
+"future drought u sub heat l opt flood l opt",
+"future drought u opt heat l sub flood l opt",
+"future drought u opt heat l opt flood l sub",
+"future drought u sub heat l sub flood l opt",
+"future drought u sub heat l opt flood l sub",
+"future drought u opt heat l sub flood l sub",
+"future drought u sub heat l sub flood l sub",
+"future drought u heat l flood l max", 
+
+"future drought u opt heat u opt flood l opt",
+"future drought u sub heat u opt flood l opt",
+"future drought u opt heat u sub flood l opt",
+"future drought u opt heat u opt flood l sub",
+"future drought u sub heat u sub flood l opt",
+"future drought u sub heat u opt flood l sub",
+"future drought u opt heat u sub flood l sub",
+"future drought u sub heat u sub flood l sub",
+"future drought u heat u flood l max", 
+
+"future drought l opt heat u opt flood u opt",
+"future drought l sub heat u opt flood u opt",
+"future drought l opt heat u sub flood u opt",
+"future drought l opt heat u opt flood u sub",
+"future drought l sub heat u sub flood u opt",
+"future drought l sub heat u opt flood u sub",
+"future drought l opt heat u sub flood u sub",
+"future drought l sub heat u sub flood u sub",
+"future drought l heat u flood u max"
+)) 
+}
+
+# results in rB_impact_file
+rB_impact_file_make_f <- function(rB_impact, ISO, crop){
+rB_impact %>%  
+writeRaster(paste0("data/", ISO, "/", crop, "/rB_impact.tif"), bylayer = TRUE, suffix = 'names', overwrite = TRUE)
+}
+
+## Climate Risk Profiles
+### Prepare Climate Risk Profile Data
+
+# results in dB_profile_summary
+dB_profile_summary_make_f <-
+  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
+    exact_extract(
+      dropLayer(rB_impact, c(1:18, 23, 28, 33, 42, 47, 52, 57, 66:84, 89, 94, 99, 108, 113, 118, 123, 132, 137, 142, 147, 152, 157, 162, 171, 180, 189, 198, 207, 216, 221, 226, 231, 236, 241, 246, 255, 273, 282, 291, 300)),
+      v_crop_ISO_lc_rcl_agg,
+      fun = c('mean')
+    )
+  }
+
+# results in dB_profile_summary_file
+dB_profile_summary_file_make_f <-
+  function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+`names<-`(c("Landuse")) %>%
+cbind(dB_profile_summary) %>%
+write_csv(paste0("data/", ISO, "/", crop, "/dB_profile_summary.csv"), append = FALSE)
+  }
+
+### Plot Climate Risk Profile Data
+
+  # results in dB_profile_d_l_h_l_plot
+dB_profile_d_l_h_l_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,1:4)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.hist.drought.l.opt.heat.l.opt = rgb(127,201,127, maxColorValue = 255), 
+      mean.hist.drought.l.opt.heat.l.sub = rgb(255,255,153, maxColorValue = 255),             
+      mean.hist.drought.l.sub.heat.l.opt = rgb(253,192,134, maxColorValue = 255),
+      mean.hist.drought.l.sub.heat.l.sub = rgb(191,91,23, maxColorValue = 255)
+      )
+    ) +
+  labs(title = "Climate Risk Profile per Crop Sourcing Area") +
+  geom_text(y = 0, aes(label = paste(Landuse), angle = 90), hjust = 0) +
+  theme(
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    axis.title.x = element_blank(),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank()
+  ) 
+}
+
+# results in dB_profile_d_l_f_l_plot
+dB_profile_d_l_f_l_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,5:8)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.hist.drought.l.opt.flood.l.opt = rgb(127,201,127, maxColorValue = 255),
+      mean.hist.drought.l.opt.flood.l.sub = rgb(190,174,212, maxColorValue = 255),              
+      mean.hist.drought.l.sub.flood.l.opt = rgb(253,192,134, maxColorValue = 255),
+      mean.hist.drought.l.sub.flood.l.sub = rgb(56,108,176, maxColorValue = 255)
+     )
+    ) +
+  labs(title = "Climate Risk Profile per Crop Sourcing Area") +
+  geom_text(y = 0, aes(label = paste(Landuse), angle = 90), hjust = 0) +
+  theme(
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    axis.title.x = element_blank(),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank()
+  ) 
+}
+
+# results in dB_profile_h_l_f_l_plot
+dB_profile_h_l_f_l_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,9:12)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.hist.heat.l.opt.flood.l.opt = rgb(127,201,127, maxColorValue = 255),
+      mean.hist.heat.l.opt.flood.l.sub = rgb(190,174,212, maxColorValue = 255),
+      mean.hist.heat.l.sub.flood.l.opt = rgb(255,255,153, maxColorValue = 255),                    
+      mean.hist.heat.l.sub.flood.l.sub = rgb(102,102,102, maxColorValue = 255)
+      )
+    ) +
+  labs(title = "Climate Risk Profile per Crop Sourcing Area") +
+  geom_text(y = 0, aes(label = paste(Landuse), angle = 90), hjust = 0) +
+  theme(
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    axis.title.x = element_blank(),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank()
+  ) 
+}
+
+# results in dB_profile_d_l_h_l_f_l_plot
+dB_profile_d_l_h_l_f_l_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,13:20)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.hist.drought.l.opt.heat.l.opt.flood.l.opt = rgb(127,201,127, maxColorValue = 255),
+      mean.hist.drought.l.opt.heat.l.sub.flood.l.sub = rgb(102,102,102, maxColorValue = 255),
+      mean.hist.drought.l.sub.heat.l.opt.flood.l.sub = rgb(56,108,176, maxColorValue = 255),    
+      mean.hist.drought.l.sub.heat.l.sub.flood.l.opt = rgb(191,91,23, maxColorValue = 255),  
+      mean.hist.drought.l.opt.heat.l.opt.flood.l.sub = rgb(190,174,212, maxColorValue = 255),
+      mean.hist.drought.l.opt.heat.l.sub.flood.l.opt = rgb(255,255,153, maxColorValue = 255),                  
+      mean.hist.drought.l.sub.heat.l.opt.flood.l.opt = rgb(253,192,134, maxColorValue = 255),
+      mean.hist.drought.l.sub.heat.l.sub.flood.l.sub = rgb(240,2,127, maxColorValue = 255)
+      )
+    ) +
+  labs(title = "Climate Risk Profile per Crop Sourcing Area") +
+  geom_text(y = 0, aes(label = paste(Landuse), angle = 90), hjust = 0) +
+  theme(
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    axis.title.x = element_blank(),
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank()
+  ) 
+}
+
+# sankey diagram
