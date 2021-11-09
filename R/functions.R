@@ -76,8 +76,8 @@ flood_get_f <- function(cc_data, cc_row) {
 ### ----- Country spatial data ----- ###
 
 # results in v_crop
-v_crop_get_f <- function(cc_data) {
-  st_read(paste0("data/", cc_data[2, 4]))
+v_crop_get_f <- function(cc_data, cc_row) {
+  st_read(paste0("data/", paste(cc_data[cc_row, 4])))
 }
 
 # results in v_crop_extent
@@ -105,23 +105,24 @@ v_crop_plot_f <- function(v_crop, v_crop_extent, ISO, crop, world) {
     xlim ((v_crop_extent@xmin - 3), (v_crop_extent@xmax) + 3) +
     ylim ((v_crop_extent@ymin - 3), (v_crop_extent@ymax) + 3) +
     labs(fill = paste0(
-      "--------------------\n",
+      "--------------------\nv_crop\n",
       ISO,
       " ",
       crop,
-      "\nZones\n--------------------"
+      "\n\n--------------------"
     ))
 }
 
 
 # results in v_ISO
 v_ISO_get_f <- function(ISO) {
-  getData('GADM', country = paste(ISO), level = 0) %>% st_as_sf()
+  getData('GADM', country = paste(ISO), level = 0) %>% st_as_sf() %>% mutate(New_ID = 1)
 }
-
+ 
+ 
 # results in v_ISO1
 v_ISO1_get_f <- function(ISO) {
-  getData('GADM', country = paste(ISO), level = 1) %>% st_as_sf()
+  getData('GADM', country = paste(ISO), level = 1) %>% st_as_sf() %>% mutate(New_ID = 1)
 }
 
 # results in v_ISO_extent
@@ -140,9 +141,9 @@ v_ISO_plot_f <- function(v_ISO1, ISO) {
       inherit.aes = FALSE
     )  +
     labs(fill = paste0(
-      "--------------------\n",
+      "--------------------\nv_ISO1\n",
       ISO,
-      "\nExtent\n\n\n\n\n--------------------"
+      "\nExtent\n\n\n\n--------------------"
     ))
 }
 
@@ -154,25 +155,32 @@ r_clim_mask_get_f <- function(ISO) {
 
 ### ----- Spatial data preparation ----- ###
 
-# results in r_ISO_file
-r_ISO_make_write_f  <- function(v_ISO, r_lc, v_ISO_extent, ISO) {
-  rasterize(v_ISO, r_lc) %>% crop(v_ISO_extent) %>% writeRaster(paste0("data/", ISO, "/r_ISO.tif"), overwrite = TRUE)
+# results in r_ISO_file1
+r_ISO_make_write1_f  <- function(v_ISO, r_lc, v_ISO_extent, ISO) {
+ rasterize(vect(v_ISO), rast(r_lc), field = "New_ID")  }
+
+# results in r_ISO_file2
+r_ISO_make_write2_f  <- function(r_ISO_file1, v_ISO_extent) {
+ crop(r_ISO_file1, v_ISO_extent) 
 }
 
+# results in r_ISO_file3
+r_ISO_make_write3_f  <- function(r_ISO_file2, ISO) {
+r_ISO_file2 %>% raster() %>%
+ writeRaster(paste0("data/", ISO, "/r_ISO.tif"), overwrite = TRUE)
+}
+
+# # results in r_ISO_file
+# r_ISO_make_write_f  <- function(v_ISO, r_lc, v_ISO_extent, ISO) {
+#  rasterize(vect(v_ISO), rast(r_lc), field = "New_ID")  %>% crop(v_ISO_extent) %>% raster() %>%
+#  writeRaster(paste0("data/", ISO, "/r_ISO.tif"), overwrite = TRUE)
+# }
+
 # results in r_ISO
-r_ISO_get_f <- function(ISO, r_ISO_file) {
+r_ISO_get_f <- function(ISO, r_ISO_file3) {
   raster(paste0("data/", ISO, "/r_ISO.tif"))
 }
 
-# results in r_ISO1_file
-r_ISO1_make_write_f  <- function(v_ISO1, r_ISO, ISO) {
-  rasterize(v_ISO1, r_ISO) %>% writeRaster(paste0("data/", ISO, "/r_ISO1.tif"), overwrite = TRUE)
-}
-
-# results in r_ISO1
-r_ISO1_get_f <- function(ISO, r_ISO1_file) {
-  raster(paste0("data/", ISO, "/r_ISO1.tif"))
-}
 
 # results in r_lc_ISO_file
 r_lc_ISO_make_write_f  <- function(r_ISO, r_lc, ISO) {
@@ -200,7 +208,7 @@ r_lc_ISO_plot_f <- function(r_lc_ISO, world, v_ISO_extent, ISO) {
                           na.value = NA) +
       xlim((v_ISO_extent@xmin -1), (v_ISO_extent@xmax +1)) +
       ylim((v_ISO_extent@ymin -1), (v_ISO_extent@ymax +1)) +
-      labs(fill = paste0("-------------------\nLand Cover\n",ISO ,"\n
+      labs(fill = paste0("-------------------\nr_lc_ISO\n",ISO ,"\n
         \n\n\n--------------------")) +
       theme(
         panel.grid.major.x = element_blank(),
@@ -212,7 +220,7 @@ r_lc_ISO_plot_f <- function(r_lc_ISO, world, v_ISO_extent, ISO) {
 
   # results in r_crop_file
 r_crop_make_write_f  <- function(v_crop, r_lc_ISO, ISO, crop) {
-  raster::rasterize(v_crop, r_lc_ISO, field = 1, background = 0) %>% writeRaster(paste0("data/", ISO, "/", crop, "/r_crop.tif"), overwrite = TRUE)
+  rasterize(vect(v_crop), rast(r_lc_ISO), field = 1, background = 0) %>% raster() %>% writeRaster(paste0("data/", ISO, "/", crop, "/r_crop.tif"), overwrite = TRUE)
 }
 
 # results in r_crop
@@ -247,11 +255,11 @@ r_crop_ISO_plot_f <- function(r_crop_ISO, v_ISO1, ISO, crop) {
                         na.value = NA) +
     labs(
       fill = paste0(
-        "--------------------\n",
+        "--------------------\nr_crop_ISO\n",
         ISO,
         " ",
         crop,
-        "\n\n\n\n\n\n--------------------"
+        "\n\n\n\n\n--------------------"
       )
     ) +
     theme(
@@ -264,7 +272,7 @@ r_crop_ISO_plot_f <- function(r_crop_ISO, v_ISO1, ISO, crop) {
 }
 
 # results in r_crop_ISO_lc_file
-r_crop_ISO_lc_file <-
+r_crop_ISO_lc_file_make_write_f <-
   function(r_lc_ISO, r_crop_ISO, ISO, crop) {
     (r_lc_ISO + (r_crop_ISO  * 10)) %>% writeRaster(paste0("data/", ISO, "/", crop, "/r_crop_ISO_lc.tif"),
                                                     overwrite = TRUE)
@@ -291,11 +299,11 @@ r_crop_ISO_lc_plot_f <- function(r_crop_ISO_lc, v_ISO1, ISO, crop) {
                         na.value = NA) +
     labs(
       fill = paste0(
-        "--------------------\n",
+        "--------------------\nr_crop_ISO_lc\n",
         ISO,
         " ",
         crop,
-        "\n\n\n\n\n\n--------------------"
+        "\n\n\n\n\n--------------------"
       )
     ) +
     theme(
@@ -355,11 +363,11 @@ r_crop_ISO_lc_rcl_plot_f <-
                           na.value = NA) +
       labs(
         fill = paste0(
-          "--------------------\n",
+          "--------------------\nr_crop_ISO_lc_rcl\n",
           ISO,
           " ",
           crop,
-          "\n\n\n\n\n\n--------------------"
+          "\n\n\n\n\n--------------------"
         )
       ) +
       theme(
@@ -388,8 +396,8 @@ r_crop_ISO_lc_rcl_agg_get_f <-
     raster(paste0("data/", ISO, "/", crop, "/r_crop_ISO_lc_rcl_agg.tif"))
   }
 
-# results in v_crop_ISO_lc_rcl_agg_file
-v_crop_ISO_lc_rcl_agg_make_write_f <-
+# results in v_crop_ISO_lc_rcl_agg_file1
+v_crop_ISO_lc_rcl_agg1_make_write_f <-
   function(r_crop_ISO_lc_rcl_agg,  ISO, crop) {
     rasterToPolygons(
       r_crop_ISO_lc_rcl_agg,
@@ -400,29 +408,60 @@ v_crop_ISO_lc_rcl_agg_make_write_f <-
       dissolve = TRUE
     ) %>% 
      st_as_sf %>% 
-     write_sf(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg.shp"), overwrite = TRUE)
+     write_sf(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp"), overwrite = TRUE)
   }
 
 # results in v_crop_ISO_lc_rcl_agg
 v_crop_ISO_lc_rcl_agg_get_f <-
-   function(v_crop_ISO_lc_rcl_agg_file, ISO, crop, v_ISO1) {   
-st_read(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg.shp")) %>%
+   function(v_crop_ISO_lc_rcl_agg_file1, ISO, crop, v_ISO1) {   
+st_read(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp")) %>%
 mutate(LC = factor(r__ISO_,
-labels = c("Not Cropland","Cropland","Cotton")
+labels = c("Not Cropland","Cropland", paste0("'", crop,"'"))
 )) %>%
 filter(r__ISO_ > 0) %>%
 st_intersection(v_ISO1) %>%
 mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
 }
 
+# results in v_crop_ISO_lc_rcl_agg_file2
+v_crop_ISO_lc_rcl_agg2_make_write_f <-
+  function(v_crop_ISO_lc_rcl_agg,  ISO, crop) {
+v_crop_ISO_lc_rcl_agg %>% 
+st_as_sf %>% 
+write_sf(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg.shp"), overwrite = TRUE)
+  }
+
+# results in v_crop_ISO_lc_rcl_agg_plot
+v_crop_ISO_lc_rcl_agg_plot_f <-
+  function(v_crop_ISO_lc_rcl_agg,  ISO, crop)  {
+  ggplot() +
+    geom_sf(
+      data = v_crop_ISO_lc_rcl_agg,
+      aes(fill = crop_ISO1),
+      col = NA,
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+    guides(fill="none") +
+    labs(fill = paste0(
+      "--------------------\nSourcing Areas\n",
+      ISO,
+      "\n",crop, "\n\n\n\n\n--------------------"
+    ))
+}
+
+
 
 ### ----- Trimmed Climate Mask ----- ###
 
 # results in r_clim_mask_trim_file
-r_clim_mask_trim_file_make_write_f <- function(r_lc_ISO, r_clim_mask, ISO) {
-aggregate((r_lc_ISO / r_lc_ISO), (res(r_clim_mask)/res(r_lc_ISO)), fun=modal) %>%
-resample(r_clim_mask, method="ngb",
-  filename = paste0("data/", ISO, "/r_clim_mask_trim.tif"), overwrite = TRUE)
+r_clim_mask_trim_file_make_write_f <- function(v_ISO, r_clim_mask, ISO) {
+#aggregate((r_lc_ISO / r_lc_ISO), (res(r_clim_mask)/res(r_lc_ISO)), fun=modal) %>%
+#resample(r_clim_mask, method="ngb",
+#  filename = paste0("data/", ISO, "/r_clim_mask_trim.tif"), overwrite = TRUE)
+#resample(r_ISO, r_clim_mask, method="ngb", filename = paste0("data/", ISO, "/r_clim_mask_trim.tif"), overwrite = TRUE)
+rasterize(vect(v_ISO), rast(r_clim_mask), field = 1, background = 0, touches  
+ = TRUE) %>% raster() %>% writeRaster(paste0("data/", ISO, "/r_clim_mask_trim.tif"), overwrite = TRUE)
 }
 
 # results in r_clim_mask_trim
@@ -438,8 +477,8 @@ r_clim_mask_trim_get_f <- function(ISO, r_clim_mask_trim_file) {
 ### Load original data trim and save and get
 
 # results in r_rainfallc_file
-r_rainfallc_make_write_f <- function(ISO, crop, cc_data, r_clim_mask_trim) {
-  (raster(paste0("data/", ISO, "/", crop, "/", cc_data[2, 14])) * r_clim_mask_trim) %>% 
+r_rainfallc_make_write_f <- function(ISO, crop, cc_data, cc_row, r_clim_mask_trim) {
+  (raster(paste0("data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 14]))) * r_clim_mask_trim) %>% 
   writeRaster(paste0("data/", ISO, "/", crop, "/r_rainfallc.tif"), overwrite = TRUE)
 }
 
@@ -449,8 +488,8 @@ r_rainfallc_get_f <- function(ISO, crop, r_rainfallc_file) {
 }
 
 # results in r_rainfallf_file
-r_rainfallf_make_write_f <- function(ISO, crop, cc_data, r_clim_mask_trim) {
-  (raster(paste0("data/", ISO, "/", crop, "/", cc_data[2, 15])) * r_clim_mask_trim) %>% 
+r_rainfallf_make_write_f <- function(ISO, crop, cc_data, cc_row, r_clim_mask_trim) {
+  (raster(paste0("data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 15]))) * r_clim_mask_trim) %>% 
   writeRaster(paste0("data/", ISO, "/", crop, "/r_rainfallf.tif"), overwrite = TRUE)
 }
 
@@ -464,8 +503,8 @@ r_rainfallf_get_f <- function(ISO, crop, r_rainfallf_file) {
 ### Load original data trim and save and get
 
 # results in r_tempc_file
-r_tempc_make_write_f <- function(ISO, crop, cc_data, r_clim_mask_trim) {
-  (raster(paste0("data/", ISO, "/", crop, "/", cc_data[2, 16])) * r_clim_mask_trim) %>% 
+r_tempc_make_write_f <- function(ISO, crop, cc_data, cc_row, r_clim_mask_trim) {
+  (raster(paste0("data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 16]))) * r_clim_mask_trim) %>% 
   writeRaster(paste0("data/", ISO, "/", crop, "/r_tempc.tif"), overwrite = TRUE)
 }
 
@@ -475,8 +514,8 @@ r_tempc_get_f <- function(ISO, crop, r_tempc_file) {
 } 
 
 # results in r_tempf_file
-r_tempf_make_write_f <- function(ISO, crop, cc_data, r_clim_mask_trim) {
-  (raster(paste0("data/", ISO, "/", crop, "/", cc_data[2, 17])) * r_clim_mask_trim) %>% 
+r_tempf_make_write_f <- function(ISO, crop, cc_data, cc_row, r_clim_mask_trim) {
+  (raster(paste0("data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 17]))) * r_clim_mask_trim) %>% 
   writeRaster(paste0("data/", ISO, "/", crop, "/r_tempf.tif"), overwrite = TRUE)
 }
 
@@ -488,8 +527,8 @@ r_tempf_get_f <- function(ISO, crop, r_tempf_file) {
 ### --- Season Onset --- 
 
 # results in r_onsetc_file
-r_onsetc_make_write_f <- function(ISO, crop, cc_data, r_clim_mask_trim) {
-  (raster(paste0("data/", ISO, "/", crop, "/", cc_data[2, 18])) * r_clim_mask_trim) %>% 
+r_onsetc_make_write_f <- function(ISO, crop, cc_data, cc_row, r_clim_mask_trim) {
+  (raster(paste0("data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 18]))) * r_clim_mask_trim) %>% 
   writeRaster(paste0("data/", ISO, "/", crop, "/r_onsetc.tif"), overwrite = TRUE)
 }
 
@@ -499,8 +538,8 @@ r_onsetc_get_f <- function(ISO, crop, r_onsetc_file) {
 }
 
 # results in r_onsetf_file
-r_onsetf_make_write_f <- function(ISO, crop, cc_data, r_clim_mask_trim) {
-  (raster(paste0("data/", ISO, "/", crop, "/", cc_data[2, 19])) * r_clim_mask_trim) %>% 
+r_onsetf_make_write_f <- function(ISO, crop, cc_data, cc_row, r_clim_mask_trim) {
+  (raster(paste0("data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 19]))) * r_clim_mask_trim) %>% 
   writeRaster(paste0("data/", ISO, "/", crop, "/r_onsetf.tif"), overwrite = TRUE)
 }
 
@@ -512,8 +551,8 @@ r_onsetf_get_f <- function(ISO, crop, r_onsetf_file) {
 ### --- Season Duration --- 
 
 # results in r_durationc_file
-r_durationc_make_write_f <- function(ISO, crop, cc_data, r_clim_mask_trim) {
-  (raster(paste0("data/", ISO, "/", crop, "/", cc_data[2, 20])) * r_clim_mask_trim) %>% 
+r_durationc_make_write_f <- function(ISO, crop, cc_data, cc_row, r_clim_mask_trim) {
+  (raster(paste0("data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 20]))) * r_clim_mask_trim) %>% 
   writeRaster(paste0("data/", ISO, "/", crop, "/r_durationc.tif"), overwrite = TRUE)
 }
 
@@ -523,8 +562,8 @@ r_durationc_get_f <- function(ISO, crop, r_durationc_file) {
 }
 
 # results in r_durationf_file
-r_durationf_make_write_f <- function(ISO, crop, cc_data, r_clim_mask_trim) {
-  (raster(paste0("data/", ISO, "/", crop, "/", cc_data[2, 21])) * r_clim_mask_trim) %>% 
+r_durationf_make_write_f <- function(ISO, crop, cc_data, cc_row, r_clim_mask_trim) {
+  (raster(paste0("data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 21]))) * r_clim_mask_trim) %>% 
   writeRaster(paste0("data/", ISO, "/", crop, "/r_durationf.tif"), overwrite = TRUE)
 }
 
@@ -1342,8 +1381,8 @@ r_duration_change_plot_f <-
 ### Load original data trim and save
 
 # results in r_droughtc_file
-r_droughtc_make_write_f <- function(ISO, crop, cc_data, r_clim_mask_trim) {
-  (raster(paste0("data/", ISO, "/", crop, "/", cc_data[2, 6])) * r_clim_mask_trim) %>% 
+r_droughtc_make_write_f <- function(ISO, crop, cc_data, cc_row, r_clim_mask_trim) {
+  (raster(paste0("data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 6]))) * r_clim_mask_trim) %>% 
   writeRaster(paste0("data/", ISO, "/", crop, "/r_droughtc.tif"), overwrite = TRUE)
 }
 
@@ -1353,8 +1392,8 @@ r_droughtc_get_f <- function(ISO, crop, r_droughtc_file) {
 }
 
 # results in r_droughtf_file
-r_droughtf_make_write_f <- function(ISO, crop, cc_data, r_clim_mask_trim) {
-  (raster(paste0("data/", ISO, "/", crop, "/", cc_data[2, 7])) * r_clim_mask_trim) %>% 
+r_droughtf_make_write_f <- function(ISO, crop, cc_data, cc_row, r_clim_mask_trim) {
+  (raster(paste0("data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 7]))) * r_clim_mask_trim) %>% 
   writeRaster(paste0("data/", ISO, "/", crop, "/r_droughtf.tif"), overwrite = TRUE)
 }
 
@@ -1364,8 +1403,8 @@ r_droughtf_get_f <- function(ISO, crop, r_droughtf_file) {
 }
 
 # results in r_heatc_file
-r_heatc_make_write_f <- function(ISO, crop, cc_data, r_clim_mask_trim) {
-  (raster(paste0("data/", ISO, "/", crop, "/", cc_data[2, 9])) * r_clim_mask_trim) %>% 
+r_heatc_make_write_f <- function(ISO, crop, cc_data, cc_row, r_clim_mask_trim) {
+  (raster(paste0("data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 9]))) * r_clim_mask_trim) %>% 
   writeRaster(paste0("data/", ISO, "/", crop, "/r_heatc.tif"), overwrite = TRUE)
 }
 
@@ -1375,8 +1414,8 @@ r_heatc_get_f <- function(ISO, crop, r_heatc_file) {
 }
 
 # results in r_heatf_file
-r_heatf_make_write_f <- function(ISO, crop, cc_data, r_clim_mask_trim) {
-  (raster(paste0("data/", ISO, "/", crop, "/", cc_data[2, 10])) * r_clim_mask_trim) %>% 
+r_heatf_make_write_f <- function(ISO, crop, cc_data, cc_row, r_clim_mask_trim) {
+  (raster(paste0("data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 10]))) * r_clim_mask_trim) %>% 
   writeRaster(paste0("data/", ISO, "/", crop, "/r_heatf.tif"), overwrite = TRUE)
 }
 
@@ -1386,8 +1425,8 @@ r_heatf_get_f <- function(ISO, crop, r_heatf_file) {
 }
 
 # results in r_floodc_file
-r_floodc_make_write_f <- function(ISO, crop, cc_data, r_clim_mask_trim) {
-  (raster(paste0("data/", ISO, "/", crop, "/", cc_data[2, 12])) * r_clim_mask_trim) %>% 
+r_floodc_make_write_f <- function(ISO, crop, cc_data, cc_row, r_clim_mask_trim) {
+  (raster(paste0("data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 12]))) * r_clim_mask_trim) %>% 
   writeRaster(paste0("data/", ISO, "/", crop, "/r_floodc.tif"), overwrite = TRUE)
 }
 
@@ -1397,8 +1436,8 @@ r_floodc_get_f <- function(ISO, crop, r_floodc_file) {
 }
 
 # results in r_floodf_file
-r_floodf_make_write_f <- function(ISO, crop, cc_data, r_clim_mask_trim) {
-  (raster(paste0("data/", ISO, "/", crop, "/", cc_data[2, 13])) * r_clim_mask_trim) %>% 
+r_floodf_make_write_f <- function(ISO, crop, cc_data, cc_row, r_clim_mask_trim) {
+  (raster(paste0("data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 13]))) * r_clim_mask_trim) %>% 
   writeRaster(paste0("data/", ISO, "/", crop, "/r_floodf.tif"), overwrite = TRUE)
 }
 
@@ -2402,25 +2441,24 @@ dB_rainfallc_summary_plot_f <- function(dB_rainfallc_summary, ISO, crop) {
       upper = q75,
       ymax = min_max
     ),
-    stat = "identity") +
-    scale_y_continuous(labels = comma) +
+    stat = "identity") + 
+    guides(fill="none") +
+    scale_y_continuous(labels = comma) + 
     labs(y = "Annual Rainfall") +
     labs(x = "Sourcing Area")  +
     labs(
-      fill = paste0(
-        "--------------------\nPast\nRainfall\n",
+      title = paste0(
+        "Past Rainfall - ",
         ISO, 
-        "\n",
-        crop,
-        "\n--------------------"
+        " - ",
+        crop
       )
     ) +
     ylim(0, 2000) +    
     theme(
-      panel.grid.major.x = element_blank(),
+      panel.grid.major.x = element_line(colour = "grey"),
       panel.grid.minor.x = element_blank(),
-      axis.text.x = element_blank(),
-      axis.ticks.x = element_blank()
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7)
     )
 }
 
@@ -2434,25 +2472,24 @@ dB_rainfallf_summary_plot_f <- function(dB_rainfallf_summary, ISO, crop) {
       upper = q75,
       ymax = min_max
     ),
-    stat = "identity") +
+    stat = "identity") + 
+    guides(fill="none") +
     scale_y_continuous(labels = comma) +
     labs(y = "Annual Rainfall") +
     labs(x = "Sourcing Area")  +
-    labs(
-      fill = paste0(
-        "--------------------\nFuture\nRainfall\n",
+        labs(
+      title = paste0(
+        "Future Rainfall - ",
         ISO, 
-        "\n",
-        crop,
-        "\n--------------------"
+        " - ",
+        crop
       )
     ) +
     ylim(0, 2000) +    
     theme(
-      panel.grid.major.x = element_blank(),
+      panel.grid.major.x = element_line(colour = "grey"),
       panel.grid.minor.x = element_blank(),
-      axis.text.x = element_blank(),
-      axis.ticks.x = element_blank()
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7)
     )
 }
 
@@ -2466,17 +2503,17 @@ dB_rainfall_change_summary_plot_f <- function(dB_rainfall_change_summary, ISO, c
       upper = q75,
       ymax = min_max
     ),
-    stat = "identity") +
+    stat = "identity") + 
+    guides(fill="none") +
     scale_y_continuous(labels = comma) +
     labs(y = "Annual Rainfall") +
     labs(x = "Sourcing Area")  +
     labs(
-      fill = paste0(
-        "--------------------\nChange\nRainfall\n",
+      title = paste0(
+        "Change in Rainfall - ",
         ISO, 
-        "\n",
-        crop,
-        "\n--------------------"
+        " - ",
+        crop
       )
     ) +
     ylim(-500, 500) +
@@ -2487,10 +2524,9 @@ dB_rainfall_change_summary_plot_f <- function(dB_rainfall_change_summary, ISO, c
       size = 1
     ) +        
     theme(
-      panel.grid.major.x = element_blank(),
+      panel.grid.major.x = element_line(colour = "grey"),
       panel.grid.minor.x = element_blank(),
-      axis.text.x = element_blank(),
-      axis.ticks.x = element_blank()
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7)
     )
 }
 
@@ -2506,25 +2542,24 @@ dB_tempc_summary_plot_f <- function(dB_tempc_summary, ISO, crop) {
       upper = q75,
       ymax = min_max
     ),
-    stat = "identity") +
+    stat = "identity") + 
+    guides(fill="none") +
     scale_y_continuous(labels = comma) +
     labs(y = "Annual Temperature") +
     labs(x = "Sourcing Area")  +
     labs(
-      fill = paste0(
-        "--------------------\nPast\nTemperature\n",
+      title = paste0(
+        "Past Temperature - ",
         ISO, 
-        "\n",
-        crop,
-        "\n--------------------"
+        " - ",
+        crop
       )
     ) +
     ylim(10, 35) +    
     theme(
-      panel.grid.major.x = element_blank(),
+      panel.grid.major.x = element_line(colour = "grey"),
       panel.grid.minor.x = element_blank(),
-      axis.text.x = element_blank(),
-      axis.ticks.x = element_blank()
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7)
     )
 }
 
@@ -2538,25 +2573,24 @@ dB_tempf_summary_plot_f <- function(dB_tempf_summary, ISO, crop) {
       upper = q75,
       ymax = min_max
     ),
-    stat = "identity") +
+    stat = "identity") + 
+    guides(fill="none") +
     scale_y_continuous(labels = comma) +
     labs(y = "Annual Temperature") +
     labs(x = "Sourcing Area")  +
     labs(
-      fill = paste0(
-        "--------------------\nFuture\nTemperature\n",
+      title = paste0(
+        "Future Temperature - ",
         ISO, 
-        "\n",
-        crop,
-        "\n--------------------"
+        " - ",
+        crop
       )
     ) +
     ylim(10, 35) +    
     theme(
-      panel.grid.major.x = element_blank(),
+      panel.grid.major.x = element_line(colour = "grey"),
       panel.grid.minor.x = element_blank(),
-      axis.text.x = element_blank(),
-      axis.ticks.x = element_blank()
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7)
     )
 }
 
@@ -2570,20 +2604,20 @@ dB_temp_change_summary_plot_f <- function(dB_temp_change_summary, ISO, crop) {
       upper = q75,
       ymax = min_max
     ),
-    stat = "identity") +
+    stat = "identity") + 
+    guides(fill="none") +
     scale_y_continuous(labels = comma) +
     labs(y = "Annual Temperature") +
     labs(x = "Sourcing Area")  +
     labs(
-      fill = paste0(
-        "--------------------\nChange\nTemperature\n",
+      title = paste0(
+        "Change in Temperature - ",
         ISO, 
-        "\n",
-        crop,
-        "\n--------------------"
+        " - ",
+        crop
       )
     ) +
-    ylim(-5, 5) +
+    ylim(-3, 3) +
     geom_hline(
       yintercept = 0,
       linetype = 'dashed',
@@ -2591,10 +2625,9 @@ dB_temp_change_summary_plot_f <- function(dB_temp_change_summary, ISO, crop) {
       size = 1
     ) +        
     theme(
-      panel.grid.major.x = element_blank(),
+      panel.grid.major.x = element_line(colour = "grey"),
       panel.grid.minor.x = element_blank(),
-      axis.text.x = element_blank(),
-      axis.ticks.x = element_blank()
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7)
     )
 }
 
@@ -2610,25 +2643,24 @@ dB_onsetc_summary_plot_f <- function(dB_onsetc_summary, ISO, crop) {
       upper = q75,
       ymax = min_max
     ),
-    stat = "identity") +
+    stat = "identity") + 
+    guides(fill="none") +
     scale_y_continuous(labels = comma) +
     labs(y = "Day number") +
     labs(x = "Sourcing Area")  +
     labs(
-      fill = paste0(
-        "--------------------\nPast\nSeason Onset\n",
+      title = paste0(
+        "Past Season Onset - ",
         ISO, 
-        "\n",
-        crop,
-        "\n--------------------"
+        " - ",
+        crop
       )
     ) +
     ylim(0, 365) +    
     theme(
-      panel.grid.major.x = element_blank(),
+      panel.grid.major.x = element_line(colour = "grey"),
       panel.grid.minor.x = element_blank(),
-      axis.text.x = element_blank(),
-      axis.ticks.x = element_blank()
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7)
     )
 }
 
@@ -2642,25 +2674,24 @@ dB_onsetf_summary_plot_f <- function(dB_onsetf_summary, ISO, crop) {
       upper = q75,
       ymax = min_max
     ),
-    stat = "identity") +
+    stat = "identity") + 
+    guides(fill="none") +
     scale_y_continuous(labels = comma) +
     labs(y = "Day number") +
     labs(x = "Sourcing Area")  +
     labs(
-      fill = paste0(
-        "--------------------\nFuture\nSeason Onset\n",
+      title = paste0(
+        "Future Season Onset - ",
         ISO, 
-        "\n",
-        crop,
-        "\n--------------------"
+        " - ",
+        crop
       )
     ) +
     ylim(0, 365) +    
     theme(
-      panel.grid.major.x = element_blank(),
+      panel.grid.major.x = element_line(colour = "grey"),
       panel.grid.minor.x = element_blank(),
-      axis.text.x = element_blank(),
-      axis.ticks.x = element_blank()
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7)
     )
 }
 
@@ -2674,17 +2705,17 @@ dB_onset_change_summary_plot_f <- function(dB_onset_change_summary, ISO, crop) {
       upper = q75,
       ymax = min_max
     ),
-    stat = "identity") +
+    stat = "identity") + 
+    guides(fill="none") +
     scale_y_continuous(labels = comma) +
     labs(y = "Day number") +
     labs(x = "Sourcing Area")  +
     labs(
-      fill = paste0(
-        "--------------------\nChange\nSeason Onset\n",
+      title = paste0(
+        "Change in Season Onset - ",
         ISO, 
-        "\n",
-        crop,
-        "\n--------------------"
+        " - ",
+        crop
       )
     ) +
     ylim(-50, 50) +
@@ -2695,10 +2726,9 @@ dB_onset_change_summary_plot_f <- function(dB_onset_change_summary, ISO, crop) {
       size = 1
     ) +        
     theme(
-      panel.grid.major.x = element_blank(),
+      panel.grid.major.x = element_line(colour = "grey"),
       panel.grid.minor.x = element_blank(),
-      axis.text.x = element_blank(),
-      axis.ticks.x = element_blank()
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7)
     )
 }
 
@@ -2714,25 +2744,24 @@ dB_durationc_summary_plot_f <- function(dB_durationc_summary, ISO, crop) {
       upper = q75,
       ymax = min_max
     ),
-    stat = "identity") +
+    stat = "identity") + 
+    guides(fill="none") +
     scale_y_continuous(labels = comma) +
     labs(y = "Days") +
     labs(x = "Sourcing Area")  +
     labs(
-      fill = paste0(
-        "--------------------\nPast\nSeason Duration\n",
+      title = paste0(
+        "Past Season Duration - ",
         ISO, 
-        "\n",
-        crop,
-        "\n--------------------"
+        " - ",
+        crop
       )
     ) +
     ylim(0, 365) +    
     theme(
-      panel.grid.major.x = element_blank(),
+      panel.grid.major.x = element_line(colour = "grey"),
       panel.grid.minor.x = element_blank(),
-      axis.text.x = element_blank(),
-      axis.ticks.x = element_blank()
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7)
     )
 }
 
@@ -2746,25 +2775,24 @@ dB_durationf_summary_plot_f <- function(dB_durationf_summary, ISO, crop) {
       upper = q75,
       ymax = min_max
     ),
-    stat = "identity") +
+    stat = "identity") + 
+    guides(fill="none") +
     scale_y_continuous(labels = comma) +
     labs(y = "Days") +
     labs(x = "Sourcing Area")  +
     labs(
-      fill = paste0(
-        "--------------------\nFuture\nSeason Duration\n",
+      title = paste0(
+        "Future Season Duration - ",
         ISO, 
-        "\n",
-        crop,
-        "\n--------------------"
+        " - ",
+        crop
       )
     ) +
     ylim(0, 365) +    
     theme(
-      panel.grid.major.x = element_blank(),
+      panel.grid.major.x = element_line(colour = "grey"),
       panel.grid.minor.x = element_blank(),
-      axis.text.x = element_blank(),
-      axis.ticks.x = element_blank()
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7)
     )
 }
 
@@ -2778,17 +2806,17 @@ dB_duration_change_summary_plot_f <- function(dB_duration_change_summary, ISO, c
       upper = q75,
       ymax = min_max
     ),
-    stat = "identity") +
+    stat = "identity") + 
+    guides(fill="none") +
     scale_y_continuous(labels = comma) +
     labs(y = "Days") +
     labs(x = "Sourcing Area")  +
     labs(
-      fill = paste0(
-        "--------------------\nChange\nSeason Duration\n",
+      title = paste0(
+        "Change in Season Duration - ",
         ISO, 
-        "\n",
-        crop,
-        "\n--------------------"
+        " - ",
+        crop
       )
     ) +
     ylim(-150, 150) +
@@ -2799,10 +2827,9 @@ dB_duration_change_summary_plot_f <- function(dB_duration_change_summary, ISO, c
       size = 1
     ) +        
     theme(
-      panel.grid.major.x = element_blank(),
+      panel.grid.major.x = element_line(colour = "grey"),
       panel.grid.minor.x = element_blank(),
-      axis.text.x = element_blank(),
-      axis.ticks.x = element_blank()
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7)
     )
 }
 
@@ -2811,7 +2838,6 @@ dB_duration_change_summary_plot_f <- function(dB_duration_change_summary, ISO, c
 # results in dB_droughtc_summary_plot
 dB_droughtc_summary_plot_f <- function(dB_droughtc_summary, drought_threshold_l, drought_threshold_u, drought, ISO, crop) {
   ggplot(dB_droughtc_summary, aes(crop_ISO1, group = crop_ISO1, fill = crop_ISO1)) +
-    #filter(dB_sourcing_stats, Landuse_names == c("Cotton", "Cropland")),
     geom_boxplot(aes(
       ymin = max_min,
       lower = q25,
@@ -2819,21 +2845,17 @@ dB_droughtc_summary_plot_f <- function(dB_droughtc_summary, drought_threshold_l,
       upper = q75,
       ymax = min_max
     ),
-    stat = "identity") +
-    #scale_fill_manual(values = c("white", "orange", "yellow", "green", "dark green")) +
-    #scale_fill_manual(values = c("green", "dark green")) +
+    stat = "identity") + 
+    guides(fill="none") +
     scale_y_continuous(labels = comma) +
     labs(y = "# of seasons with hazard") +
     labs(x = "Sourcing Area")  +
     labs(
-      fill = paste0(
-        "--------------------\nPast\n", 
-        drought, 
-        "\n",
+      title = paste0(
+        "Past ", drought," - ",
         ISO, 
-        "\n",
-        crop,
-        "\n--------------------"
+        " - ",
+        crop
       )
     ) +
     ylim(0, 20) +
@@ -2864,17 +2886,15 @@ dB_droughtc_summary_plot_f <- function(dB_droughtc_summary, drought_threshold_l,
       hjust = 0
     ) +
     theme(
-      panel.grid.major.x = element_blank(),
+      panel.grid.major.x = element_line(colour = "grey"),
       panel.grid.minor.x = element_blank(),
-      axis.text.x = element_blank(),
-      axis.ticks.x = element_blank()
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7)
     )
 }
 
 # results in dB_droughtf_summary_plot
 dB_droughtf_summary_plot_f <- function(dB_droughtf_summary, drought_threshold_l, drought_threshold_u, drought, ISO, crop) {
   ggplot(dB_droughtf_summary, aes(crop_ISO1, group = crop_ISO1, fill = crop_ISO1)) +
-    #filter(dB_sourcing_stats, Landuse_names == c("Cotton", "Cropland")),
     geom_boxplot(aes(
       ymin = max_min,
       lower = q25,
@@ -2882,21 +2902,17 @@ dB_droughtf_summary_plot_f <- function(dB_droughtf_summary, drought_threshold_l,
       upper = q75,
       ymax = min_max
     ),
-    stat = "identity") +
-    #scale_fill_manual(values = c("white", "orange", "yellow", "green", "dark green")) +
-    #scale_fill_manual(values = c("green", "dark green")) +
+    stat = "identity") + 
+    guides(fill="none") +
     scale_y_continuous(labels = comma) +
     labs(y = "# of seasons with hazard") +
     labs(x = "Sourcing Area")  +
     labs(
-      fill = paste0(
-        "--------------------\nFuture\n", 
-        drought, 
-        "\n",
+      title = paste0(
+        "Future ", drought," - ",
         ISO, 
-        "\n",
-        crop,
-        "\n--------------------"
+        " - ",
+        crop
       )
     ) +
     ylim(0, 20) +
@@ -2927,17 +2943,15 @@ dB_droughtf_summary_plot_f <- function(dB_droughtf_summary, drought_threshold_l,
       hjust = 0
     ) +
     theme(
-      panel.grid.major.x = element_blank(),
+      panel.grid.major.x = element_line(colour = "grey"),
       panel.grid.minor.x = element_blank(),
-      axis.text.x = element_blank(),
-      axis.ticks.x = element_blank()
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7)
     )
 }
 
   # results in dB_drought_change_summary_plot
 dB_drought_change_summary_plot_f <- function(dB_drought_change_summary, drought_threshold_l, drought_threshold_u, drought, ISO, crop) {
   ggplot(dB_drought_change_summary, aes(crop_ISO1, group = crop_ISO1, fill = crop_ISO1)) +
-    #filter(dB_sourcing_stats, Landuse_names == c("Cotton", "Cropland")),
     geom_boxplot(aes(
       ymin = max_min,
       lower = q25,
@@ -2945,21 +2959,17 @@ dB_drought_change_summary_plot_f <- function(dB_drought_change_summary, drought_
       upper = q75,
       ymax = min_max
     ),
-    stat = "identity") +
-    #scale_fill_manual(values = c("white", "orange", "yellow", "green", "dark green")) +
-    #scale_fill_manual(values = c("green", "dark green")) +
+    stat = "identity") + 
+    guides(fill="none") +
     scale_y_continuous(labels = comma) +
     labs(y = "Change in frequency") +
     labs(x = "Sourcing Area")  +
     labs(
-      fill = paste0(
-        "--------------------\nChange\n", 
-        drought, 
-        "\n",
+      title = paste0(
+        "Change in ", drought," - ",
         ISO, 
-        "\n",
-        crop,
-        "\n--------------------"
+        " - ",
+        crop
       )
     ) +
     ylim(-20, 20) +
@@ -2970,10 +2980,9 @@ dB_drought_change_summary_plot_f <- function(dB_drought_change_summary, drought_
       size = 1
     ) +    
     theme(
-      panel.grid.major.x = element_blank(),
+      panel.grid.major.x = element_line(colour = "grey"),
       panel.grid.minor.x = element_blank(),
-      axis.text.x = element_blank(),
-      axis.ticks.x = element_blank()
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7)
     )
 }
 
@@ -2983,7 +2992,6 @@ dB_drought_change_summary_plot_f <- function(dB_drought_change_summary, drought_
 # results in dB_heatc_summary_plot
 dB_heatc_summary_plot_f <- function(dB_heatc_summary, heat_threshold_l, heat_threshold_u, heat, ISO, crop) {
   ggplot(dB_heatc_summary, aes(crop_ISO1, group = crop_ISO1, fill = crop_ISO1)) +
-    #filter(dB_sourcing_stats, Landuse_names == c("Cotton", "Cropland")),
     geom_boxplot(aes(
       ymin = max_min,
       lower = q25,
@@ -2991,21 +2999,17 @@ dB_heatc_summary_plot_f <- function(dB_heatc_summary, heat_threshold_l, heat_thr
       upper = q75,
       ymax = min_max
     ),
-    stat = "identity") +
-    #scale_fill_manual(values = c("white", "orange", "yellow", "green", "dark green")) +
-    #scale_fill_manual(values = c("green", "dark green")) +
+    stat = "identity") + 
+    guides(fill="none") +
     scale_y_continuous(labels = comma) +
     labs(y = "# of seasons with hazard") +
     labs(x = "Sourcing Area")  +
     labs(
-      fill = paste0(
-        "--------------------\nPast\n", 
-        heat, 
-        "\n",
+      title = paste0(
+        "Past ", heat," - ",
         ISO, 
-        "\n",
-        crop,
-        "\n--------------------"
+        " - ",
+        crop
       )
     ) +
     ylim(0, 20) +
@@ -3036,17 +3040,15 @@ dB_heatc_summary_plot_f <- function(dB_heatc_summary, heat_threshold_l, heat_thr
       hjust = 0
     ) +
     theme(
-      panel.grid.major.x = element_blank(),
+      panel.grid.major.x = element_line(colour = "grey"),
       panel.grid.minor.x = element_blank(),
-      axis.text.x = element_blank(),
-      axis.ticks.x = element_blank()
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7)
     )
 }
 
 # results in dB_heatf_summary_plot
 dB_heatf_summary_plot_f <- function(dB_heatf_summary, heat_threshold_l, heat_threshold_u, heat, ISO, crop) {
   ggplot(dB_heatf_summary, aes(crop_ISO1, group = crop_ISO1, fill = crop_ISO1)) +
-    #filter(dB_sourcing_stats, Landuse_names == c("Cotton", "Cropland")),
     geom_boxplot(aes(
       ymin = max_min,
       lower = q25,
@@ -3054,21 +3056,17 @@ dB_heatf_summary_plot_f <- function(dB_heatf_summary, heat_threshold_l, heat_thr
       upper = q75,
       ymax = min_max
     ),
-    stat = "identity") +
-    #scale_fill_manual(values = c("white", "orange", "yellow", "green", "dark green")) +
-    #scale_fill_manual(values = c("green", "dark green")) +
+    stat = "identity") + 
+    guides(fill="none") +
     scale_y_continuous(labels = comma) +
     labs(y = "# of seasons with hazard") +
     labs(x = "Sourcing Area")  +
     labs(
-      fill = paste0(
-        "--------------------\nFuture\n", 
-        heat, 
-        "\n",
+      title = paste0(
+        "Future ", heat," - ",
         ISO, 
-        "\n",
-        crop,
-        "\n--------------------"
+        " - ",
+        crop
       )
     ) +
     ylim(0, 20) +
@@ -3099,17 +3097,15 @@ dB_heatf_summary_plot_f <- function(dB_heatf_summary, heat_threshold_l, heat_thr
       hjust = 0
     ) +
     theme(
-      panel.grid.major.x = element_blank(),
+      panel.grid.major.x = element_line(colour = "grey"),
       panel.grid.minor.x = element_blank(),
-      axis.text.x = element_blank(),
-      axis.ticks.x = element_blank()
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7)
     )
 }
 
   # results in dB_heat_change_summary_plot
 dB_heat_change_summary_plot_f <- function(dB_heat_change_summary, heat_threshold_l, heat_threshold_u, heat, ISO, crop) {
   ggplot(dB_heat_change_summary, aes(crop_ISO1, group = crop_ISO1, fill = crop_ISO1)) +
-    #filter(dB_sourcing_stats, Landuse_names == c("Cotton", "Cropland")),
     geom_boxplot(aes(
       ymin = max_min,
       lower = q25,
@@ -3117,21 +3113,17 @@ dB_heat_change_summary_plot_f <- function(dB_heat_change_summary, heat_threshold
       upper = q75,
       ymax = min_max
     ),
-    stat = "identity") +
-    #scale_fill_manual(values = c("white", "orange", "yellow", "green", "dark green")) +
-    #scale_fill_manual(values = c("green", "dark green")) +
+    stat = "identity") + 
+    guides(fill="none") +
     scale_y_continuous(labels = comma) +
     labs(y = "Change in frequency") +
     labs(x = "Sourcing Area")  +
     labs(
-      fill = paste0(
-        "--------------------\nChange\n", 
-        heat, 
-        "\n",
+      title = paste0(
+        "Change in ", heat," - ",
         ISO, 
-        "\n",
-        crop,
-        "\n--------------------"
+        " - ",
+        crop
       )
     ) +
     ylim(-20, 20) +
@@ -3142,10 +3134,9 @@ dB_heat_change_summary_plot_f <- function(dB_heat_change_summary, heat_threshold
       size = 1
     ) +    
     theme(
-      panel.grid.major.x = element_blank(),
+      panel.grid.major.x = element_line(colour = "grey"),
       panel.grid.minor.x = element_blank(),
-      axis.text.x = element_blank(),
-      axis.ticks.x = element_blank()
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7)
     )
 }
 
@@ -3155,7 +3146,6 @@ dB_heat_change_summary_plot_f <- function(dB_heat_change_summary, heat_threshold
  # results in dB_floodc_summary_plot
 dB_floodc_summary_plot_f <- function(dB_floodc_summary, flood_threshold_l, flood_threshold_u, flood, ISO, crop) {
   ggplot(dB_floodc_summary, aes(crop_ISO1, group = crop_ISO1, fill = crop_ISO1)) +
-    #filter(dB_sourcing_stats, Landuse_names == c("Cotton", "Cropland")),
     geom_boxplot(aes(
       ymin = max_min,
       lower = q25,
@@ -3163,21 +3153,17 @@ dB_floodc_summary_plot_f <- function(dB_floodc_summary, flood_threshold_l, flood
       upper = q75,
       ymax = min_max
     ),
-    stat = "identity") +
-    #scale_fill_manual(values = c("white", "orange", "yellow", "green", "dark green")) +
-    #scale_fill_manual(values = c("green", "dark green")) +
+    stat = "identity") + 
+    guides(fill="none") +
     scale_y_continuous(labels = comma) +
     labs(y = "Average # per period") +
     labs(x = "Sourcing Area")  +
     labs(
-      fill = paste0(
-        "--------------------\nPast\n", 
-        flood, 
-        "\n",
+      title = paste0(
+        "Past ", flood," - ",
         ISO, 
-        "\n",
-        crop,
-        "\n--------------------"
+        " - ",
+        crop
       )
     ) +
     ylim(0, 20) +
@@ -3208,17 +3194,15 @@ dB_floodc_summary_plot_f <- function(dB_floodc_summary, flood_threshold_l, flood
       hjust = 0
     ) +
     theme(
-      panel.grid.major.x = element_blank(),
+      panel.grid.major.x = element_line(colour = "grey"),
       panel.grid.minor.x = element_blank(),
-      axis.text.x = element_blank(),
-      axis.ticks.x = element_blank()
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7)
     )
 }
 
 # results in dB_floodf_summary_plot
 dB_floodf_summary_plot_f <- function(dB_floodf_summary, flood_threshold_l, flood_threshold_u, flood, ISO, crop) {
   ggplot(dB_floodf_summary, aes(crop_ISO1, group = crop_ISO1, fill = crop_ISO1)) +
-    #filter(dB_sourcing_stats, Landuse_names == c("Cotton", "Cropland")),
     geom_boxplot(aes(
       ymin = max_min,
       lower = q25,
@@ -3226,21 +3210,17 @@ dB_floodf_summary_plot_f <- function(dB_floodf_summary, flood_threshold_l, flood
       upper = q75,
       ymax = min_max
     ),
-    stat = "identity") +
-    #scale_fill_manual(values = c("white", "orange", "yellow", "green", "dark green")) +
-    #scale_fill_manual(values = c("green", "dark green")) +
+    stat = "identity") + 
+    guides(fill="none") +
     scale_y_continuous(labels = comma) +
     labs(y = "Average # per period") +
     labs(x = "Sourcing Area")  +
     labs(
-      fill = paste0(
-        "--------------------\nFuture\n", 
-        flood, 
-        "\n",
+      title = paste0(
+        "Future ", flood," - ",
         ISO, 
-        "\n",
-        crop,
-        "\n--------------------"
+        " - ",
+        crop
       )
     ) +
     ylim(0, 20) +
@@ -3271,17 +3251,15 @@ dB_floodf_summary_plot_f <- function(dB_floodf_summary, flood_threshold_l, flood
       hjust = 0
     ) +
     theme(
-      panel.grid.major.x = element_blank(),
+      panel.grid.major.x = element_line(colour = "grey"),
       panel.grid.minor.x = element_blank(),
-      axis.text.x = element_blank(),
-      axis.ticks.x = element_blank()
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7)
     )
 }
 
   # results in dB_flood_change_summary_plot
 dB_flood_change_summary_plot_f <- function(dB_flood_change_summary, flood_threshold_l, flood_threshold_u, flood, ISO, crop) {
   ggplot(dB_flood_change_summary, aes(crop_ISO1, group = crop_ISO1, fill = crop_ISO1)) +
-    #filter(dB_sourcing_stats, Landuse_names == c("Cotton", "Cropland")),
     geom_boxplot(aes(
       ymin = max_min,
       lower = q25,
@@ -3289,21 +3267,17 @@ dB_flood_change_summary_plot_f <- function(dB_flood_change_summary, flood_thresh
       upper = q75,
       ymax = min_max
     ),
-    stat = "identity") +
-    #scale_fill_manual(values = c("white", "orange", "yellow", "green", "dark green")) +
-    #scale_fill_manual(values = c("green", "dark green")) +
+    stat = "identity") + 
+    guides(fill="none") +
     scale_y_continuous(labels = comma) +
     labs(y = "Change in average # per period") +
     labs(x = "Sourcing Area")  +
     labs(
-      fill = paste0(
-        "--------------------\nChange\n", 
-        flood, 
-        "\n",
+      title = paste0(
+        "Change in ", flood," - ",
         ISO, 
-        "\n",
-        crop,
-        "\n--------------------"
+        " - ",
+        crop
       )
     ) +
     ylim(-10, 10) +
@@ -3314,10 +3288,9 @@ dB_flood_change_summary_plot_f <- function(dB_flood_change_summary, flood_thresh
       size = 1
     ) +    
     theme(
-      panel.grid.major.x = element_blank(),
+      panel.grid.major.x = element_line(colour = "grey"),
       panel.grid.minor.x = element_blank(),
-      axis.text.x = element_blank(),
-      axis.ticks.x = element_blank()
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7)
     )
 }
 
@@ -5494,15 +5467,16 @@ ggplot(aes(x = Landuse,
       mean.hist.drought.l.sub.heat.l.sub = rgb(191,91,23, maxColorValue = 255)
       )
     ) +
-  labs(title = "Climate Risk Profile per Crop Sourcing Area") +
-  geom_text(y = 0, aes(label = paste(Landuse), angle = 90), hjust = 0) +
-  theme(
-    panel.grid.major.x = element_blank(),
-    panel.grid.minor.x = element_blank(),
-    axis.title.x = element_blank(),
-    axis.text.x = element_blank(),
-    axis.ticks.x = element_blank()
-  ) 
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    )
 }
 
 # results in dB_profile_d_l_f_l_plot
@@ -5526,15 +5500,16 @@ ggplot(aes(x = Landuse,
       mean.hist.drought.l.sub.flood.l.sub = rgb(56,108,176, maxColorValue = 255)
      )
     ) +
-  labs(title = "Climate Risk Profile per Crop Sourcing Area") +
-  geom_text(y = 0, aes(label = paste(Landuse), angle = 90), hjust = 0) +
-  theme(
-    panel.grid.major.x = element_blank(),
-    panel.grid.minor.x = element_blank(),
-    axis.title.x = element_blank(),
-    axis.text.x = element_blank(),
-    axis.ticks.x = element_blank()
-  ) 
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    ) 
 }
 
 # results in dB_profile_h_l_f_l_plot
@@ -5558,15 +5533,16 @@ ggplot(aes(x = Landuse,
       mean.hist.heat.l.sub.flood.l.sub = rgb(102,102,102, maxColorValue = 255)
       )
     ) +
-  labs(title = "Climate Risk Profile per Crop Sourcing Area") +
-  geom_text(y = 0, aes(label = paste(Landuse), angle = 90), hjust = 0) +
-  theme(
-    panel.grid.major.x = element_blank(),
-    panel.grid.minor.x = element_blank(),
-    axis.title.x = element_blank(),
-    axis.text.x = element_blank(),
-    axis.ticks.x = element_blank()
-  ) 
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    )
 }
 
 # results in dB_profile_d_l_h_l_f_l_plot
@@ -5594,15 +5570,16 @@ ggplot(aes(x = Landuse,
       mean.hist.drought.l.sub.heat.l.sub.flood.l.sub = rgb(240,2,127, maxColorValue = 255)
       )
     ) +
-  labs(title = "Climate Risk Profile per Crop Sourcing Area") +
-  geom_text(y = 0, aes(label = paste(Landuse), angle = 90), hjust = 0) +
-  theme(
-    panel.grid.major.x = element_blank(),
-    panel.grid.minor.x = element_blank(),
-    axis.title.x = element_blank(),
-    axis.text.x = element_blank(),
-    axis.ticks.x = element_blank()
-  ) 
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    ) 
 }
 
 # sankey diagram

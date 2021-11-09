@@ -10,10 +10,15 @@ output:
   pdf_document:
     dev: png
 fontsize: 12pt
+classoption: landscape
 ---
 
 ```{r setup, include = FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>",  dpi = 300,
+  echo = FALSE,
+  results = 'hide' ,
+  message = FALSE,
+  warning = FALSE)
 ```
 
 # Setup
@@ -115,7 +120,7 @@ list(
 
 ```{targets country_crop_data}
 list(
-  tar_target(v_crop, v_crop_get_f(cc_data)),
+  tar_target(v_crop, v_crop_get_f(cc_data, cc_row)),
   
   tar_target(v_crop_extent, v_crop_extent_f(v_crop)),
   tar_target(
@@ -139,20 +144,16 @@ list(
 
 ```{targets spatial_data_preparation_processing_1a}
 list(
-  tar_target(r_ISO_file, r_ISO_make_write_f(v_ISO, r_lc, v_ISO_extent, ISO)),
-  tar_target(r_ISO, r_ISO_get_f(ISO, r_ISO_file))
+    tar_target(r_ISO_file1, r_ISO_make_write1_f(v_ISO, r_lc, v_ISO_extent, ISO)),
+    tar_target(r_ISO_file2, r_ISO_make_write2_f(r_ISO_file1, v_ISO_extent)),
+    tar_target(r_ISO_file3, r_ISO_make_write3_f(r_ISO_file2, ISO)),
+    tar_target(r_ISO, r_ISO_get_f(r_ISO_file3, ISO))
 )
 
 ```
+  
+
 ```{targets spatial_data_preparation_processing_1b}
-list(
-  tar_target(r_ISO1_file, r_ISO1_make_write_f(v_ISO1, r_ISO, ISO)),
-  tar_target(r_ISO1, r_ISO1_get_f(ISO, r_ISO1_file))
-)
-
-```
-
-```{targets spatial_data_preparation_processing_1c}
 list(
   tar_target(r_lc_ISO_file, r_lc_ISO_make_write_f(r_lc, r_ISO, ISO)),
   tar_target(r_lc_ISO, r_lc_ISO_get_f(ISO, r_lc_ISO_file))
@@ -179,7 +180,7 @@ list(
 ```{targets spatial_data_preparation_processing_3}
 
 list(
-  tar_target(r_crop_ISO_lc_file, r_crop_ISO_lc_file(r_lc_ISO, r_crop_ISO, ISO, crop)),
+  tar_target(r_crop_ISO_lc_file, r_crop_ISO_lc_file_make_write_f(r_lc_ISO, r_crop_ISO, ISO, crop)),
   tar_target(r_crop_ISO_lc, r_crop_ISO_lc_get_f(r_crop_ISO_lc_file, ISO, crop)),
   tar_target(r_crop_ISO_lc_rcl_file, r_crop_ISO_lc_rcl_make_write_f(r_crop_ISO_lc, ISO, crop)),
   tar_target(r_crop_ISO_lc_rcl, r_crop_ISO_lc_rcl_get_f(r_crop_ISO_lc_rcl_file, ISO, crop))
@@ -200,15 +201,25 @@ list(
     r_crop_ISO_lc_rcl_agg_get_f(r_crop_ISO_lc_rcl_agg_file, ISO, crop)
   ),
   tar_target(
-    v_crop_ISO_lc_rcl_agg_file,
-    v_crop_ISO_lc_rcl_agg_make_write_f(r_crop_ISO_lc_rcl_agg,  ISO, crop)
-  ),
+    v_crop_ISO_lc_rcl_agg_file1,
+    v_crop_ISO_lc_rcl_agg1_make_write_f(r_crop_ISO_lc_rcl_agg,  ISO, crop)
+  ))
+```  
+
+```{targets spatial_data_preparation_processing_5}
+
+list(
   tar_target(
     v_crop_ISO_lc_rcl_agg,
-    v_crop_ISO_lc_rcl_agg_get_f(v_crop_ISO_lc_rcl_agg_file, ISO, crop, v_ISO1)
+    v_crop_ISO_lc_rcl_agg_get_f(v_crop_ISO_lc_rcl_agg_file1, ISO, crop, v_ISO1)
+  ),
+  tar_target(
+    v_crop_ISO_lc_rcl_agg_file2,
+    v_crop_ISO_lc_rcl_agg2_make_write_f
+    (v_crop_ISO_lc_rcl_agg,  ISO, crop)
   )
 )
-  
+
 ```
 
 
@@ -219,11 +230,29 @@ list(
 
 ```{targets spatial_data_preparation_plots}
 list(
-  tar_target(r_lc_ISO_plot, r_lc_ISO_plot_f(r_lc_ISO, world, v_ISO_extent, ISO)),
-  tar_target(r_crop_ISO_plot, r_crop_ISO_plot_f(r_crop_ISO, v_ISO1, ISO, crop)),
-  tar_target(r_crop_ISO_lc_plot, r_crop_ISO_lc_plot_f(r_crop_ISO_lc, v_ISO1, ISO, crop)),
-  tar_target(r_crop_ISO_lc_rcl_plot, r_crop_ISO_lc_rcl_plot_f(r_crop_ISO_lc_rcl, v_ISO1, ISO, crop))
+  tar_target(
+    r_lc_ISO_plot,
+    r_lc_ISO_plot_f(r_lc_ISO, world, v_ISO_extent, ISO)
+  ),
+  tar_target(
+    r_crop_ISO_plot,
+    r_crop_ISO_plot_f(r_crop_ISO, v_ISO1, ISO, crop)
+  ),
+  tar_target(
+    r_crop_ISO_lc_plot,
+    r_crop_ISO_lc_plot_f(r_crop_ISO_lc, v_ISO1, ISO, crop)
+  ),
+  tar_target(
+    r_crop_ISO_lc_rcl_plot,
+    r_crop_ISO_lc_rcl_plot_f(r_crop_ISO_lc_rcl, v_ISO1, ISO, crop)
   )
+  ,
+  tar_target(
+    v_crop_ISO_lc_rcl_agg_plot,
+    v_crop_ISO_lc_rcl_agg_plot_f
+    (v_crop_ISO_lc_rcl_agg,  ISO, crop)
+  )
+)
 
 ```
 
@@ -231,7 +260,7 @@ list(
 
 ```{targets trimmed_climate_mask}
 list(
-  tar_target(r_clim_mask_trim_file, r_clim_mask_trim_file_make_write_f(r_lc_ISO, r_clim_mask, ISO)),
+  tar_target(r_clim_mask_trim_file, r_clim_mask_trim_file_make_write_f(v_ISO, r_clim_mask, ISO)),
   tar_target(r_clim_mask_trim, r_clim_mask_trim_get_f(ISO, r_clim_mask_trim_file))  
 )
 
@@ -243,19 +272,19 @@ list(
 
 ```{targets climate_base_data_trim_1}
 list(
-  tar_target(r_rainfallc_file, r_rainfallc_make_write_f(ISO, crop, cc_data, r_clim_mask_trim)),
-  tar_target(r_rainfallf_file, r_rainfallf_make_write_f(ISO, crop, cc_data, r_clim_mask_trim)),
-  tar_target(r_tempc_file, r_tempc_make_write_f(ISO, crop, cc_data, r_clim_mask_trim)),
-  tar_target(r_tempf_file, r_tempf_make_write_f(ISO, crop, cc_data, r_clim_mask_trim))
+  tar_target(r_rainfallc_file, r_rainfallc_make_write_f(ISO, crop, cc_data, cc_row, r_clim_mask_trim)),
+  tar_target(r_rainfallf_file, r_rainfallf_make_write_f(ISO, crop, cc_data, cc_row, r_clim_mask_trim)),
+  tar_target(r_tempc_file, r_tempc_make_write_f(ISO, crop, cc_data, cc_row, r_clim_mask_trim)),
+  tar_target(r_tempf_file, r_tempf_make_write_f(ISO, crop, cc_data, cc_row, r_clim_mask_trim))
 )
 ```
 
 ```{targets climate_base_data_trim_2}
 list(
-  tar_target(r_onsetc_file, r_onsetc_make_write_f(ISO, crop, cc_data, r_clim_mask_trim)),
-  tar_target(r_onsetf_file, r_onsetf_make_write_f(ISO, crop, cc_data, r_clim_mask_trim)),
-  tar_target(r_durationc_file, r_durationc_make_write_f(ISO, crop, cc_data, r_clim_mask_trim)),
-  tar_target(r_durationf_file, r_durationf_make_write_f(ISO, crop, cc_data, r_clim_mask_trim))
+  tar_target(r_onsetc_file, r_onsetc_make_write_f(ISO, crop, cc_data, cc_row, r_clim_mask_trim)),
+  tar_target(r_onsetf_file, r_onsetf_make_write_f(ISO, crop, cc_data, cc_row, r_clim_mask_trim)),
+  tar_target(r_durationc_file, r_durationc_make_write_f(ISO, crop, cc_data, cc_row, r_clim_mask_trim)),
+  tar_target(r_durationf_file, r_durationf_make_write_f(ISO, crop, cc_data, cc_row, r_clim_mask_trim))
 )
 ```
 
@@ -410,12 +439,12 @@ list(
 
 ```{targets climate_hazard_data_trim}
 list(
-  tar_target(r_droughtc_file, r_droughtc_make_write_f(ISO, crop, cc_data, r_clim_mask_trim)),
-  tar_target(r_droughtf_file, r_droughtf_make_write_f(ISO, crop, cc_data, r_clim_mask_trim)),
-  tar_target(r_heatc_file, r_heatc_make_write_f(ISO, crop, cc_data, r_clim_mask_trim)),
-  tar_target(r_heatf_file, r_heatf_make_write_f(ISO, crop, cc_data, r_clim_mask_trim)),
-  tar_target(r_floodc_file, r_floodc_make_write_f(ISO, crop, cc_data, r_clim_mask_trim)),
-  tar_target(r_floodf_file, r_floodf_make_write_f(ISO, crop, cc_data, r_clim_mask_trim))
+  tar_target(r_droughtc_file, r_droughtc_make_write_f(ISO, crop, cc_data, cc_row, r_clim_mask_trim)),
+  tar_target(r_droughtf_file, r_droughtf_make_write_f(ISO, crop, cc_data, cc_row, r_clim_mask_trim)),
+  tar_target(r_heatc_file, r_heatc_make_write_f(ISO, crop, cc_data, cc_row, r_clim_mask_trim)),
+  tar_target(r_heatf_file, r_heatf_make_write_f(ISO, crop, cc_data, cc_row, r_clim_mask_trim)),
+  tar_target(r_floodc_file, r_floodc_make_write_f(ISO, crop, cc_data, cc_row, r_clim_mask_trim)),
+  tar_target(r_floodf_file, r_floodf_make_write_f(ISO, crop, cc_data, cc_row, r_clim_mask_trim))
 )
 
 ```
@@ -1250,16 +1279,16 @@ list(
 
 list(
   tar_target(
-    fpm_droughtf_u_heatf_u,
-    fpm_droughtf_u_heatf_u_make_f(rb_droughtf_heatf, dB_impact, fp_drought_u, fp_heat_u)
+    fpm_droughtc_u_heatc_u,
+    fpm_droughtc_u_heatc_u_make_f(rb_droughtc_heatc, dB_impact, fp_drought_u, fp_heat_u)
   ),
   tar_target(
-    fpm_droughtf_u_floodf_u,
-    fpm_droughtf_u_floodf_u_make_f(rb_droughtf_floodf, dB_impact, fp_drought_u, fp_flood_u)
+    fpm_droughtc_u_floodc_u,
+    fpm_droughtc_u_floodc_u_make_f(rb_droughtc_floodc, dB_impact, fp_drought_u, fp_flood_u)
   ),
   tar_target(
-    fpm_heatf_u_floodf_u,
-    fpm_heatf_u_floodf_u_make_f(rb_heatf_floodf, dB_impact, fp_heat_u, fp_flood_u)
+    fpm_heatc_u_floodc_u,
+    fpm_heatc_u_floodc_u_make_f(rb_heatc_floodc, dB_impact, fp_heat_u, fp_flood_u)
   ),
   tar_target(
     fpm_droughtc_u_heatc_u_floodc_u,
@@ -1602,9 +1631,17 @@ list(
     dB_profile_d_l_h_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
   tar_target(
-    dB_profile_d_l_h_l_plot,
-    dB_profile_d_l_h_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profile_d_l_f_l_plot,
+    dB_profile_d_l_f_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
+  tar_target(
+    dB_profile_h_l_f_l_plot,
+    dB_profile_h_l_f_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+  ),
+    tar_target(
+    dB_profile_d_l_h_l_f_l_plot,
+    dB_profile_d_l_h_l_f_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+  )
 )
 
 
@@ -1624,7 +1661,7 @@ tar_make()
 
 The `targets` dependency graph helps your readers understand the steps of your pipeline at a high level.
 
-```{r}
+```{r, message = FALSE, fig.width = 15, fig.height = 6}
 tar_glimpse()
 ```
 
@@ -1632,14 +1669,14 @@ tar_glimpse()
 
 ## Land Cover Map
 
-```{r, message = FALSE}
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
 tar_read(r_lc_plot)
 ```
 
 
 ## Static raw data
 
-```{r, message = FALSE}
+```{r, message = FALSE, results = 'show'}
 
 tar_read(ISO)
 tar_read(crop)
@@ -1651,68 +1688,387 @@ tar_read(flood)
 
 ## Country spatial data
 
-```{r, message = FALSE}
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
 tar_read(v_crop_plot)
+```
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
 tar_read(v_ISO_plot)
+
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_lc_ISO_plot)
+
+```
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_crop_ISO_plot)
+
+```
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_crop_ISO_lc_plot)
+
+```
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_crop_ISO_lc_rcl_plot)
+
+```
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(v_crop_ISO_lc_rcl_agg_plot)
 
 ```
 
 ## Climate Base Data
 
-```{r, message = FALSE}
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
 tar_read(r_rainfallc_plot)
+
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
 tar_read(r_rainfallf_plot)
+
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
 tar_read(r_rainfall_change_plot)
 
+```
+
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
 tar_read(r_tempc_plot)
+
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
 tar_read(r_tempf_plot)
+
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
 tar_read(r_temp_change_plot)
 
+```
+
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
 tar_read(r_onsetc_plot)
+
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
 tar_read(r_onsetf_plot)
+
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
 tar_read(r_onset_change_plot)
 
+```
+
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
 tar_read(r_durationc_plot)
+
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
 tar_read(r_durationf_plot)
+
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
 tar_read(r_duration_change_plot)
 
 ```
 
 ## Climate Hazard Indicators
 
-```{r, message = FALSE}
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
 tar_read(r_droughtc_plot)
+
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
 tar_read(r_droughtf_plot)
+
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
 tar_read(r_drought_change_plot)
 
+```
+
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
 tar_read(r_heatc_plot)
+
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
 tar_read(r_heatf_plot)
+
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
 tar_read(r_heat_change_plot)
 
+```
+
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
 tar_read(r_floodc_plot)
+
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
 tar_read(r_floodf_plot)
+
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
 tar_read(r_flood_change_plot)
 
 
 ```
 
+
+## Zonal Statistics of Climate Data
+
+### Rainfall
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_rainfallc_summary_plot)
+
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_rainfallf_summary_plot)
+
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_rainfall_change_summary_plot)
+
+```
+
+### Temperature
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_tempc_summary_plot)
+
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_tempf_summary_plot)
+
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_temp_change_summary_plot)
+
+```
+
+### Season Onset
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_onsetc_summary_plot )
+
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_onsetf_summary_plot)
+
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_onset_change_summary_plot)
+
+```
+
+### Season Duration
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_durationc_summary_plot)
+
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_durationf_summary_plot)
+
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_duration_change_summary_plot)
+
+```
+
+
 ## Zonal Statistics of Climate Indicators
 
-```{r, message = FALSE}
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
 tar_read(dB_droughtc_summary_plot)
+
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
 tar_read(dB_droughtf_summary_plot)
+
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
 tar_read(dB_drought_change_summary_plot)
 
+```
+
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
 tar_read(dB_heatc_summary_plot)
+
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
 tar_read(dB_heatf_summary_plot)
+
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
 tar_read(dB_heat_change_summary_plot)
 
+```
+
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
 tar_read(dB_floodc_summary_plot)
+
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
 tar_read(dB_floodf_summary_plot)
+
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
 tar_read(dB_flood_change_summary_plot)
+
+```
+
+## Climate Risk Profiles
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_profile_d_l_h_l_plot)
+
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_profile_d_l_f_l_plot)
+
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_profile_h_l_f_l_plot)
+
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+
+tar_read(dB_profile_d_l_h_l_f_l_plot)
 
 ```
