@@ -1,7 +1,7 @@
 ---
-title: "Target Markdown"
+title: "Burundi - Sorghum"
 author: "A Farrow"
-date: "04/10/2021"
+date: "29/11/2021"
 header-includes:
    - \usepackage[default]{sourcesanspro}
    - \usepackage[T1]{fontenc}
@@ -23,11 +23,13 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>",  dpi = 300,
 
 # Setup
 
-Near the top of the document, you may wish to remove the `_targets_r` directory previously written by non-interactive runs of the report. Otherwise, your pipeline may contain superfluous targets.
+Near the top of the document, I remove the `_targets_r` directory previously written by non-interactive runs of the report. Otherwise, the pipeline may contain superfluous targets.
 
 ```{r}
 library(targets)
+library(sf)
 tar_unscript()
+sf_use_s2(FALSE)
 
 ```
 
@@ -50,7 +52,9 @@ tar_option_set(
     "scales",
     "irm",
     "fuZR",
-    "kableExtra"
+    "kableExtra",
+    "units",
+    "magrittr"
   )
 )
 source("R/functions.R")
@@ -61,10 +65,11 @@ source("R/functions.R")
 
 ## Parameters
 
-Many parameters are defined in the cc_data file. We load this here. 
+Many parameters are defined in the cc_data file. We load this here.
+
 ```{targets parameters}
 list(
-  tar_target(cc_row, 2),
+  tar_target(cc_row, 22),
   tar_target(drought_threshold_l, 7),
   tar_target(drought_threshold_l_width, 3.5),
   tar_target(heat_threshold_l, 7),
@@ -79,6 +84,7 @@ list(
   tar_target(flood_threshold_u_width, 2)
 )
 ```
+
 ## Global spatial data
 
 ```{targets global_spatial_data}
@@ -87,15 +93,7 @@ list(
     scale = "medium", returnclass = "sf"
   )),
   
-  tar_target(world_plot, world_plot_f(world)),
-  
-  tar_target(
-    r_lc,
-    raster(
-      "D:/repos/climate-smart-agri-sourcing/spatial_data/output/r_crop_mask_COP_rcl.tif"
-    )
-  ),
-  tar_target(r_lc_plot, r_lc_plot_f(r_lc, world))
+  tar_target(world_plot, world_plot_f(world))
 )
 ``` 
 
@@ -133,7 +131,13 @@ list(
   tar_target(v_ISO_extent, v_ISO_extent_f(v_ISO)),
   tar_target(v_ISO_plot, v_ISO_plot_f(v_ISO, ISO)),
   
-  tar_target(r_clim_mask, r_clim_mask_get_f(ISO))
+  tar_target(r_clim_mask, r_clim_mask_get_f(ISO)),
+  
+  tar_target(r_lc_global,  r_lc_global_get_f(r_clim_mask)),
+  
+  tar_target(r_lc_file,  r_lc_make_write_f(r_lc_global, r_clim_mask, ISO)),
+  tar_target(r_lc,  r_lc_get_f(r_lc_file, ISO)),
+  tar_target(r_lc_plot, r_lc_plot_f(r_lc, world))
 )
 
 ```
@@ -142,18 +146,31 @@ list(
 
 ### Processing
 
-```{targets spatial_data_preparation_processing_1a}
+```{targets spatial_data_prep_processing_1ai}
 list(
-    tar_target(r_ISO_file1, r_ISO_make_write1_f(v_ISO, r_lc, v_ISO_extent, ISO)),
-    tar_target(r_ISO_file2, r_ISO_make_write2_f(r_ISO_file1, v_ISO_extent)),
-    tar_target(r_ISO_file3, r_ISO_make_write3_f(r_ISO_file2, ISO)),
-    tar_target(r_ISO, r_ISO_get_f(r_ISO_file3, ISO))
+    tar_target(r_ISO_a_file, r_ISO_a_make_write_f(v_ISO, r_lc, ISO)),
+    tar_target(r_ISO_a, r_ISO_a_get_f(ISO, r_ISO_a_file))
+)
+```
+
+
+```{targets spatial_data_prep_processing_1aii}    
+#list(
+#    tar_target(r_ISO_b_file, r_ISO_b_make_write_f(r_ISO_a, v_ISO_extent, ISO)),
+#    tar_target(r_ISO_b, r_ISO_b_get_f(ISO, r_ISO_b_file))
+#)
+```
+
+```{targets spatial_data_prep_processing_1aiii}   
+list(
+    tar_target(r_ISO_file, r_ISO_make_write_f(r_ISO_a, v_ISO_extent, ISO)),
+    tar_target(r_ISO, r_ISO_get_f(ISO, r_ISO_file))
 )
 
 ```
   
 
-```{targets spatial_data_preparation_processing_1b}
+```{targets spatial_data_prep_processing_1b}
 list(
   tar_target(r_lc_ISO_file, r_lc_ISO_make_write_f(r_lc, r_ISO, ISO)),
   tar_target(r_lc_ISO, r_lc_ISO_get_f(ISO, r_lc_ISO_file))
@@ -163,7 +180,7 @@ list(
 
 
 
-```{targets spatial_data_preparation_processing_2}
+```{targets spatial_data_prep_processing_2}
 
 list(
   tar_target(r_crop_file, r_crop_make_write_f(v_crop, r_lc_ISO, ISO, crop)),
@@ -177,7 +194,7 @@ list(
   
 ```
 
-```{targets spatial_data_preparation_processing_3}
+```{targets spatial_data_prep_processing_3}
 
 list(
   tar_target(r_crop_ISO_lc_file, r_crop_ISO_lc_file_make_write_f(r_lc_ISO, r_crop_ISO, ISO, crop)),
@@ -189,7 +206,7 @@ list(
   
 ```
 
-```{targets spatial_data_preparation_processing_4}
+```{targets spatial_data_prep_processing_4a}
 
 list(
   tar_target(
@@ -199,24 +216,98 @@ list(
   tar_target(
     r_crop_ISO_lc_rcl_agg,
     r_crop_ISO_lc_rcl_agg_get_f(r_crop_ISO_lc_rcl_agg_file, ISO, crop)
-  ),
-  tar_target(
-    v_crop_ISO_lc_rcl_agg_file1,
-    v_crop_ISO_lc_rcl_agg1_make_write_f(r_crop_ISO_lc_rcl_agg,  ISO, crop)
-  ))
-```  
+  )
+)
 
-```{targets spatial_data_preparation_processing_5}
-
+``` 
+  
+  
+```{targets spatial_data_prep_processing_4b}
+  
 list(
   tar_target(
-    v_crop_ISO_lc_rcl_agg,
-    v_crop_ISO_lc_rcl_agg_get_f(v_crop_ISO_lc_rcl_agg_file1, ISO, crop, v_ISO1)
+    r_crop_ISO_lc_rcl_agg_values,
+    r_crop_ISO_lc_rcl_agg_values_get_f(r_crop_ISO_lc_rcl_agg)
+  ),
+  tar_target(r_crop_ISO_lc_rcl_agg_values_vec0, c(0))
+  ,
+  tar_target(r_crop_ISO_lc_rcl_agg_values_vec1, c(1))
+  ,
+  tar_target(r_crop_ISO_lc_rcl_agg_values_vec2, c(2))
+  ,
+  tar_target(r_crop_ISO_lc_rcl_agg_values_vec01, c(0, 1))
+  ,
+  tar_target(r_crop_ISO_lc_rcl_agg_values_vec02, c(0, 2))
+  ,
+  tar_target(r_crop_ISO_lc_rcl_agg_values_vec12, c(1, 2))
+)
+
+```  
+
+```{targets spatial_data_prep_processing_4c}
+
+list(
+tar_target(
+  v_crop_ISO_lc_rcl_agg_file1,
+  v_crop_ISO_lc_rcl_agg1_make_write_f(r_crop_ISO_lc_rcl_agg,  ISO, crop)
+)
+)
+
+```  
+
+
+```{targets spatial_data_prep_processing_5a}
+
+list(tar_target(
+  v_crop_ISO_lc_rcl_agg,
+  v_crop_ISO_lc_rcl_agg_get_f(
+    v_crop_ISO_lc_rcl_agg_file1,
+    r_crop_ISO_lc_rcl_agg_values,
+    r_crop_ISO_lc_rcl_agg_values_vec0,
+    r_crop_ISO_lc_rcl_agg_values_vec1,
+    r_crop_ISO_lc_rcl_agg_values_vec2,
+    r_crop_ISO_lc_rcl_agg_values_vec01,
+    r_crop_ISO_lc_rcl_agg_values_vec02,
+    r_crop_ISO_lc_rcl_agg_values_vec12,
+    ISO,
+    crop,
+    v_ISO1
+  )
+))
+```
+
+```{targets spatial_data_prep_processing_5b}
+
+list(tar_target(
+  v_crop_ISO_lc_rcl_agg_file2,
+  v_crop_ISO_lc_rcl_agg2_make_write_f
+  (v_crop_ISO_lc_rcl_agg,  ISO, crop)
+))
+
+```
+
+### Project the crop/landuse vector and get area stats
+
+```{targets spatial_data_prep_processing_6}
+
+list(
+  tar_target(wkt_lam, wkt_lam_make_f(v_ISO_extent)),
+  tar_target(crs_lam, crs_lam_make_f(wkt_lam)),
+  tar_target(
+    v_crop_ISO_lc_rcl_agg_proj_file,
+    v_crop_ISO_lc_rcl_agg_proj_file_make_write_f(v_crop_ISO_lc_rcl_agg, crs_lam, ISO, crop)
   ),
   tar_target(
-    v_crop_ISO_lc_rcl_agg_file2,
-    v_crop_ISO_lc_rcl_agg2_make_write_f
-    (v_crop_ISO_lc_rcl_agg,  ISO, crop)
+    v_crop_ISO_lc_rcl_agg_proj,
+    v_crop_ISO_lc_rcl_agg_proj_get_f(v_crop_ISO_lc_rcl_agg_proj_file, ISO, crop)
+  ),
+  tar_target(
+    dB_crop_ISO_lc_rcl_agg_proj,
+    dB_crop_ISO_lc_rcl_agg_proj_make_f(v_crop_ISO_lc_rcl_agg_proj, v_ISO1, ISO, crop)
+  ),
+  tar_target(
+    dB_crop_ISO_lc_rcl_agg_proj_plot,
+    dB_crop_ISO_lc_rcl_agg_proj_plot_f(dB_crop_ISO_lc_rcl_agg_proj)
   )
 )
 
@@ -224,11 +315,9 @@ list(
 
 
 
-
-
 ### Plots
 
-```{targets spatial_data_preparation_plots}
+```{targets spatial_data_prep_plots}
 list(
   tar_target(
     r_lc_ISO_plot,
@@ -250,7 +339,7 @@ list(
   tar_target(
     v_crop_ISO_lc_rcl_agg_plot,
     v_crop_ISO_lc_rcl_agg_plot_f
-    (v_crop_ISO_lc_rcl_agg,  ISO, crop)
+    (v_crop_ISO_lc_rcl_agg, v_ISO1, ISO, crop)
   )
 )
 
@@ -1030,7 +1119,7 @@ list(
 
 ### Prepare Impact Data
 
-```{targets impact_data_preparation}
+```{targets impact_data_prep}
 
 list(
   tar_target(dB_impact_prelim,
@@ -1147,7 +1236,7 @@ list(
 
 #### Lower Threshold
 
-```{targets single_hazard_fuzzy_partition_matrices_l_predict}
+```{targets single_hazard_fpm_l_predict}
 
 list(
   tar_target(
@@ -1168,7 +1257,7 @@ list(
 
 #### Upper Threshold
 
-```{targets single_hazard_fuzzy_partition_matrices_u_predict}
+```{targets single_hazard_fpm_u_predict}
 
 list(
   tar_target(
@@ -1222,7 +1311,7 @@ list(
 
 #### Lower Threshold
 
-```{targets multiple_hazard_fuzzy_partition_matrices_l_predict}
+```{targets multiple_hazard_fpm_l_predict}
 
 list(
   tar_target(
@@ -1275,7 +1364,7 @@ list(
 
 #### Upper Threshold
 
-```{targets multiple_hazard_fuzzy_partition_matrices_u_predict}
+```{targets multiple_hazard_fpm_u_predict}
 
 list(
   tar_target(
@@ -1328,7 +1417,7 @@ list(
 
 #### Mixed Thresholds
 
-```{targets multiple_hazard_fuzzy_partition_matrices_mixed_predict_c}
+```{targets multiple_hazard_fpm_mixed_predict_c}
 
 list(
   tar_target(
@@ -1422,7 +1511,7 @@ list(
 
 ```
 
-```{targets multiple_hazard_fuzzy_partition_matrices_mixed_predict_f}
+```{targets multiple_hazard_fpm_mixed_predict_f}
 
 list(
   tar_target(
@@ -1515,6 +1604,7 @@ list(
 )
 
 ```
+
 ### Finalise Impact Data
 
 ```{targets impact_data_finalisation}
@@ -1601,11 +1691,218 @@ list(tar_target(rB_impact_file,
 
 ```
 
+## Impact Zonal Statistics
+
+### Drought Calculation
+
+```{targets impact_zonal_drought}
+
+list(
+  tar_target(
+    dB_droughtc_l_summary,
+    dB_droughtc_l_summary_make_f(rB_impact, v_crop_ISO_lc_rcl_agg)
+  ),
+  tar_target(
+    dB_droughtf_l_summary,
+    dB_droughtf_l_summary_make_f(rB_impact, v_crop_ISO_lc_rcl_agg)
+  ),
+  tar_target(
+    dB_drought_change_l_summary,
+    dB_drought_change_l_summary_make_f(rB_impact, v_crop_ISO_lc_rcl_agg)
+  ),
+    tar_target(
+    dB_droughtc_u_summary,
+    dB_droughtc_u_summary_make_f(rB_impact, v_crop_ISO_lc_rcl_agg)
+  ),
+  tar_target(
+    dB_droughtf_u_summary,
+    dB_droughtf_u_summary_make_f(rB_impact, v_crop_ISO_lc_rcl_agg)
+  ),
+  tar_target(
+    dB_drought_change_u_summary,
+    dB_drought_change_u_summary_make_f(rB_impact, v_crop_ISO_lc_rcl_agg)
+  )
+  
+)
+
+```
+
+### Drought Plots
+
+```{targets impact_zonal_drought_plots}
+
+list(
+  tar_target(
+    dB_droughtc_l_summary_plot,
+    dB_droughtc_l_summary_plot_f(dB_droughtc_l_summary, drought, ISO, crop)
+  ),
+  tar_target(
+    dB_droughtf_l_summary_plot,
+    dB_droughtf_l_summary_plot_f(dB_droughtf_l_summary, drought, ISO, crop)
+  ),
+  tar_target(
+    dB_drought_change_l_summary_plot,
+    dB_drought_change_l_summary_plot_f(dB_drought_change_l_summary, drought, ISO, crop)
+  ),
+    tar_target(
+    dB_droughtc_u_summary_plot,
+    dB_droughtc_u_summary_plot_f(dB_droughtc_u_summary, drought, ISO, crop)
+  ),
+  tar_target(
+    dB_droughtf_u_summary_plot,
+    dB_droughtf_u_summary_plot_f(dB_droughtf_u_summary, drought, ISO, crop)
+  ),
+  tar_target(
+    dB_drought_change_u_summary_plot,
+    dB_drought_change_u_summary_plot_f(dB_drought_change_u_summary, drought, ISO, crop)
+  )
+)
+
+```
+
+### Heat Calculation
+
+```{targets impact_zonal_heat}
+
+list(
+  tar_target(
+    dB_heatc_l_summary_values,
+    dB_heatc_l_summary_values_make_f(rB_impact, v_crop_ISO_lc_rcl_agg)
+  ),  
+  tar_target(
+    dB_heatc_l_summary,
+    dB_heatc_l_summary_make_f(rB_impact, v_crop_ISO_lc_rcl_agg)
+  ),
+  tar_target(
+    dB_heatf_l_summary,
+    dB_heatf_l_summary_make_f(rB_impact, v_crop_ISO_lc_rcl_agg)
+  ),
+  tar_target(
+    dB_heat_change_l_summary,
+    dB_heat_change_l_summary_make_f(rB_impact, v_crop_ISO_lc_rcl_agg)
+  ),
+    tar_target(
+    dB_heatc_u_summary,
+    dB_heatc_u_summary_make_f(rB_impact, v_crop_ISO_lc_rcl_agg)
+  ),
+  tar_target(
+    dB_heatf_u_summary,
+    dB_heatf_u_summary_make_f(rB_impact, v_crop_ISO_lc_rcl_agg)
+  ),
+  tar_target(
+    dB_heat_change_u_summary,
+    dB_heat_change_u_summary_make_f(rB_impact, v_crop_ISO_lc_rcl_agg)
+  )
+  
+)
+
+```
+
+### Heat Plots
+
+```{targets impact_zonal_heat_plots}
+
+list(
+  tar_target(
+    dB_heatc_l_summary_plot,
+    dB_heatc_l_summary_plot_f(dB_heatc_l_summary, heat, ISO, crop)
+  ),
+  tar_target(
+    dB_heatf_l_summary_plot,
+    dB_heatf_l_summary_plot_f(dB_heatf_l_summary, heat, ISO, crop)
+  ),
+  tar_target(
+    dB_heat_change_l_summary_plot,
+    dB_heat_change_l_summary_plot_f(dB_heat_change_l_summary, heat, ISO, crop)
+  ),
+    tar_target(
+    dB_heatc_u_summary_plot,
+    dB_heatc_u_summary_plot_f(dB_heatc_u_summary, heat, ISO, crop)
+  ),
+  tar_target(
+    dB_heatf_u_summary_plot,
+    dB_heatf_u_summary_plot_f(dB_heatf_u_summary, heat, ISO, crop)
+  ),
+  tar_target(
+    dB_heat_change_u_summary_plot,
+    dB_heat_change_u_summary_plot_f(dB_heat_change_u_summary, heat, ISO, crop)
+  )
+)
+
+```
+
+### Flood Calculation
+
+```{targets impact_zonal_flood}
+
+list(
+  tar_target(
+    dB_floodc_l_summary,
+    dB_floodc_l_summary_make_f(rB_impact, v_crop_ISO_lc_rcl_agg)
+  ),
+  tar_target(
+    dB_floodf_l_summary,
+    dB_floodf_l_summary_make_f(rB_impact, v_crop_ISO_lc_rcl_agg)
+  ),
+  tar_target(
+    dB_flood_change_l_summary,
+    dB_flood_change_l_summary_make_f(rB_impact, v_crop_ISO_lc_rcl_agg)
+  ),
+    tar_target(
+    dB_floodc_u_summary,
+    dB_floodc_u_summary_make_f(rB_impact, v_crop_ISO_lc_rcl_agg)
+  ),
+  tar_target(
+    dB_floodf_u_summary,
+    dB_floodf_u_summary_make_f(rB_impact, v_crop_ISO_lc_rcl_agg)
+  ),
+  tar_target(
+    dB_flood_change_u_summary,
+    dB_flood_change_u_summary_make_f(rB_impact, v_crop_ISO_lc_rcl_agg)
+  )
+  
+)
+
+```
+
+### Flood Plots
+
+```{targets impact_zonal_flood_plots}
+
+list(
+  tar_target(
+    dB_floodc_l_summary_plot,
+    dB_floodc_l_summary_plot_f(dB_floodc_l_summary, flood, ISO, crop)
+  ),
+  tar_target(
+    dB_floodf_l_summary_plot,
+    dB_floodf_l_summary_plot_f(dB_floodf_l_summary, flood, ISO, crop)
+  ),
+  tar_target(
+    dB_flood_change_l_summary_plot,
+    dB_flood_change_l_summary_plot_f(dB_flood_change_l_summary, flood, ISO, crop)
+  ),
+    tar_target(
+    dB_floodc_u_summary_plot,
+    dB_floodc_u_summary_plot_f(dB_floodc_u_summary, flood, ISO, crop)
+  ),
+  tar_target(
+    dB_floodf_u_summary_plot,
+    dB_floodf_u_summary_plot_f(dB_floodf_u_summary, flood, ISO, crop)
+  ),
+  tar_target(
+    dB_flood_change_u_summary_plot,
+    dB_flood_change_u_summary_plot_f(dB_flood_change_u_summary, flood, ISO, crop)
+  )
+)
+
+```
+
 ## Climate Risk Profiles
 
 ### Prepare Climate Risk Profile Data
 
-```{targets climate_risk_profile_data_preparation}
+```{targets climate_risk_profile_data_prep}
 
 list(
   tar_target(
@@ -1623,27 +1920,215 @@ list(
 
 ### Plot Climate Risk Profile Data
 
-```{targets climate_risk_profile_data_plots}
+#### Past - Lower thresholds 
+
+```{targets climate_risk_profile_data_plots_c_l}
 
 list(
   tar_target(
-    dB_profile_d_l_h_l_plot,
-    dB_profile_d_l_h_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_d_l_h_l_plot,
+    dB_profilec_d_l_h_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
   tar_target(
-    dB_profile_d_l_f_l_plot,
-    dB_profile_d_l_f_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_d_l_f_l_plot,
+    dB_profilec_d_l_f_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
   tar_target(
-    dB_profile_h_l_f_l_plot,
-    dB_profile_h_l_f_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_h_l_f_l_plot,
+    dB_profilec_h_l_f_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
     tar_target(
-    dB_profile_d_l_h_l_f_l_plot,
-    dB_profile_d_l_h_l_f_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_d_l_h_l_f_l_plot,
+    dB_profilec_d_l_h_l_f_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+  )
+)
+```  
+
+#### Past - Upper thresholds 
+
+```{targets climate_risk_profile_data_plots_c_u} 
+
+list(
+    tar_target(
+    dB_profilec_d_u_h_u_plot,
+    dB_profilec_d_u_h_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+  ),
+  tar_target(
+    dB_profilec_d_u_f_u_plot,
+    dB_profilec_d_u_f_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+  ),
+  tar_target(
+    dB_profilec_h_u_f_u_plot,
+    dB_profilec_h_u_f_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+  ),
+    tar_target(
+    dB_profilec_d_u_h_u_f_u_plot,
+    dB_profilec_d_u_h_u_f_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   )
 )
 
+```
+
+#### Past - Mixed thresholds 
+
+```{targets climate_risk_profile_data_plots_c_m} 
+
+list(
+    tar_target(
+    dB_profilec_d_u_h_l_plot,
+    dB_profilec_d_u_h_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+  ),
+  tar_target(
+    dB_profilec_d_l_h_u_plot,
+    dB_profilec_d_l_h_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+  ),
+  tar_target(
+    dB_profilec_d_u_f_l_plot,
+    dB_profilec_d_u_f_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+  ),
+  tar_target(
+    dB_profilec_d_l_f_u_plot,
+    dB_profilec_d_l_f_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+  ),
+  tar_target(
+    dB_profilec_h_u_f_l_plot,
+    dB_profilec_h_u_f_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+  ),
+  tar_target(
+    dB_profilec_h_l_f_u_plot,
+    dB_profilec_h_l_f_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+  ),
+    tar_target(
+    dB_profilec_d_u_h_l_f_l_plot,
+    dB_profilec_d_u_h_l_f_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+  ),
+  tar_target(
+    dB_profilec_d_l_h_u_f_l_plot,
+    dB_profilec_d_l_h_u_f_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+  ),
+  tar_target(
+    dB_profilec_d_l_h_l_f_u_plot,
+    dB_profilec_d_l_h_l_f_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+  ),
+  tar_target(
+    dB_profilec_d_u_h_u_f_l_plot,
+    dB_profilec_d_u_h_u_f_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+  ),
+  tar_target(
+    dB_profilec_d_u_h_l_f_u_plot,
+    dB_profilec_d_u_h_l_f_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+  ),
+  tar_target(
+    dB_profilec_d_l_h_u_f_u_plot,
+    dB_profilec_d_l_h_u_f_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+  )
+)
+
+```
+
+#### Future - Lower thresholds 
+
+```{targets climate_risk_profile_data_plots_f_l}
+
+list(
+  tar_target(
+    dB_profilef_d_l_h_l_plot,
+    dB_profilef_d_l_h_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+  ),
+  tar_target(
+    dB_profilef_d_l_f_l_plot,
+    dB_profilef_d_l_f_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+  ),
+  tar_target(
+    dB_profilef_h_l_f_l_plot,
+    dB_profilef_h_l_f_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+  ),
+    tar_target(
+    dB_profilef_d_l_h_l_f_l_plot,
+    dB_profilef_d_l_h_l_f_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+  )
+)
+```  
+
+#### Future - Upper thresholds 
+
+```{targets climate_risk_profile_data_plots_f_u} 
+
+list(
+    tar_target(
+    dB_profilef_d_u_h_u_plot,
+    dB_profilef_d_u_h_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+  ),
+  tar_target(
+    dB_profilef_d_u_f_u_plot,
+    dB_profilef_d_u_f_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+  ),
+  tar_target(
+    dB_profilef_h_u_f_u_plot,
+    dB_profilef_h_u_f_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+  ),
+    tar_target(
+    dB_profilef_d_u_h_u_f_u_plot,
+    dB_profilef_d_u_h_u_f_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+  )
+)
+
+```
+
+#### Future - Mixed thresholds 
+
+```{targets climate_risk_profile_data_plots_f_m} 
+
+list(
+    tar_target(
+    dB_profilef_d_u_h_l_plot,
+    dB_profilef_d_u_h_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+  ),
+  tar_target(
+    dB_profilef_d_l_h_u_plot,
+    dB_profilef_d_l_h_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+  ),
+  tar_target(
+    dB_profilef_d_u_f_l_plot,
+    dB_profilef_d_u_f_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+  ),
+  tar_target(
+    dB_profilef_d_l_f_u_plot,
+    dB_profilef_d_l_f_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+  ),
+  tar_target(
+    dB_profilef_h_u_f_l_plot,
+    dB_profilef_h_u_f_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+  ),
+  tar_target(
+    dB_profilef_h_l_f_u_plot,
+    dB_profilef_h_l_f_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+  ),
+    tar_target(
+    dB_profilef_d_u_h_l_f_l_plot,
+    dB_profilef_d_u_h_l_f_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+  ),
+  tar_target(
+    dB_profilef_d_l_h_u_f_l_plot,
+    dB_profilef_d_l_h_u_f_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+  ),
+  tar_target(
+    dB_profilef_d_l_h_l_f_u_plot,
+    dB_profilef_d_l_h_l_f_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+  ),
+  tar_target(
+    dB_profilef_d_u_h_u_f_l_plot,
+    dB_profilef_d_u_h_u_f_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+  ),
+  tar_target(
+    dB_profilef_d_u_h_l_f_u_plot,
+    dB_profilef_d_u_h_l_f_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+  ),
+  tar_target(
+    dB_profilef_d_l_h_u_f_u_plot,
+    dB_profilef_d_l_h_u_f_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+  )
+)
 
 ```
 
@@ -1667,14 +2152,8 @@ tar_glimpse()
 
 # Output
 
-## Land Cover Map
 
-```{r, message = FALSE, fig.width = 8, fig.height = 6}
-tar_read(r_lc_plot)
-```
-
-
-## Static raw data
+## Parameters
 
 ```{r, message = FALSE, results = 'show'}
 
@@ -1686,12 +2165,9 @@ tar_read(flood)
 
 ```
 
-## Country spatial data
+## Country Spatial Data
 
-```{r, message = FALSE, fig.width = 8, fig.height = 6}
-
-tar_read(v_crop_plot)
-```
+### GADM Country boundary polygons
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
@@ -1699,6 +2175,21 @@ tar_read(v_ISO_plot)
 
 ```
 
+### Crop area polygons
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(v_crop_plot)
+
+```
+
+## Land Cover Map in an African context
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+tar_read(r_lc_plot)
+```
+
+### Land cover clipped to country boundary
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
@@ -1706,11 +2197,15 @@ tar_read(r_lc_ISO_plot)
 
 ```
 
+### Crop area converted to raster and clipped to country boundary
+
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
 tar_read(r_crop_ISO_plot)
 
 ```
+
+### Crop area raster combined with Land cover
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
@@ -1718,11 +2213,15 @@ tar_read(r_crop_ISO_lc_plot)
 
 ```
 
+### Crop area and Land cover raster reclassified
+
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
 tar_read(r_crop_ISO_lc_rcl_plot)
 
 ```
+
+### Reclassified crop area and Land cover raster aggregated
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
@@ -1730,7 +2229,15 @@ tar_read(v_crop_ISO_lc_rcl_agg_plot)
 
 ```
 
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_crop_ISO_lc_rcl_agg_proj_plot)
+
+```
+
 ## Climate Base Data
+
+### Rainfall
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
@@ -1752,7 +2259,7 @@ tar_read(r_rainfall_change_plot)
 
 ```
 
-
+### Temperature
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
@@ -1774,7 +2281,7 @@ tar_read(r_temp_change_plot)
 
 ```
 
-
+### Season Onset
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
@@ -1796,7 +2303,7 @@ tar_read(r_onset_change_plot)
 
 ```
 
-
+### Season Duration
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
@@ -1820,6 +2327,8 @@ tar_read(r_duration_change_plot)
 
 ## Climate Hazard Indicators
 
+### Drought
+
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
 tar_read(r_droughtc_plot)
@@ -1840,7 +2349,7 @@ tar_read(r_drought_change_plot)
 
 ```
 
-
+### Heat Stress
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
@@ -1862,7 +2371,7 @@ tar_read(r_heat_change_plot)
 
 ```
 
-
+### Waterlogging
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
@@ -1979,6 +2488,8 @@ tar_read(dB_duration_change_summary_plot)
 
 ## Zonal Statistics of Climate Indicators
 
+### Drought
+
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
 tar_read(dB_droughtc_summary_plot)
@@ -1999,7 +2510,7 @@ tar_read(dB_drought_change_summary_plot)
 
 ```
 
-
+### Heat Stress
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
@@ -2021,7 +2532,7 @@ tar_read(dB_heat_change_summary_plot)
 
 ```
 
-
+### Waterlogging
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
@@ -2043,25 +2554,150 @@ tar_read(dB_flood_change_summary_plot)
 
 ```
 
+## Zonal Statistics of Impact of Climate Indicators
+
+### Drought
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_droughtc_l_summary_plot)
+
+```
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_droughtf_l_summary_plot)
+
+```
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_drought_change_l_summary_plot)
+
+```
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_droughtc_u_summary_plot)
+
+```
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_droughtf_u_summary_plot)
+
+```
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_drought_change_u_summary_plot)
+
+```
+
+### Heat Stress
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_heatc_l_summary)
+
+```
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_heatc_l_summary_plot)
+
+```
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_heatf_l_summary_plot)
+
+```
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_heat_change_l_summary_plot)
+
+```
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_heatc_u_summary_plot)
+
+```
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_heatf_u_summary_plot)
+
+```
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_heat_change_u_summary_plot)
+
+```
+
+### Waterlogging
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_floodc_l_summary_plot)
+
+```
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_floodf_l_summary_plot)
+
+```
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_flood_change_l_summary_plot)
+
+```
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_floodc_u_summary_plot)
+
+```
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_floodf_u_summary_plot)
+
+```
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_flood_change_u_summary_plot)
+
+```
+
+
 ## Climate Risk Profiles
 
+### Past - Lower thresholds 
+
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
-tar_read(dB_profile_d_l_h_l_plot)
+tar_read(dB_profilec_d_l_h_l_plot)
 
 ```
 
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
-tar_read(dB_profile_d_l_f_l_plot)
+tar_read(dB_profilec_d_l_f_l_plot)
 
 ```
 
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
-tar_read(dB_profile_h_l_f_l_plot)
+tar_read(dB_profilec_h_l_f_l_plot)
 
 ```
 
@@ -2069,6 +2705,209 @@ tar_read(dB_profile_h_l_f_l_plot)
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
 
-tar_read(dB_profile_d_l_h_l_f_l_plot)
+tar_read(dB_profilec_d_l_h_l_f_l_plot)
 
 ```
+
+
+### Past - Upper thresholds 
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_profilec_d_u_h_u_plot)
+
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_profilec_d_u_f_u_plot)
+
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_profilec_h_u_f_u_plot)
+
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_profilec_d_u_h_u_f_u_plot)
+
+```
+
+### Past - Mixed thresholds 
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(dB_profilec_d_u_h_l_plot)
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+tar_read(dB_profilec_d_l_h_u_plot)
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+tar_read(dB_profilec_d_u_f_l_plot)
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+tar_read(dB_profilec_d_l_f_u_plot)
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+tar_read(dB_profilec_h_u_f_l_plot)
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+tar_read(dB_profilec_h_l_f_u_plot)
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+tar_read(dB_profilec_d_u_h_l_f_l_plot)
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+tar_read(dB_profilec_d_l_h_u_f_l_plot)
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+tar_read(dB_profilec_d_l_h_l_f_u_plot)
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+tar_read(dB_profilec_d_u_h_u_f_l_plot)
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+tar_read(dB_profilec_d_u_h_l_f_u_plot)
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+tar_read(dB_profilec_d_l_h_u_f_u_plot)
+
+```
+
+### Future - Lower thresholds 
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+tar_read(dB_profilef_d_l_h_l_plot)
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+tar_read(dB_profilef_d_l_f_l_plot)
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+tar_read(dB_profilef_h_l_f_l_plot)
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+tar_read(dB_profilef_d_l_h_l_f_l_plot)
+```  
+
+### Future - Upper thresholds 
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+tar_read(dB_profilef_d_u_h_u_plot)
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+tar_read(dB_profilef_d_u_f_u_plot)
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+tar_read(dB_profilef_h_u_f_u_plot)
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+tar_read(dB_profilef_d_u_h_u_f_u_plot)
+
+```
+
+### Future - Mixed thresholds 
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+tar_read(dB_profilef_d_u_h_l_plot)
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+tar_read(dB_profilef_d_l_h_u_plot)
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+tar_read(dB_profilef_d_u_f_l_plot)
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+tar_read(dB_profilef_d_l_f_u_plot)
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+tar_read(dB_profilef_h_u_f_l_plot)
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+tar_read(dB_profilef_h_l_f_u_plot)
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+tar_read(dB_profilef_d_u_h_l_f_l_plot)
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+tar_read(dB_profilef_d_l_h_u_f_l_plot)
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+tar_read(dB_profilef_d_l_h_l_f_u_plot)
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+tar_read(dB_profilef_d_u_h_u_f_l_plot)
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+tar_read(dB_profilef_d_u_h_l_f_u_plot)
+```
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+tar_read(dB_profilef_d_l_h_u_f_u_plot)
+
+```
+
+

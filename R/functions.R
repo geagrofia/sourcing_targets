@@ -14,31 +14,7 @@ world_plot_f <- function(world) {
     coord_sf(expand = FALSE)
 }
 
-# results in r_lc_plot
-r_lc_plot_f <- function(r_lc, world) {
-    gplot(r_lc, maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = value), alpha = 1) +
-      geom_sf(
-        data = world,
-        fill = NA,
-        col = 'dark grey',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      ) +
-      scale_fill_gradient(low = "white",
-                          high = 'dark green',
-                          na.value = NA) +
-      xlim(-20, 60) +
-      ylim(-40, 40) +
-      labs(fill = "--------------------\nLand Cover\nAfrica\n
-        \n\n\n--------------------") +
-      theme(
-        panel.grid.major.x = element_blank(),
-        panel.grid.minor.x = element_blank(),
-        axis.title.x = element_blank(),
-        axis.title.y = element_blank()
-      )
-}
+
 
 ### ----- Static raw data ----- ###
 
@@ -78,6 +54,7 @@ flood_get_f <- function(cc_data, cc_row) {
 # results in v_crop
 v_crop_get_f <- function(cc_data, cc_row) {
   st_read(paste0("data/", paste(cc_data[cc_row, 4])))
+
 }
 
 # results in v_crop_extent
@@ -152,23 +129,52 @@ r_clim_mask_get_f <- function(ISO) {
   paste0("data/", ISO, "/clim_mask.tif") %>% raster()
 }
 
+# results in r_lc_global
+r_lc_global_get_f <- function(r_clim_mask){
+raster("D:/repos/climate-smart-agri-sourcing/spatial_data/output/r_crop_mask_COP_rcl.tif") 
+}
+
+
+# results in r_lc_file
+r_lc_make_write_f <- function(r_lc_global, r_clim_mask, ISO){
+r_lc_global %>% crop(r_clim_mask) %>%  writeRaster(paste0("data/", ISO, "/r_lc.tif"), overwrite = TRUE)
+}
+
+# results in r_lc
+r_lc_get_f <- function(r_lc_file, ISO){
+raster(paste0("data/", ISO, "/r_lc.tif"))
+}
+
+
+
+# results in r_lc_plot
+r_lc_plot_f <- function(r_lc, world) {
+    gplot(r_lc, maxpixels = 50000) + #this uses gplot from the rastervis package
+      geom_tile(aes(fill = value), alpha = 1) +
+      geom_sf(
+        data = world,
+        fill = NA,
+        col = 'dark grey',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      ) +
+      scale_fill_gradient(low = "white",
+                          high = 'dark green',
+                          na.value = NA) +
+      xlim(-20, 60) +
+      ylim(-40, 40) +
+      labs(fill = "--------------------\nLand Cover\nAfrica\n
+        \n\n\n--------------------") +
+      theme(
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+      )
+}
 
 ### ----- Spatial data preparation ----- ###
 
-# results in r_ISO_file1
-r_ISO_make_write1_f  <- function(v_ISO, r_lc, v_ISO_extent, ISO) {
- rasterize(vect(v_ISO), rast(r_lc), field = "New_ID")  }
-
-# results in r_ISO_file2
-r_ISO_make_write2_f  <- function(r_ISO_file1, v_ISO_extent) {
- crop(r_ISO_file1, v_ISO_extent) 
-}
-
-# results in r_ISO_file3
-r_ISO_make_write3_f  <- function(r_ISO_file2, ISO) {
-r_ISO_file2 %>% raster() %>%
- writeRaster(paste0("data/", ISO, "/r_ISO.tif"), overwrite = TRUE)
-}
 
 # # results in r_ISO_file
 # r_ISO_make_write_f  <- function(v_ISO, r_lc, v_ISO_extent, ISO) {
@@ -176,14 +182,43 @@ r_ISO_file2 %>% raster() %>%
 #  writeRaster(paste0("data/", ISO, "/r_ISO.tif"), overwrite = TRUE)
 # }
 
+# results in r_ISO_a_file
+r_ISO_a_make_write_f  <- function(v_ISO, r_lc, ISO) {
+ rasterize(v_ISO, r_lc, field = "New_ID",
+      filename = paste0("data/", ISO, "/r_ISO_a.tif"),
+      overwrite = TRUE)  
+}
+
+# results in r_ISO_a
+r_ISO_a_get_f <- function(ISO, r_ISO_a_file) {
+  raster(paste0("data/", ISO, "/r_ISO_a.tif"))
+}
+
+# results in r_ISO_file
+r_ISO_make_write_f  <- function(r_ISO_a, v_ISO_extent, ISO) {
+ raster::crop(r_ISO_a, v_ISO_extent, filename = paste0("data/", ISO, "/r_ISO.tif"),
+      overwrite = TRUE)
+}
+
+# # results in r_ISO_b
+# r_ISO_b_get_f <- function(ISO, r_ISO_b_file) {
+#   raster(paste0("data/", ISO, "/r_ISO_b.tif"))
+# }
+
+# # results in r_ISO_file
+# r_ISO_make_write_f  <- function(r_ISO_b, ISO) {
+# r_ISO_b %>% raster() %>%
+#  writeRaster(paste0("data/", ISO, "/r_ISO.tif"), overwrite = TRUE)
+# }
+
 # results in r_ISO
-r_ISO_get_f <- function(ISO, r_ISO_file3) {
+r_ISO_get_f <- function(ISO, r_ISO_file) {
   raster(paste0("data/", ISO, "/r_ISO.tif"))
 }
 
 
 # results in r_lc_ISO_file
-r_lc_ISO_make_write_f  <- function(r_ISO, r_lc, ISO) {
+r_lc_ISO_make_write_f  <- function(r_lc, r_ISO,  ISO) {
   (r_lc * r_ISO) %>% writeRaster(paste0("data/", ISO, "/r_lc_ISO.tif"), overwrite = TRUE)
 }
 
@@ -396,6 +431,21 @@ r_crop_ISO_lc_rcl_agg_get_f <-
     raster(paste0("data/", ISO, "/", crop, "/r_crop_ISO_lc_rcl_agg.tif"))
   }
 
+
+# results in r_crop_ISO_lc_rcl_agg_min
+r_crop_ISO_lc_rcl_agg_min_get_f <-
+  function(r_crop_ISO_lc_rcl_agg) {
+minValue(r_crop_ISO_lc_rcl_agg)
+  }
+
+
+# results in r_crop_ISO_lc_rcl_agg_max
+r_crop_ISO_lc_rcl_agg_max_get_f <-
+  function(r_crop_ISO_lc_rcl_agg) {
+maxValue(r_crop_ISO_lc_rcl_agg)
+  }
+
+
 # results in v_crop_ISO_lc_rcl_agg_file1
 v_crop_ISO_lc_rcl_agg1_make_write_f <-
   function(r_crop_ISO_lc_rcl_agg,  ISO, crop) {
@@ -433,7 +483,7 @@ write_sf(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg.shp"), overwrit
 
 # results in v_crop_ISO_lc_rcl_agg_plot
 v_crop_ISO_lc_rcl_agg_plot_f <-
-  function(v_crop_ISO_lc_rcl_agg,  ISO, crop)  {
+  function(v_crop_ISO_lc_rcl_agg,  v_ISO1, ISO, crop)  {
   ggplot() +
     geom_sf(
       data = v_crop_ISO_lc_rcl_agg,
@@ -442,14 +492,88 @@ v_crop_ISO_lc_rcl_agg_plot_f <-
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
+    geom_sf(
+      data = v_ISO1,
+      fill = NA,
+      col = 'black',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
     guides(fill="none") +
-    labs(fill = paste0(
-      "--------------------\nSourcing Areas\n",
-      ISO,
-      "\n",crop, "\n\n\n\n\n--------------------"
-    ))
+    labs(title = paste0("Sourcing Areas - ", ISO, " - ", crop))
 }
 
+### ----- Project the crop/landuse vector to Equal Area projection and get stats----- ###
+
+# results in wkt_lam
+wkt_lam_make_f <-function(v_ISO_extent){
+paste0("PROJCRS[\"unknown\",
+    BASEGEOGCRS[\"unknown\",
+        DATUM[\"World Geodetic System 1984\",
+            ELLIPSOID[\"WGS 84\",6378137,298.257223563,
+                LENGTHUNIT[\"metre\",1]],
+            ID[\"EPSG\",6326]],
+        PRIMEM[\"Greenwich\",0,
+            ANGLEUNIT[\"degree\",0.0174532925199433],
+            ID[\"EPSG\",8901]]],
+    CONVERSION[\"unknown\",
+        METHOD[\"Lambert Azimuthal Equal Area\",
+            ID[\"EPSG\",9820]],
+        PARAMETER[\"Latitude of natural origin\",", 
+v_ISO_extent@ymin,
+        ",ANGLEUNIT[\"degree\",0.0174532925199433],
+            ID[\"EPSG\",8801]],
+        PARAMETER[\"Longitude of natural origin\",",
+v_ISO_extent@xmin,
+        ",ANGLEUNIT[\"degree\",0.0174532925199433],
+            ID[\"EPSG\",8802]],
+        PARAMETER[\"False easting\",1000000,
+            LENGTHUNIT[\"metre\",1],
+            ID[\"EPSG\",8806]],
+        PARAMETER[\"False northing\",1000000,
+            LENGTHUNIT[\"metre\",1],
+            ID[\"EPSG\",8807]]],
+    CS[Cartesian,2],
+        AXIS[\"(E)\",east,
+            ORDER[1],
+            LENGTHUNIT[\"metre\",1,
+                ID[\"EPSG\",9001]]],
+        AXIS[\"(N)\",north,
+            ORDER[2],
+            LENGTHUNIT[\"metre\",1,
+                ID[\"EPSG\",9001]]]]")
+}
+
+# results in crs_lam
+crs_lam_make_f <-function(wkt_lam){
+st_crs(wkt_lam)
+}
+
+# results in v_crop_ISO_lc_rcl_agg_proj_file
+v_crop_ISO_lc_rcl_agg_proj_file_make_write_f <-
+  function(v_crop_ISO_lc_rcl_agg, crs_lam, ISO, crop) {
+    
+st_transform(v_crop_ISO_lc_rcl_agg, crs_lam) %>%  
+write_sf(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg_proj.shp"), overwrite = TRUE)
+  }
+
+# results in v_crop_ISO_lc_rcl_agg_proj
+v_crop_ISO_lc_rcl_agg_proj_get_f <-
+   function(v_crop_ISO_lc_rcl_agg_proj_file, ISO, crop) {   
+st_read(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg_proj.shp")) 
+}
+
+# results in dB_crop_ISO_lc_rcl_agg_proj
+dB_crop_ISO_lc_rcl_agg_proj_make_f <-
+   function(v_crop_ISO_lc_rcl_agg_proj, v_ISO1, ISO, crop) {   
+v_crop_ISO_lc_rcl_agg_proj %>%
+mutate(land_km2  = geometry %>% st_area() %>%set_units(km^2)) %>%
+as_tibble() %>% 
+dplyr::select(!c(GID_0, NAME_0, GID_1, VARNAME_1, NL_NAME_1, TYPE_1, ENGTYPE_1, CC_1, HASC_1, New_ID, geometry)) %>%
+right_join(dplyr::select(v_ISO1, !geometry)) %>%
+dplyr::select(!c(GID_0, NAME_0, GID_1, VARNAME_1, NL_NAME_1, TYPE_1, ENGTYPE_1, CC_1, HASC_1, New_ID, geometry)) %>%
+write_csv(paste0("data/", ISO, "/", crop, "/dB_crop_ISO_lc_rcl_agg_proj.csv"), append = FALSE)
+}
 
 
 ### ----- Trimmed Climate Mask ----- ###
@@ -460,7 +584,7 @@ r_clim_mask_trim_file_make_write_f <- function(v_ISO, r_clim_mask, ISO) {
 #resample(r_clim_mask, method="ngb",
 #  filename = paste0("data/", ISO, "/r_clim_mask_trim.tif"), overwrite = TRUE)
 #resample(r_ISO, r_clim_mask, method="ngb", filename = paste0("data/", ISO, "/r_clim_mask_trim.tif"), overwrite = TRUE)
-rasterize(vect(v_ISO), rast(r_clim_mask), field = 1, background = 0, touches  
+terra::rasterize(vect(v_ISO), rast(r_clim_mask), field = 1, background = NA, touches  
  = TRUE) %>% raster() %>% writeRaster(paste0("data/", ISO, "/r_clim_mask_trim.tif"), overwrite = TRUE)
 }
 
@@ -677,7 +801,7 @@ r_rainfallc_plot_f <-
       ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
     labs(
       fill = paste0(
-        "--------------------\nPast\nRainfall\n",
+        "--------------------\nPast\nRainfall\nr_rainfallc\n",
         ISO, 
         "\n",
         crop,
@@ -739,7 +863,7 @@ r_rainfallf_plot_f <-
       ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
     labs(
       fill = paste0(
-        "--------------------\nFuture\nRainfall\n",
+        "--------------------\nFuture\nRainfall\nr_rainfallf\n",
         ISO, 
         "\n",
         crop,
@@ -801,7 +925,7 @@ r_tempc_plot_f <-
       ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
     labs(
       fill = paste0(
-        "--------------------\nPast\nMean\nTemperature\n",
+        "--------------------\nPast\nMean\nTemperature\nr_tempc\n",
         ISO, 
         "\n",
         crop,
@@ -863,7 +987,7 @@ r_tempf_plot_f <-
       ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
     labs(
       fill = paste0(
-        "--------------------\nFuture\nMean\nTemperature\n",
+        "--------------------\nFuture\nMean\nTemperature\nr_tempf\n",
         ISO, 
         "\n",
         crop,
@@ -925,7 +1049,7 @@ r_onsetc_plot_f <-
       ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
     labs(
       fill = paste0(
-        "--------------------\nPast\nSeason\nOnset\n",
+        "--------------------\nPast\nSeason\nOnset\nr_onsetc\n",
         ISO, 
         "\n",
         crop,
@@ -987,7 +1111,7 @@ r_onsetf_plot_f <-
       ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
     labs(
       fill = paste0(
-        "--------------------\nFuture\nSeason\nOnset\n",
+        "--------------------\nFuture\nSeason\nOnset\nr_onsetf\n",
         ISO, 
         "\n",
         crop,
@@ -1049,7 +1173,7 @@ r_durationc_plot_f <-
       ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
     labs(
       fill = paste0(
-        "--------------------\nPast\nSeason\nDuration\n",
+        "--------------------\nPast\nSeason\nDuration\nr_durationc\n",
         ISO, 
         "\n",
         crop,
@@ -1111,7 +1235,7 @@ r_durationf_plot_f <-
       ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
     labs(
       fill = paste0(
-        "--------------------\nFuture\nSeason\nDuration\n",
+        "--------------------\nFuture\nSeason\nDuration\nr_durationf\n",
         ISO, 
         "\n",
         crop,
@@ -1175,7 +1299,7 @@ r_rainfall_change_plot_f <-
       ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
     labs(
       fill = paste0(
-        "--------------------\nChange\nRainfall\n",
+        "--------------------\nChange\nRainfall\nr_rainfall_change\n",
         ISO, 
         "\n",
         crop,
@@ -1237,7 +1361,7 @@ r_temp_change_plot_f <-
       ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
     labs(
       fill = paste0(
-        "--------------------\nChange\nMean\nTemperature\n",
+        "--------------------\nChange\nMean\nTemperature\nr_temp_change\n",
         ISO, 
         "\n",
         crop,
@@ -1299,7 +1423,7 @@ r_onset_change_plot_f <-
       ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
     labs(
       fill = paste0(
-        "--------------------\nChange\nSeason\nOnset\n",
+        "--------------------\nChange\nSeason\nOnset\nr_onset_change\n",
         ISO, 
         "\n",
         crop,
@@ -1361,7 +1485,7 @@ r_duration_change_plot_f <-
       ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
     labs(
       fill = paste0(
-        "--------------------\nChange\nSeason\nDuration\n",
+        "--------------------\nChange\nSeason\nDuration\nr_duration_change\n",
         ISO, 
         "\n",
         crop,
@@ -1538,7 +1662,7 @@ r_droughtc_plot_f <-
       fill = paste0(
         "--------------------\nPast\n", 
         drought, 
-        "\n",
+        "\nr_droughtc\n",
         ISO, 
         "\n",
         crop,
@@ -1603,7 +1727,7 @@ r_droughtf_plot_f <-
       fill = paste0(
         "--------------------\nFuture\n", 
         drought, 
-        "\n",
+        "\nr_droughtf\n",
         ISO, 
         "\n",
         crop,
@@ -1668,7 +1792,7 @@ r_drought_change_plot_f <-
       fill = paste0(
         "--------------------\nChange\n", 
         drought, 
-        "\n",
+        "\nr_drought_change\n",
         ISO, 
         "\n",
         crop,
@@ -1733,7 +1857,7 @@ r_heatc_plot_f <-
       fill = paste0(
         "--------------------\nPast\n", 
         heat, 
-        "\n",
+        "\nr_heatc\n",
         ISO, 
         "\n",
         crop,
@@ -1798,7 +1922,7 @@ r_heatf_plot_f <-
       fill = paste0(
         "--------------------\nFuture\n", 
         heat, 
-        "\n",
+        "\nr_heatf\n",
         ISO, 
         "\n",
         crop,
@@ -1863,7 +1987,7 @@ r_heat_change_plot_f <-
       fill = paste0(
         "--------------------\nChange\n", 
         heat, 
-        "\n",
+        "\nr_heat_change\n",
         ISO, 
         "\n",
         crop,
@@ -1929,7 +2053,7 @@ r_floodc_plot_f <-
       fill = paste0(
         "--------------------\nPast\n", 
         flood, 
-        "\n",
+        "\nr_floodc\n",
         ISO, 
         "\n",
         crop,
@@ -1994,7 +2118,7 @@ r_floodf_plot_f <-
       fill = paste0(
         "--------------------\nFuture\n", 
         flood, 
-        "\n",
+        "\nr_floodf\n",
         ISO, 
         "\n",
         crop,
@@ -2059,7 +2183,7 @@ r_flood_change_plot_f <-
       fill = paste0(
         "--------------------\nChange\n", 
         flood, 
-        "\n",
+        "\nr_flood_change\n",
         ISO, 
         "\n",
         crop,
@@ -5422,6 +5546,934 @@ rB_impact %>%
 writeRaster(paste0("data/", ISO, "/", crop, "/rB_impact.tif"), bylayer = TRUE, suffix = 'names', overwrite = TRUE)
 }
 
+
+## Impact zonal statistics
+### Prepare Climate Risk Profile Data
+#### Drought
+##### Lower threshold
+
+# results in dB_droughtc_l_summary
+dB_droughtc_l_summary_make_f <-
+  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
+    exact_extract(
+      subset(rB_impact, 2),
+      v_crop_ISO_lc_rcl_agg,
+      fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
+      quantiles = c(0.25, 0.75), append_cols = c("crop_ISO1")
+    ) %>%
+      mutate(IQR = (q75 - q25))  %>%
+      mutate(l_whisker = (q25 -  (1.5 * IQR))) %>%
+      mutate(u_whisker = (q75 +  (1.5 * IQR))) %>%
+      mutate(max_min = pmax(min, l_whisker)) %>%
+      mutate(min_max = pmin(max, u_whisker))
+  }
+
+# results in dB_droughtc_l_summary_plot
+dB_droughtc_l_summary_plot_f <- function(dB_droughtc_l_summary, drought, ISO, crop) {
+  ggplot(dB_droughtc_l_summary, aes(crop_ISO1, group = crop_ISO1, fill = crop_ISO1)) +
+    geom_boxplot(aes(
+      ymin = max_min,
+      lower = q25,
+      middle = median,
+      upper = q75,
+      ymax = min_max
+    ),
+    stat = "identity") + 
+    guides(fill="none") +
+    scale_y_continuous(labels = comma) +
+    labs(y = "Impact") +
+    labs(x = "Sourcing Area")  +
+    labs(
+      title = paste0(
+        "Past Impact of ", 
+        drought,
+        " - ",
+        ISO, 
+        " - ",
+        crop,
+        " - Lower threshold"
+      )
+    ) +
+    ylim(0, 1) +
+    theme(
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7)
+    )
+}
+
+# results in dB_droughtf_l_summary
+dB_droughtf_l_summary_make_f <-
+  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
+    exact_extract(
+      subset(rB_impact, 8),
+      v_crop_ISO_lc_rcl_agg,
+      fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
+      quantiles = c(0.25, 0.75), append_cols = c("crop_ISO1")
+    ) %>%
+      mutate(IQR = (q75 - q25))  %>%
+      mutate(l_whisker = (q25 -  (1.5 * IQR))) %>%
+      mutate(u_whisker = (q75 +  (1.5 * IQR))) %>%
+      mutate(max_min = pmax(min, l_whisker)) %>%
+      mutate(min_max = pmin(max, u_whisker))
+  }
+
+# results in dB_droughtf_l_summary_plot
+dB_droughtf_l_summary_plot_f <- function(dB_droughtf_l_summary, drought, ISO, crop) {
+  ggplot(dB_droughtf_l_summary, aes(crop_ISO1, group = crop_ISO1, fill = crop_ISO1)) +
+    geom_boxplot(aes(
+      ymin = max_min,
+      lower = q25,
+      middle = median,
+      upper = q75,
+      ymax = min_max
+    ),
+    stat = "identity") + 
+    guides(fill="none") +
+    scale_y_continuous(labels = comma) +
+    labs(y = "Impact") +
+    labs(x = "Sourcing Area")  +
+    labs(
+      title = paste0(
+        "Future Impact of ", 
+        drought,
+        " - ",
+        ISO, 
+        " - ",
+        crop,
+        " - Lower threshold"
+      )
+    ) +
+    ylim(0, 1) +
+    theme(
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7)
+    )
+}
+
+# results in dB_drought_change_l_summary
+dB_drought_change_l_summary_make_f <-
+  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
+    exact_extract(
+      subset(rB_impact, 14),
+      v_crop_ISO_lc_rcl_agg,
+      fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
+      quantiles = c(0.25, 0.75), append_cols = c("crop_ISO1")
+    ) %>%
+      mutate(IQR = (q75 - q25))  %>%
+      mutate(l_whisker = (q25 -  (1.5 * IQR))) %>%
+      mutate(u_whisker = (q75 +  (1.5 * IQR))) %>%
+      mutate(max_min = pmax(min, l_whisker)) %>%
+      mutate(min_max = pmin(max, u_whisker))
+  }
+
+# results in dB_drought_change_l_summary_plot
+dB_drought_change_l_summary_plot_f <- function(dB_drought_change_l_summary, drought, ISO, crop) {
+  ggplot(dB_drought_change_l_summary, aes(crop_ISO1, group = crop_ISO1, fill = crop_ISO1)) +
+    geom_boxplot(aes(
+      ymin = max_min,
+      lower = q25,
+      middle = median,
+      upper = q75,
+      ymax = min_max
+    ),
+    stat = "identity") + 
+    guides(fill="none") +
+    scale_y_continuous(labels = comma) +
+    labs(y = "Impact") +
+    labs(x = "Sourcing Area")  +
+    labs(
+      title = paste0(
+        "Change in Impact of ", 
+        drought,
+        " - ",
+        ISO, 
+        " - ",
+        crop,
+        " - Lower threshold"
+      )
+    ) +
+    ylim(-1, 1) +
+    theme(
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7)
+    )
+}
+
+##### Upper threshold
+
+# results in dB_droughtc_u_summary
+dB_droughtc_u_summary_make_f <-
+  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
+    exact_extract(
+      subset(rB_impact, 68),
+      v_crop_ISO_lc_rcl_agg,
+      fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
+      quantiles = c(0.25, 0.75), append_cols = c("crop_ISO1")
+    ) %>%
+      mutate(IQR = (q75 - q25))  %>%
+      mutate(l_whisker = (q25 -  (1.5 * IQR))) %>%
+      mutate(u_whisker = (q75 +  (1.5 * IQR))) %>%
+      mutate(max_min = pmax(min, l_whisker)) %>%
+      mutate(min_max = pmin(max, u_whisker))
+  }
+
+# results in dB_droughtc_u_summary_plot
+dB_droughtc_u_summary_plot_f <- function(dB_droughtc_u_summary, drought, ISO, crop) {
+  ggplot(dB_droughtc_u_summary, aes(crop_ISO1, group = crop_ISO1, fill = crop_ISO1)) +
+    geom_boxplot(aes(
+      ymin = max_min,
+      lower = q25,
+      middle = median,
+      upper = q75,
+      ymax = min_max
+    ),
+    stat = "identity") + 
+    guides(fill="none") +
+    scale_y_continuous(labels = comma) +
+    labs(y = "Impact") +
+    labs(x = "Sourcing Area")  +
+    labs(
+      title = paste0(
+        "Past Impact of ", 
+        drought,
+        " - ",
+        ISO, 
+        " - ",
+        crop,
+        " - Upper  threshold"
+      )
+    ) +
+    ylim(0, 1) +
+    theme(
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7)
+    )
+}
+
+# results in dB_droughtf_u_summary
+dB_droughtf_u_summary_make_f <-
+  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
+    exact_extract(
+      subset(rB_impact, 74),
+      v_crop_ISO_lc_rcl_agg,
+      fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
+      quantiles = c(0.25, 0.75), append_cols = c("crop_ISO1")
+    ) %>%
+      mutate(IQR = (q75 - q25))  %>%
+      mutate(l_whisker = (q25 -  (1.5 * IQR))) %>%
+      mutate(u_whisker = (q75 +  (1.5 * IQR))) %>%
+      mutate(max_min = pmax(min, l_whisker)) %>%
+      mutate(min_max = pmin(max, u_whisker))
+  }
+
+# results in dB_droughtf_u_summary_plot
+dB_droughtf_u_summary_plot_f <- function(dB_droughtf_u_summary, drought, ISO, crop) {
+  ggplot(dB_droughtf_u_summary, aes(crop_ISO1, group = crop_ISO1, fill = crop_ISO1)) +
+    geom_boxplot(aes(
+      ymin = max_min,
+      lower = q25,
+      middle = median,
+      upper = q75,
+      ymax = min_max
+    ),
+    stat = "identity") + 
+    guides(fill="none") +
+    scale_y_continuous(labels = comma) +
+    labs(y = "Impact") +
+    labs(x = "Sourcing Area")  +
+    labs(
+      title = paste0(
+        "Future Impact of ", 
+        drought,
+        " - ",
+        ISO, 
+        " - ",
+        crop,
+        " - Upper threshold"
+      )
+    ) +
+    ylim(0, 1) +
+    theme(
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7)
+    )
+}
+
+# results in dB_drought_change_u_summary
+dB_drought_change_u_summary_make_f <-
+  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
+    exact_extract(
+      subset(rB_impact, 80),
+      v_crop_ISO_lc_rcl_agg,
+      fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
+      quantiles = c(0.25, 0.75), append_cols = c("crop_ISO1")
+    ) %>%
+      mutate(IQR = (q75 - q25))  %>%
+      mutate(l_whisker = (q25 -  (1.5 * IQR))) %>%
+      mutate(u_whisker = (q75 +  (1.5 * IQR))) %>%
+      mutate(max_min = pmax(min, l_whisker)) %>%
+      mutate(min_max = pmin(max, u_whisker))
+  }
+
+# results in dB_drought_change_u_summary_plot
+dB_drought_change_u_summary_plot_f <- function(dB_drought_change_u_summary, drought, ISO, crop) {
+  ggplot(dB_drought_change_u_summary, aes(crop_ISO1, group = crop_ISO1, fill = crop_ISO1)) +
+    geom_boxplot(aes(
+      ymin = max_min,
+      lower = q25,
+      middle = median,
+      upper = q75,
+      ymax = min_max
+    ),
+    stat = "identity") + 
+    guides(fill="none") +
+    scale_y_continuous(labels = comma) +
+    labs(y = "Impact") +
+    labs(x = "Sourcing Area")  +
+    labs(
+      title = paste0(
+        "Change in Impact of ", 
+        drought,
+        " - ",
+        ISO, 
+        " - ",
+        crop,
+        " - Upper threshold"
+      )
+    ) +
+    ylim(-1, 1) +
+    theme(
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7)
+    )
+}
+
+#### Heat
+##### Lower threshold
+
+
+# results in dB_heatc_l_summary_values
+dB_heatc_l_summary_values_make_f <-
+  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
+    exact_extract(
+      subset(rB_impact, 4),
+      v_crop_ISO_lc_rcl_agg, include_cols = c("crop_ISO1")
+    ) 
+  }
+
+# results in dB_heatc_l_summary
+dB_heatc_l_summary_make_f <-
+  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
+    exact_extract(
+      subset(rB_impact, 4),
+      v_crop_ISO_lc_rcl_agg,
+      fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
+      quantiles = c(0.25, 0.75), default_weight = 1, append_cols = c("crop_ISO1")
+    ) %>%
+      mutate(IQR = (q75 - q25))  %>%
+      mutate(l_whisker = (q25 -  (1.5 * IQR))) %>%
+      mutate(u_whisker = (q75 +  (1.5 * IQR))) %>%
+      mutate(max_min = pmax(min, l_whisker)) %>%
+      mutate(min_max = pmin(max, u_whisker))
+  }
+
+# results in dB_heatc_l_summary_plot
+dB_heatc_l_summary_plot_f <- function(dB_heatc_l_summary, heat, ISO, crop) {
+  ggplot(dB_heatc_l_summary, aes(crop_ISO1, group = crop_ISO1, fill = crop_ISO1)) +
+    geom_boxplot(aes(
+      ymin = max_min,
+      lower = q25,
+      middle = median,
+      upper = q75,
+      ymax = min_max
+    ),
+    stat = "identity") + 
+    guides(fill="none") +
+    scale_y_continuous(labels = comma) +
+    labs(y = "Impact") +
+    labs(x = "Sourcing Area")  +
+    labs(
+      title = paste0(
+        "Past Impact of ", 
+        heat,
+        " - ",
+        ISO, 
+        " - ",
+        crop,
+        " - Lower threshold"
+      )
+    ) +
+    ylim(0, 1) +
+    theme(
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7)
+    )
+}
+
+# results in dB_heatf_l_summary
+dB_heatf_l_summary_make_f <-
+  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
+    exact_extract(
+      subset(rB_impact, 10),
+      v_crop_ISO_lc_rcl_agg,
+      fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
+      quantiles = c(0.25, 0.75), append_cols = c("crop_ISO1")
+    ) %>%
+      mutate(IQR = (q75 - q25))  %>%
+      mutate(l_whisker = (q25 -  (1.5 * IQR))) %>%
+      mutate(u_whisker = (q75 +  (1.5 * IQR))) %>%
+      mutate(max_min = pmax(min, l_whisker)) %>%
+      mutate(min_max = pmin(max, u_whisker))
+  }
+
+# results in dB_heatf_l_summary_plot
+dB_heatf_l_summary_plot_f <- function(dB_heatf_l_summary, heat, ISO, crop) {
+  ggplot(dB_heatf_l_summary, aes(crop_ISO1, group = crop_ISO1, fill = crop_ISO1)) +
+    geom_boxplot(aes(
+      ymin = max_min,
+      lower = q25,
+      middle = median,
+      upper = q75,
+      ymax = min_max
+    ),
+    stat = "identity") + 
+    guides(fill="none") +
+    scale_y_continuous(labels = comma) +
+    labs(y = "Impact") +
+    labs(x = "Sourcing Area")  +
+    labs(
+      title = paste0(
+        "Future Impact of ", 
+        heat,
+        " - ",
+        ISO, 
+        " - ",
+        crop,
+        " - Lower threshold"
+      )
+    ) +
+    ylim(0, 1) +
+    theme(
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7)
+    )
+}
+
+# results in dB_heat_change_l_summary
+dB_heat_change_l_summary_make_f <-
+  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
+    exact_extract(
+      subset(rB_impact, 16),
+      v_crop_ISO_lc_rcl_agg,
+      fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
+      quantiles = c(0.25, 0.75), append_cols = c("crop_ISO1")
+    ) %>%
+      mutate(IQR = (q75 - q25))  %>%
+      mutate(l_whisker = (q25 -  (1.5 * IQR))) %>%
+      mutate(u_whisker = (q75 +  (1.5 * IQR))) %>%
+      mutate(max_min = pmax(min, l_whisker)) %>%
+      mutate(min_max = pmin(max, u_whisker))
+  }
+
+# results in dB_heat_change_l_summary_plot
+dB_heat_change_l_summary_plot_f <- function(dB_heat_change_l_summary, heat, ISO, crop) {
+  ggplot(dB_heat_change_l_summary, aes(crop_ISO1, group = crop_ISO1, fill = crop_ISO1)) +
+    geom_boxplot(aes(
+      ymin = max_min,
+      lower = q25,
+      middle = median,
+      upper = q75,
+      ymax = min_max
+    ),
+    stat = "identity") + 
+    guides(fill="none") +
+    scale_y_continuous(labels = comma) +
+    labs(y = "Impact") +
+    labs(x = "Sourcing Area")  +
+    labs(
+      title = paste0(
+        "Change in Impact of ", 
+        heat,
+        " - ",
+        ISO, 
+        " - ",
+        crop,
+        " - Lower threshold"
+      )
+    ) +
+    ylim(-1, 1) +
+    theme(
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7)
+    )
+}
+
+##### Upper threshold
+
+# results in dB_heatc_u_summary
+dB_heatc_u_summary_make_f <-
+  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
+    exact_extract(
+      subset(rB_impact, 70),
+      v_crop_ISO_lc_rcl_agg,
+      fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
+      quantiles = c(0.25, 0.75), append_cols = c("crop_ISO1")
+    ) %>%
+      mutate(IQR = (q75 - q25))  %>%
+      mutate(l_whisker = (q25 -  (1.5 * IQR))) %>%
+      mutate(u_whisker = (q75 +  (1.5 * IQR))) %>%
+      mutate(max_min = pmax(min, l_whisker)) %>%
+      mutate(min_max = pmin(max, u_whisker))
+  }
+
+# results in dB_heatc_u_summary_plot
+dB_heatc_u_summary_plot_f <- function(dB_heatc_u_summary, heat, ISO, crop) {
+  ggplot(dB_heatc_u_summary, aes(crop_ISO1, group = crop_ISO1, fill = crop_ISO1)) +
+    geom_boxplot(aes(
+      ymin = max_min,
+      lower = q25,
+      middle = median,
+      upper = q75,
+      ymax = min_max
+    ),
+    stat = "identity") + 
+    guides(fill="none") +
+    scale_y_continuous(labels = comma) +
+    labs(y = "Impact") +
+    labs(x = "Sourcing Area")  +
+    labs(
+      title = paste0(
+        "Past Impact of ", 
+        heat,
+        " - ",
+        ISO, 
+        " - ",
+        crop,
+        " - Upper  threshold"
+      )
+    ) +
+    ylim(0, 1) +
+    theme(
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7)
+    )
+}
+
+# results in dB_heatf_u_summary
+dB_heatf_u_summary_make_f <-
+  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
+    exact_extract(
+      subset(rB_impact, 76),
+      v_crop_ISO_lc_rcl_agg,
+      fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
+      quantiles = c(0.25, 0.75), append_cols = c("crop_ISO1")
+    ) %>%
+      mutate(IQR = (q75 - q25))  %>%
+      mutate(l_whisker = (q25 -  (1.5 * IQR))) %>%
+      mutate(u_whisker = (q75 +  (1.5 * IQR))) %>%
+      mutate(max_min = pmax(min, l_whisker)) %>%
+      mutate(min_max = pmin(max, u_whisker))
+  }
+
+# results in dB_heatf_u_summary_plot
+dB_heatf_u_summary_plot_f <- function(dB_heatf_u_summary, heat, ISO, crop) {
+  ggplot(dB_heatf_u_summary, aes(crop_ISO1, group = crop_ISO1, fill = crop_ISO1)) +
+    geom_boxplot(aes(
+      ymin = max_min,
+      lower = q25,
+      middle = median,
+      upper = q75,
+      ymax = min_max
+    ),
+    stat = "identity") + 
+    guides(fill="none") +
+    scale_y_continuous(labels = comma) +
+    labs(y = "Impact") +
+    labs(x = "Sourcing Area")  +
+    labs(
+      title = paste0(
+        "Future Impact of ", 
+        heat,
+        " - ",
+        ISO, 
+        " - ",
+        crop,
+        " - Upper threshold"
+      )
+    ) +
+    ylim(0, 1) +
+    theme(
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7)
+    )
+}
+
+# results in dB_heat_change_u_summary
+dB_heat_change_u_summary_make_f <-
+  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
+    exact_extract(
+      subset(rB_impact, 82),
+      v_crop_ISO_lc_rcl_agg,
+      fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
+      quantiles = c(0.25, 0.75), append_cols = c("crop_ISO1")
+    ) %>%
+      mutate(IQR = (q75 - q25))  %>%
+      mutate(l_whisker = (q25 -  (1.5 * IQR))) %>%
+      mutate(u_whisker = (q75 +  (1.5 * IQR))) %>%
+      mutate(max_min = pmax(min, l_whisker)) %>%
+      mutate(min_max = pmin(max, u_whisker))
+  }
+
+# results in dB_heat_change_u_summary_plot
+dB_heat_change_u_summary_plot_f <- function(dB_heat_change_u_summary, heat, ISO, crop) {
+  ggplot(dB_heat_change_u_summary, aes(crop_ISO1, group = crop_ISO1, fill = crop_ISO1)) +
+    geom_boxplot(aes(
+      ymin = max_min,
+      lower = q25,
+      middle = median,
+      upper = q75,
+      ymax = min_max
+    ),
+    stat = "identity") + 
+    guides(fill="none") +
+    scale_y_continuous(labels = comma) +
+    labs(y = "Impact") +
+    labs(x = "Sourcing Area")  +
+    labs(
+      title = paste0(
+        "Change in Impact of ", 
+        heat,
+        " - ",
+        ISO, 
+        " - ",
+        crop,
+        " - Upper threshold"
+      )
+    ) +
+    ylim(-1, 1) +
+    theme(
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7)
+    )
+}
+
+#### Flood
+##### Lower threshold
+
+# results in dB_floodc_l_summary
+dB_floodc_l_summary_make_f <-
+  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
+    exact_extract(
+      subset(rB_impact, 6),
+      v_crop_ISO_lc_rcl_agg,
+      fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
+      quantiles = c(0.25, 0.75), append_cols = c("crop_ISO1")
+    ) %>%
+      mutate(IQR = (q75 - q25))  %>%
+      mutate(l_whisker = (q25 -  (1.5 * IQR))) %>%
+      mutate(u_whisker = (q75 +  (1.5 * IQR))) %>%
+      mutate(max_min = pmax(min, l_whisker)) %>%
+      mutate(min_max = pmin(max, u_whisker))
+  }
+
+# results in dB_floodc_l_summary_plot
+dB_floodc_l_summary_plot_f <- function(dB_floodc_l_summary, flood, ISO, crop) {
+  ggplot(dB_floodc_l_summary, aes(crop_ISO1, group = crop_ISO1, fill = crop_ISO1)) +
+    geom_boxplot(aes(
+      ymin = max_min,
+      lower = q25,
+      middle = median,
+      upper = q75,
+      ymax = min_max
+    ),
+    stat = "identity") + 
+    guides(fill="none") +
+    scale_y_continuous(labels = comma) +
+    labs(y = "Impact") +
+    labs(x = "Sourcing Area")  +
+    labs(
+      title = paste0(
+        "Past Impact of ", 
+        flood,
+        " - ",
+        ISO, 
+        " - ",
+        crop,
+        " - Lower threshold"
+      )
+    ) +
+    ylim(0, 1) +
+    theme(
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7)
+    )
+}
+
+# results in dB_floodf_l_summary
+dB_floodf_l_summary_make_f <-
+  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
+    exact_extract(
+      subset(rB_impact, 12),
+      v_crop_ISO_lc_rcl_agg,
+      fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
+      quantiles = c(0.25, 0.75), append_cols = c("crop_ISO1")
+    ) %>%
+      mutate(IQR = (q75 - q25))  %>%
+      mutate(l_whisker = (q25 -  (1.5 * IQR))) %>%
+      mutate(u_whisker = (q75 +  (1.5 * IQR))) %>%
+      mutate(max_min = pmax(min, l_whisker)) %>%
+      mutate(min_max = pmin(max, u_whisker))
+  }
+
+# results in dB_floodf_l_summary_plot
+dB_floodf_l_summary_plot_f <- function(dB_floodf_l_summary, flood, ISO, crop) {
+  ggplot(dB_floodf_l_summary, aes(crop_ISO1, group = crop_ISO1, fill = crop_ISO1)) +
+    geom_boxplot(aes(
+      ymin = max_min,
+      lower = q25,
+      middle = median,
+      upper = q75,
+      ymax = min_max
+    ),
+    stat = "identity") + 
+    guides(fill="none") +
+    scale_y_continuous(labels = comma) +
+    labs(y = "Impact") +
+    labs(x = "Sourcing Area")  +
+    labs(
+      title = paste0(
+        "Future Impact of ", 
+        flood,
+        " - ",
+        ISO, 
+        " - ",
+        crop,
+        " - Lower threshold"
+      )
+    ) +
+    ylim(0, 1) +
+    theme(
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7)
+    )
+}
+
+# results in dB_flood_change_l_summary
+dB_flood_change_l_summary_make_f <-
+  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
+    exact_extract(
+      subset(rB_impact, 18),
+      v_crop_ISO_lc_rcl_agg,
+      fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
+      quantiles = c(0.25, 0.75), append_cols = c("crop_ISO1")
+    ) %>%
+      mutate(IQR = (q75 - q25))  %>%
+      mutate(l_whisker = (q25 -  (1.5 * IQR))) %>%
+      mutate(u_whisker = (q75 +  (1.5 * IQR))) %>%
+      mutate(max_min = pmax(min, l_whisker)) %>%
+      mutate(min_max = pmin(max, u_whisker))
+  }
+
+# results in dB_flood_change_l_summary_plot
+dB_flood_change_l_summary_plot_f <- function(dB_flood_change_l_summary, flood, ISO, crop) {
+  ggplot(dB_flood_change_l_summary, aes(crop_ISO1, group = crop_ISO1, fill = crop_ISO1)) +
+    geom_boxplot(aes(
+      ymin = max_min,
+      lower = q25,
+      middle = median,
+      upper = q75,
+      ymax = min_max
+    ),
+    stat = "identity") + 
+    guides(fill="none") +
+    scale_y_continuous(labels = comma) +
+    labs(y = "Impact") +
+    labs(x = "Sourcing Area")  +
+    labs(
+      title = paste0(
+        "Change in Impact of ", 
+        flood,
+        " - ",
+        ISO, 
+        " - ",
+        crop,
+        " - Lower threshold"
+      )
+    ) +
+    ylim(-1, 1) +
+    theme(
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7)
+    )
+}
+
+##### Upper threshold
+
+# results in dB_floodc_u_summary
+dB_floodc_u_summary_make_f <-
+  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
+    exact_extract(
+      subset(rB_impact, 72),
+      v_crop_ISO_lc_rcl_agg,
+      fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
+      quantiles = c(0.25, 0.75), append_cols = c("crop_ISO1")
+    ) %>%
+      mutate(IQR = (q75 - q25))  %>%
+      mutate(l_whisker = (q25 -  (1.5 * IQR))) %>%
+      mutate(u_whisker = (q75 +  (1.5 * IQR))) %>%
+      mutate(max_min = pmax(min, l_whisker)) %>%
+      mutate(min_max = pmin(max, u_whisker))
+  }
+
+# results in dB_floodc_u_summary_plot
+dB_floodc_u_summary_plot_f <- function(dB_floodc_u_summary, flood, ISO, crop) {
+  ggplot(dB_floodc_u_summary, aes(crop_ISO1, group = crop_ISO1, fill = crop_ISO1)) +
+    geom_boxplot(aes(
+      ymin = max_min,
+      lower = q25,
+      middle = median,
+      upper = q75,
+      ymax = min_max
+    ),
+    stat = "identity") + 
+    guides(fill="none") +
+    scale_y_continuous(labels = comma) +
+    labs(y = "Impact") +
+    labs(x = "Sourcing Area")  +
+    labs(
+      title = paste0(
+        "Past Impact of ", 
+        flood,
+        " - ",
+        ISO, 
+        " - ",
+        crop,
+        " - Upper  threshold"
+      )
+    ) +
+    ylim(0, 1) +
+    theme(
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7)
+    )
+}
+
+# results in dB_floodf_u_summary
+dB_floodf_u_summary_make_f <-
+  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
+    exact_extract(
+      subset(rB_impact, 78),
+      v_crop_ISO_lc_rcl_agg,
+      fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
+      quantiles = c(0.25, 0.75), append_cols = c("crop_ISO1")
+    ) %>%
+      mutate(IQR = (q75 - q25))  %>%
+      mutate(l_whisker = (q25 -  (1.5 * IQR))) %>%
+      mutate(u_whisker = (q75 +  (1.5 * IQR))) %>%
+      mutate(max_min = pmax(min, l_whisker)) %>%
+      mutate(min_max = pmin(max, u_whisker))
+  }
+
+# results in dB_floodf_u_summary_plot
+dB_floodf_u_summary_plot_f <- function(dB_floodf_u_summary, flood, ISO, crop) {
+  ggplot(dB_floodf_u_summary, aes(crop_ISO1, group = crop_ISO1, fill = crop_ISO1)) +
+    geom_boxplot(aes(
+      ymin = max_min,
+      lower = q25,
+      middle = median,
+      upper = q75,
+      ymax = min_max
+    ),
+    stat = "identity") + 
+    guides(fill="none") +
+    scale_y_continuous(labels = comma) +
+    labs(y = "Impact") +
+    labs(x = "Sourcing Area")  +
+    labs(
+      title = paste0(
+        "Future Impact of ", 
+        flood,
+        " - ",
+        ISO, 
+        " - ",
+        crop,
+        " - Upper threshold"
+      )
+    ) +
+    ylim(0, 1) +
+    theme(
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7)
+    )
+}
+
+# results in dB_flood_change_u_summary
+dB_flood_change_u_summary_make_f <-
+  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
+    exact_extract(
+      subset(rB_impact, 84),
+      v_crop_ISO_lc_rcl_agg,
+      fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
+      quantiles = c(0.25, 0.75), append_cols = c("crop_ISO1")
+    ) %>%
+      mutate(IQR = (q75 - q25))  %>%
+      mutate(l_whisker = (q25 -  (1.5 * IQR))) %>%
+      mutate(u_whisker = (q75 +  (1.5 * IQR))) %>%
+      mutate(max_min = pmax(min, l_whisker)) %>%
+      mutate(min_max = pmin(max, u_whisker))
+  }
+
+# results in dB_flood_change_u_summary_plot
+dB_flood_change_u_summary_plot_f <- function(dB_flood_change_u_summary, flood, ISO, crop) {
+  ggplot(dB_flood_change_u_summary, aes(crop_ISO1, group = crop_ISO1, fill = crop_ISO1)) +
+    geom_boxplot(aes(
+      ymin = max_min,
+      lower = q25,
+      middle = median,
+      upper = q75,
+      ymax = min_max
+    ),
+    stat = "identity") + 
+    guides(fill="none") +
+    scale_y_continuous(labels = comma) +
+    labs(y = "Impact") +
+    labs(x = "Sourcing Area")  +
+    labs(
+      title = paste0(
+        "Change in Impact of ", 
+        flood,
+        " - ",
+        ISO, 
+        " - ",
+        crop,
+        " - Upper threshold"
+      )
+    ) +
+    ylim(-1, 1) +
+    theme(
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 7)
+    )
+}
+
 ## Climate Risk Profiles
 ### Prepare Climate Risk Profile Data
 
@@ -5429,7 +6481,9 @@ writeRaster(paste0("data/", ISO, "/", crop, "/rB_impact.tif"), bylayer = TRUE, s
 dB_profile_summary_make_f <-
   function(rB_impact, v_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      dropLayer(rB_impact, c(1:18, 23, 28, 33, 42, 47, 52, 57, 66:84, 89, 94, 99, 108, 113, 118, 123, 132, 137, 142, 147, 152, 157, 162, 171, 180, 189, 198, 207, 216, 221, 226, 231, 236, 241, 246, 255, 273, 282, 291, 300)),
+      dropLayer(rB_impact, c(1:18, 23, 28, 33, 42, 47, 52, 57, 66:84,
+       89, 94, 99, 108, 113, 118, 123, 132, 137, 142, 147, 152, 157, 162, 171, 180,
+        189, 198, 207, 216, 221, 226, 231, 236, 241, 246, 255, 264, 273, 282, 291, 300)),
       v_crop_ISO_lc_rcl_agg,
       fun = c('mean')
     )
@@ -5446,8 +6500,12 @@ write_csv(paste0("data/", ISO, "/", crop, "/dB_profile_summary.csv"), append = F
 
 ### Plot Climate Risk Profile Data
 
-  # results in dB_profile_d_l_h_l_plot
-dB_profile_d_l_h_l_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+## historical
+
+## lower thresholds
+
+  # results in dB_profilec_d_l_h_l_plot
+dB_profilec_d_l_h_l_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
 
     tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
     `names<-`(c("Landuse")) %>%
@@ -5470,7 +6528,7 @@ ggplot(aes(x = Landuse,
     labs(fill = "") +
     labs(y = "Risk Types") +
     labs(x = "Sourcing Area")  +
-    labs(title = "Climate Risk Profile per Crop Sourcing Area") +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - drought l heat l") +
     theme(
       legend.position = "bottom", legend.text=element_text(size=7),
       panel.grid.major.x = element_line(colour = "grey"),
@@ -5479,8 +6537,8 @@ ggplot(aes(x = Landuse,
     )
 }
 
-# results in dB_profile_d_l_f_l_plot
-dB_profile_d_l_f_l_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+# results in dB_profilec_d_l_f_l_plot
+dB_profilec_d_l_f_l_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
 
     tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
     `names<-`(c("Landuse")) %>%
@@ -5503,7 +6561,7 @@ ggplot(aes(x = Landuse,
     labs(fill = "") +
     labs(y = "Risk Types") +
     labs(x = "Sourcing Area")  +
-    labs(title = "Climate Risk Profile per Crop Sourcing Area") +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - drought l flood l") +
     theme(
       legend.position = "bottom", legend.text=element_text(size=7),
       panel.grid.major.x = element_line(colour = "grey"),
@@ -5512,8 +6570,8 @@ ggplot(aes(x = Landuse,
     ) 
 }
 
-# results in dB_profile_h_l_f_l_plot
-dB_profile_h_l_f_l_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+# results in dB_profilec_h_l_f_l_plot
+dB_profilec_h_l_f_l_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
 
     tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
     `names<-`(c("Landuse")) %>%
@@ -5536,7 +6594,7 @@ ggplot(aes(x = Landuse,
     labs(fill = "") +
     labs(y = "Risk Types") +
     labs(x = "Sourcing Area")  +
-    labs(title = "Climate Risk Profile per Crop Sourcing Area") +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - heat l flood l") +
     theme(
       legend.position = "bottom", legend.text=element_text(size=7),
       panel.grid.major.x = element_line(colour = "grey"),
@@ -5545,8 +6603,8 @@ ggplot(aes(x = Landuse,
     )
 }
 
-# results in dB_profile_d_l_h_l_f_l_plot
-dB_profile_d_l_h_l_f_l_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+# results in dB_profilec_d_l_h_l_f_l_plot
+dB_profilec_d_l_h_l_f_l_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
 
     tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
     `names<-`(c("Landuse")) %>%
@@ -5573,7 +6631,1268 @@ ggplot(aes(x = Landuse,
     labs(fill = "") +
     labs(y = "Risk Types") +
     labs(x = "Sourcing Area")  +
-    labs(title = "Climate Risk Profile per Crop Sourcing Area") +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - drought l heat l flood l") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    ) 
+}
+
+## upper thresholds
+
+  # results in dB_profilec_d_u_h_u_plot
+dB_profilec_d_u_h_u_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,41:44)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.hist.drought.u.opt.heat.u.opt = rgb(127,201,127, maxColorValue = 255), 
+      mean.hist.drought.u.opt.heat.u.sub = rgb(255,255,153, maxColorValue = 255),             
+      mean.hist.drought.u.sub.heat.u.opt = rgb(253,192,134, maxColorValue = 255),
+      mean.hist.drought.u.sub.heat.u.sub = rgb(191,91,23, maxColorValue = 255)
+      )
+    ) +
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - drought u heat u") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    )
+}
+
+# results in dB_profilec_d_u_f_u_plot
+dB_profilec_d_u_f_u_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,45:48)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.hist.drought.u.opt.flood.u.opt = rgb(127,201,127, maxColorValue = 255),
+      mean.hist.drought.u.opt.flood.u.sub = rgb(190,174,212, maxColorValue = 255),              
+      mean.hist.drought.u.sub.flood.u.opt = rgb(253,192,134, maxColorValue = 255),
+      mean.hist.drought.u.sub.flood.u.sub = rgb(56,108,176, maxColorValue = 255)
+     )
+    ) +
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - drought u flood u") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    ) 
+}
+
+# results in dB_profilec_h_u_f_u_plot
+dB_profilec_h_u_f_u_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,49:52)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.hist.heat.u.opt.flood.u.opt = rgb(127,201,127, maxColorValue = 255),
+      mean.hist.heat.u.opt.flood.u.sub = rgb(190,174,212, maxColorValue = 255),
+      mean.hist.heat.u.sub.flood.u.opt = rgb(255,255,153, maxColorValue = 255),                    
+      mean.hist.heat.u.sub.flood.u.sub = rgb(102,102,102, maxColorValue = 255)
+      )
+    ) +
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - heat u flood u") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    )
+}
+
+# results in dB_profilec_d_u_h_u_f_u_plot
+dB_profilec_d_u_h_u_f_u_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,53:60)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.hist.drought.u.opt.heat.u.opt.flood.u.opt = rgb(127,201,127, maxColorValue = 255),
+      mean.hist.drought.u.opt.heat.u.sub.flood.u.sub = rgb(102,102,102, maxColorValue = 255),
+      mean.hist.drought.u.sub.heat.u.opt.flood.u.sub = rgb(56,108,176, maxColorValue = 255),    
+      mean.hist.drought.u.sub.heat.u.sub.flood.u.opt = rgb(191,91,23, maxColorValue = 255),  
+      mean.hist.drought.u.opt.heat.u.opt.flood.u.sub = rgb(190,174,212, maxColorValue = 255),
+      mean.hist.drought.u.opt.heat.u.sub.flood.u.opt = rgb(255,255,153, maxColorValue = 255),                  
+      mean.hist.drought.u.sub.heat.u.opt.flood.u.opt = rgb(253,192,134, maxColorValue = 255),
+      mean.hist.drought.u.sub.heat.u.sub.flood.u.sub = rgb(240,2,127, maxColorValue = 255)
+      )
+    ) +
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - drought u heat u flood u") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    ) 
+}
+
+## mixed thresholds
+
+  # results in dB_profilec_d_u_h_l_plot
+dB_profilec_d_u_h_l_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,85:88)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.hist.drought.u.opt.heat.l.opt = rgb(127,201,127, maxColorValue = 255), 
+      mean.hist.drought.u.opt.heat.l.sub = rgb(255,255,153, maxColorValue = 255),             
+      mean.hist.drought.u.sub.heat.l.opt = rgb(253,192,134, maxColorValue = 255),
+      mean.hist.drought.u.sub.heat.l.sub = rgb(191,91,23, maxColorValue = 255)
+      )
+    ) +
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - drought u heat l") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    )
+}
+
+  # results in dB_profilec_d_l_h_u_plot
+dB_profilec_d_l_h_u_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,81:84)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.hist.drought.l.opt.heat.u.opt = rgb(127,201,127, maxColorValue = 255), 
+      mean.hist.drought.l.opt.heat.u.sub = rgb(255,255,153, maxColorValue = 255),             
+      mean.hist.drought.l.sub.heat.u.opt = rgb(253,192,134, maxColorValue = 255),
+      mean.hist.drought.l.sub.heat.u.sub = rgb(191,91,23, maxColorValue = 255)
+      )
+    ) +
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - drought l heat u") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    )
+}
+
+# results in dB_profilec_d_u_f_l_plot
+dB_profilec_d_u_f_l_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,93:96)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.hist.drought.u.opt.flood.l.opt = rgb(127,201,127, maxColorValue = 255),
+      mean.hist.drought.u.opt.flood.l.sub = rgb(190,174,212, maxColorValue = 255),              
+      mean.hist.drought.u.sub.flood.l.opt = rgb(253,192,134, maxColorValue = 255),
+      mean.hist.drought.u.sub.flood.l.sub = rgb(56,108,176, maxColorValue = 255)
+     )
+    ) +
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - drought u flood l") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    ) 
+}
+
+# results in dB_profilec_d_l_f_u_plot
+dB_profilec_d_l_f_u_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,89:92)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.hist.drought.l.opt.flood.u.opt = rgb(127,201,127, maxColorValue = 255),
+      mean.hist.drought.l.opt.flood.u.sub = rgb(190,174,212, maxColorValue = 255),              
+      mean.hist.drought.l.sub.flood.u.opt = rgb(253,192,134, maxColorValue = 255),
+      mean.hist.drought.l.sub.flood.u.sub = rgb(56,108,176, maxColorValue = 255)
+     )
+    ) +
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - drought l flood u") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    ) 
+}
+
+# results in dB_profilec_h_u_f_l_plot
+dB_profilec_h_u_f_l_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,101:104)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.hist.heat.u.opt.flood.l.opt = rgb(127,201,127, maxColorValue = 255),
+      mean.hist.heat.u.opt.flood.l.sub = rgb(190,174,212, maxColorValue = 255),
+      mean.hist.heat.u.sub.flood.l.opt = rgb(255,255,153, maxColorValue = 255),                    
+      mean.hist.heat.u.sub.flood.l.sub = rgb(102,102,102, maxColorValue = 255)
+      )
+    ) +
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - heat u flood l") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    )
+}
+
+
+# results in dB_profilec_h_l_f_u_plot
+dB_profilec_h_l_f_u_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,97:100)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.hist.heat.l.opt.flood.u.opt = rgb(127,201,127, maxColorValue = 255),
+      mean.hist.heat.l.opt.flood.u.sub = rgb(190,174,212, maxColorValue = 255),
+      mean.hist.heat.l.sub.flood.u.opt = rgb(255,255,153, maxColorValue = 255),                    
+      mean.hist.heat.l.sub.flood.u.sub = rgb(102,102,102, maxColorValue = 255)
+      )
+    ) +
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - heat l flood u") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    )
+}
+
+
+# results in dB_profilec_d_u_h_l_f_l_plot
+dB_profilec_d_u_h_l_f_l_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,129:136)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.hist.drought.u.opt.heat.l.opt.flood.l.opt = rgb(127,201,127, maxColorValue = 255),
+      mean.hist.drought.u.opt.heat.l.sub.flood.l.sub = rgb(102,102,102, maxColorValue = 255),
+      mean.hist.drought.u.sub.heat.l.opt.flood.l.sub = rgb(56,108,176, maxColorValue = 255),    
+      mean.hist.drought.u.sub.heat.l.sub.flood.l.opt = rgb(191,91,23, maxColorValue = 255),  
+      mean.hist.drought.u.opt.heat.l.opt.flood.l.sub = rgb(190,174,212, maxColorValue = 255),
+      mean.hist.drought.u.opt.heat.l.sub.flood.l.opt = rgb(255,255,153, maxColorValue = 255),                  
+      mean.hist.drought.u.sub.heat.l.opt.flood.l.opt = rgb(253,192,134, maxColorValue = 255),
+      mean.hist.drought.u.sub.heat.l.sub.flood.l.sub = rgb(240,2,127, maxColorValue = 255)
+      )
+    ) +
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - drought u heat l flood l") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    ) 
+}
+
+# results in dB_profilec_d_l_h_u_f_l_plot
+dB_profilec_d_l_h_u_f_l_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,113:120)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.hist.drought.l.opt.heat.u.opt.flood.l.opt = rgb(127,201,127, maxColorValue = 255),
+      mean.hist.drought.l.opt.heat.u.sub.flood.l.sub = rgb(102,102,102, maxColorValue = 255),
+      mean.hist.drought.l.sub.heat.u.opt.flood.l.sub = rgb(56,108,176, maxColorValue = 255),    
+      mean.hist.drought.l.sub.heat.u.sub.flood.l.opt = rgb(191,91,23, maxColorValue = 255),  
+      mean.hist.drought.l.opt.heat.u.opt.flood.l.sub = rgb(190,174,212, maxColorValue = 255),
+      mean.hist.drought.l.opt.heat.u.sub.flood.l.opt = rgb(255,255,153, maxColorValue = 255),                  
+      mean.hist.drought.l.sub.heat.u.opt.flood.l.opt = rgb(253,192,134, maxColorValue = 255),
+      mean.hist.drought.l.sub.heat.u.sub.flood.l.sub = rgb(240,2,127, maxColorValue = 255)
+      )
+    ) +
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - drought l heat u flood l") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    ) 
+}
+
+# results in dB_profilec_d_l_h_l_f_u_plot
+dB_profilec_d_l_h_l_f_u_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,105:112)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.hist.drought.l.opt.heat.l.opt.flood.u.opt = rgb(127,201,127, maxColorValue = 255),
+      mean.hist.drought.l.opt.heat.l.sub.flood.u.sub = rgb(102,102,102, maxColorValue = 255),
+      mean.hist.drought.l.sub.heat.l.opt.flood.u.sub = rgb(56,108,176, maxColorValue = 255),    
+      mean.hist.drought.l.sub.heat.l.sub.flood.u.opt = rgb(191,91,23, maxColorValue = 255),  
+      mean.hist.drought.l.opt.heat.l.opt.flood.u.sub = rgb(190,174,212, maxColorValue = 255),
+      mean.hist.drought.l.opt.heat.l.sub.flood.u.opt = rgb(255,255,153, maxColorValue = 255),                  
+      mean.hist.drought.l.sub.heat.l.opt.flood.u.opt = rgb(253,192,134, maxColorValue = 255),
+      mean.hist.drought.l.sub.heat.l.sub.flood.u.sub = rgb(240,2,127, maxColorValue = 255)
+      )
+    ) +
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - drought l heat l flood u") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    ) 
+}
+
+# results in dB_profilec_d_u_h_u_f_l_plot
+dB_profilec_d_u_h_u_f_l_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,137:144)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.hist.drought.u.opt.heat.u.opt.flood.l.opt = rgb(127,201,127, maxColorValue = 255),
+      mean.hist.drought.u.opt.heat.u.sub.flood.l.sub = rgb(102,102,102, maxColorValue = 255),
+      mean.hist.drought.u.sub.heat.u.opt.flood.l.sub = rgb(56,108,176, maxColorValue = 255),    
+      mean.hist.drought.u.sub.heat.u.sub.flood.l.opt = rgb(191,91,23, maxColorValue = 255),  
+      mean.hist.drought.u.opt.heat.u.opt.flood.l.sub = rgb(190,174,212, maxColorValue = 255),
+      mean.hist.drought.u.opt.heat.u.sub.flood.l.opt = rgb(255,255,153, maxColorValue = 255),                  
+      mean.hist.drought.u.sub.heat.u.opt.flood.l.opt = rgb(253,192,134, maxColorValue = 255),
+      mean.hist.drought.u.sub.heat.u.sub.flood.l.sub = rgb(240,2,127, maxColorValue = 255)
+      )
+    ) +
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - drought u heat u flood l") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    ) 
+}
+# results in dB_profilec_d_u_h_l_f_u_plot
+dB_profilec_d_u_h_l_f_u_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,121:128)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.hist.drought.u.opt.heat.l.opt.flood.u.opt = rgb(127,201,127, maxColorValue = 255),
+      mean.hist.drought.u.opt.heat.l.sub.flood.u.sub = rgb(102,102,102, maxColorValue = 255),
+      mean.hist.drought.u.sub.heat.l.opt.flood.u.sub = rgb(56,108,176, maxColorValue = 255),    
+      mean.hist.drought.u.sub.heat.l.sub.flood.u.opt = rgb(191,91,23, maxColorValue = 255),  
+      mean.hist.drought.u.opt.heat.l.opt.flood.u.sub = rgb(190,174,212, maxColorValue = 255),
+      mean.hist.drought.u.opt.heat.l.sub.flood.u.opt = rgb(255,255,153, maxColorValue = 255),                  
+      mean.hist.drought.u.sub.heat.l.opt.flood.u.opt = rgb(253,192,134, maxColorValue = 255),
+      mean.hist.drought.u.sub.heat.l.sub.flood.u.sub = rgb(240,2,127, maxColorValue = 255)
+      )
+    ) +
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - drought u heat l flood u") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    ) 
+}
+# results in dB_profilec_d_l_h_u_f_u_plot
+dB_profilec_d_l_h_u_f_u_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,145:152)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.hist.drought.l.opt.heat.u.opt.flood.u.opt = rgb(127,201,127, maxColorValue = 255),
+      mean.hist.drought.l.opt.heat.u.sub.flood.u.sub = rgb(102,102,102, maxColorValue = 255),
+      mean.hist.drought.l.sub.heat.u.opt.flood.u.sub = rgb(56,108,176, maxColorValue = 255),    
+      mean.hist.drought.l.sub.heat.u.sub.flood.u.opt = rgb(191,91,23, maxColorValue = 255),  
+      mean.hist.drought.l.opt.heat.u.opt.flood.u.sub = rgb(190,174,212, maxColorValue = 255),
+      mean.hist.drought.l.opt.heat.u.sub.flood.u.opt = rgb(255,255,153, maxColorValue = 255),                  
+      mean.hist.drought.l.sub.heat.u.opt.flood.u.opt = rgb(253,192,134, maxColorValue = 255),
+      mean.hist.drought.l.sub.heat.u.sub.flood.u.sub = rgb(240,2,127, maxColorValue = 255)
+      )
+    ) +
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - drought l heat u flood u") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    ) 
+}
+
+
+## future
+
+## lower thresholds
+
+  # results in dB_profilef_d_l_h_l_plot
+dB_profilef_d_l_h_l_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,21:24)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.future.drought.l.opt.heat.l.opt = rgb(127,201,127, maxColorValue = 255), 
+      mean.future.drought.l.opt.heat.l.sub = rgb(255,255,153, maxColorValue = 255),             
+      mean.future.drought.l.sub.heat.l.opt = rgb(253,192,134, maxColorValue = 255),
+      mean.future.drought.l.sub.heat.l.sub = rgb(191,91,23, maxColorValue = 255)
+      )
+    ) +
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - future drought l heat l") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    )
+}
+
+# results in dB_profilef_d_l_f_l_plot
+dB_profilef_d_l_f_l_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,25:28)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.future.drought.l.opt.flood.l.opt = rgb(127,201,127, maxColorValue = 255),
+      mean.future.drought.l.opt.flood.l.sub = rgb(190,174,212, maxColorValue = 255),              
+      mean.future.drought.l.sub.flood.l.opt = rgb(253,192,134, maxColorValue = 255),
+      mean.future.drought.l.sub.flood.l.sub = rgb(56,108,176, maxColorValue = 255)
+     )
+    ) +
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - future drought l flood l") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    ) 
+}
+
+# results in dB_profilef_h_l_f_l_plot
+dB_profilef_h_l_f_l_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,29:32)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.future.heat.l.opt.flood.l.opt = rgb(127,201,127, maxColorValue = 255),
+      mean.future.heat.l.opt.flood.l.sub = rgb(190,174,212, maxColorValue = 255),
+      mean.future.heat.l.sub.flood.l.opt = rgb(255,255,153, maxColorValue = 255),                    
+      mean.future.heat.l.sub.flood.l.sub = rgb(102,102,102, maxColorValue = 255)
+      )
+    ) +
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - future heat l flood l") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    )
+}
+
+# results in dB_profilef_d_l_h_l_f_l_plot
+dB_profilef_d_l_h_l_f_l_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,33:40)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.future.drought.l.opt.heat.l.opt.flood.l.opt = rgb(127,201,127, maxColorValue = 255),
+      mean.future.drought.l.opt.heat.l.sub.flood.l.sub = rgb(102,102,102, maxColorValue = 255),
+      mean.future.drought.l.sub.heat.l.opt.flood.l.sub = rgb(56,108,176, maxColorValue = 255),    
+      mean.future.drought.l.sub.heat.l.sub.flood.l.opt = rgb(191,91,23, maxColorValue = 255),  
+      mean.future.drought.l.opt.heat.l.opt.flood.l.sub = rgb(190,174,212, maxColorValue = 255),
+      mean.future.drought.l.opt.heat.l.sub.flood.l.opt = rgb(255,255,153, maxColorValue = 255),                  
+      mean.future.drought.l.sub.heat.l.opt.flood.l.opt = rgb(253,192,134, maxColorValue = 255),
+      mean.future.drought.l.sub.heat.l.sub.flood.l.sub = rgb(240,2,127, maxColorValue = 255)
+      )
+    ) +
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - future drought l heat l flood l") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    ) 
+}
+
+## upper thresholds
+
+  # results in dB_profilef_d_u_h_u_plot
+dB_profilef_d_u_h_u_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,61:64)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.future.drought.u.opt.heat.u.opt = rgb(127,201,127, maxColorValue = 255), 
+      mean.future.drought.u.opt.heat.u.sub = rgb(255,255,153, maxColorValue = 255),             
+      mean.future.drought.u.sub.heat.u.opt = rgb(253,192,134, maxColorValue = 255),
+      mean.future.drought.u.sub.heat.u.sub = rgb(191,91,23, maxColorValue = 255)
+      )
+    ) +
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - future drought u heat u") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    )
+}
+
+# results in dB_profilef_d_u_f_u_plot
+dB_profilef_d_u_f_u_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,65:68)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.future.drought.u.opt.flood.u.opt = rgb(127,201,127, maxColorValue = 255),
+      mean.future.drought.u.opt.flood.u.sub = rgb(190,174,212, maxColorValue = 255),              
+      mean.future.drought.u.sub.flood.u.opt = rgb(253,192,134, maxColorValue = 255),
+      mean.future.drought.u.sub.flood.u.sub = rgb(56,108,176, maxColorValue = 255)
+     )
+    ) +
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - future drought u flood u") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    ) 
+}
+
+# results in dB_profilef_h_u_f_u_plot
+dB_profilef_h_u_f_u_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,69:72)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.future.heat.u.opt.flood.u.opt = rgb(127,201,127, maxColorValue = 255),
+      mean.future.heat.u.opt.flood.u.sub = rgb(190,174,212, maxColorValue = 255),
+      mean.future.heat.u.sub.flood.u.opt = rgb(255,255,153, maxColorValue = 255),                    
+      mean.future.heat.u.sub.flood.u.sub = rgb(102,102,102, maxColorValue = 255)
+      )
+    ) +
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - future heat u flood u") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    )
+}
+
+# results in dB_profilef_d_u_h_u_f_u_plot
+dB_profilef_d_u_h_u_f_u_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,73:80)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.future.drought.u.opt.heat.u.opt.flood.u.opt = rgb(127,201,127, maxColorValue = 255),
+      mean.future.drought.u.opt.heat.u.sub.flood.u.sub = rgb(102,102,102, maxColorValue = 255),
+      mean.future.drought.u.sub.heat.u.opt.flood.u.sub = rgb(56,108,176, maxColorValue = 255),    
+      mean.future.drought.u.sub.heat.u.sub.flood.u.opt = rgb(191,91,23, maxColorValue = 255),  
+      mean.future.drought.u.opt.heat.u.opt.flood.u.sub = rgb(190,174,212, maxColorValue = 255),
+      mean.future.drought.u.opt.heat.u.sub.flood.u.opt = rgb(255,255,153, maxColorValue = 255),                  
+      mean.future.drought.u.sub.heat.u.opt.flood.u.opt = rgb(253,192,134, maxColorValue = 255),
+      mean.future.drought.u.sub.heat.u.sub.flood.u.sub = rgb(240,2,127, maxColorValue = 255)
+      )
+    ) +
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - future drought u heat u flood u") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    ) 
+}
+
+## mixed thresholds
+
+  # results in dB_profilef_d_u_h_l_plot
+dB_profilef_d_u_h_l_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,157:160)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.future.drought.u.opt.heat.l.opt = rgb(127,201,127, maxColorValue = 255), 
+      mean.future.drought.u.opt.heat.l.sub = rgb(255,255,153, maxColorValue = 255),             
+      mean.future.drought.u.sub.heat.l.opt = rgb(253,192,134, maxColorValue = 255),
+      mean.future.drought.u.sub.heat.l.sub = rgb(191,91,23, maxColorValue = 255)
+      )
+    ) +
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - future drought u heat l") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    )
+}
+
+  # results in dB_profilef_d_l_h_u_plot
+dB_profilef_d_l_h_u_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,153:156)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.future.drought.l.opt.heat.u.opt = rgb(127,201,127, maxColorValue = 255), 
+      mean.future.drought.l.opt.heat.u.sub = rgb(255,255,153, maxColorValue = 255),             
+      mean.future.drought.l.sub.heat.u.opt = rgb(253,192,134, maxColorValue = 255),
+      mean.future.drought.l.sub.heat.u.sub = rgb(191,91,23, maxColorValue = 255)
+      )
+    ) +
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - future drought l heat u") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    )
+}
+
+# results in dB_profilef_d_u_f_l_plot
+dB_profilef_d_u_f_l_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,165:168)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.future.drought.u.opt.flood.l.opt = rgb(127,201,127, maxColorValue = 255),
+      mean.future.drought.u.opt.flood.l.sub = rgb(190,174,212, maxColorValue = 255),              
+      mean.future.drought.u.sub.flood.l.opt = rgb(253,192,134, maxColorValue = 255),
+      mean.future.drought.u.sub.flood.l.sub = rgb(56,108,176, maxColorValue = 255)
+     )
+    ) +
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - future drought u flood l") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    ) 
+}
+
+# results in dB_profilef_d_l_f_u_plot
+dB_profilef_d_l_f_u_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,161:164)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.future.drought.l.opt.flood.u.opt = rgb(127,201,127, maxColorValue = 255),
+      mean.future.drought.l.opt.flood.u.sub = rgb(190,174,212, maxColorValue = 255),              
+      mean.future.drought.l.sub.flood.u.opt = rgb(253,192,134, maxColorValue = 255),
+      mean.future.drought.l.sub.flood.u.sub = rgb(56,108,176, maxColorValue = 255)
+     )
+    ) +
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - future drought l flood u") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    ) 
+}
+
+# results in dB_profilef_h_u_f_l_plot
+dB_profilef_h_u_f_l_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,173:176)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.future.heat.u.opt.flood.l.opt = rgb(127,201,127, maxColorValue = 255),
+      mean.future.heat.u.opt.flood.l.sub = rgb(190,174,212, maxColorValue = 255),
+      mean.future.heat.u.sub.flood.l.opt = rgb(255,255,153, maxColorValue = 255),                    
+      mean.future.heat.u.sub.flood.l.sub = rgb(102,102,102, maxColorValue = 255)
+      )
+    ) +
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - future heat u flood l") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    )
+}
+
+
+# results in dB_profilef_h_l_f_u_plot
+dB_profilef_h_l_f_u_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,169:172)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.future.heat.l.opt.flood.u.opt = rgb(127,201,127, maxColorValue = 255),
+      mean.future.heat.l.opt.flood.u.sub = rgb(190,174,212, maxColorValue = 255),
+      mean.future.heat.l.sub.flood.u.opt = rgb(255,255,153, maxColorValue = 255),                    
+      mean.future.heat.l.sub.flood.u.sub = rgb(102,102,102, maxColorValue = 255)
+      )
+    ) +
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - future heat l flood u") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    )
+}
+
+
+# results in dB_profilef_d_u_h_l_f_l_plot
+dB_profilef_d_u_h_l_f_l_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,201:208)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.future.drought.u.opt.heat.l.opt.flood.l.opt = rgb(127,201,127, maxColorValue = 255),
+      mean.future.drought.u.opt.heat.l.sub.flood.l.sub = rgb(102,102,102, maxColorValue = 255),
+      mean.future.drought.u.sub.heat.l.opt.flood.l.sub = rgb(56,108,176, maxColorValue = 255),    
+      mean.future.drought.u.sub.heat.l.sub.flood.l.opt = rgb(191,91,23, maxColorValue = 255),  
+      mean.future.drought.u.opt.heat.l.opt.flood.l.sub = rgb(190,174,212, maxColorValue = 255),
+      mean.future.drought.u.opt.heat.l.sub.flood.l.opt = rgb(255,255,153, maxColorValue = 255),                  
+      mean.future.drought.u.sub.heat.l.opt.flood.l.opt = rgb(253,192,134, maxColorValue = 255),
+      mean.future.drought.u.sub.heat.l.sub.flood.l.sub = rgb(240,2,127, maxColorValue = 255)
+      )
+    ) +
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - future drought u heat l flood l") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    ) 
+}
+
+# results in dB_profilef_d_l_h_u_f_l_plot
+dB_profilef_d_l_h_u_f_l_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,185:192)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.future.drought.l.opt.heat.u.opt.flood.l.opt = rgb(127,201,127, maxColorValue = 255),
+      mean.future.drought.l.opt.heat.u.sub.flood.l.sub = rgb(102,102,102, maxColorValue = 255),
+      mean.future.drought.l.sub.heat.u.opt.flood.l.sub = rgb(56,108,176, maxColorValue = 255),    
+      mean.future.drought.l.sub.heat.u.sub.flood.l.opt = rgb(191,91,23, maxColorValue = 255),  
+      mean.future.drought.l.opt.heat.u.opt.flood.l.sub = rgb(190,174,212, maxColorValue = 255),
+      mean.future.drought.l.opt.heat.u.sub.flood.l.opt = rgb(255,255,153, maxColorValue = 255),                  
+      mean.future.drought.l.sub.heat.u.opt.flood.l.opt = rgb(253,192,134, maxColorValue = 255),
+      mean.future.drought.l.sub.heat.u.sub.flood.l.sub = rgb(240,2,127, maxColorValue = 255)
+      )
+    ) +
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - future drought l heat u flood l") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    ) 
+}
+
+# results in dB_profilef_d_l_h_l_f_u_plot
+dB_profilef_d_l_h_l_f_u_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,177:184)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.future.drought.l.opt.heat.l.opt.flood.u.opt = rgb(127,201,127, maxColorValue = 255),
+      mean.future.drought.l.opt.heat.l.sub.flood.u.sub = rgb(102,102,102, maxColorValue = 255),
+      mean.future.drought.l.sub.heat.l.opt.flood.u.sub = rgb(56,108,176, maxColorValue = 255),    
+      mean.future.drought.l.sub.heat.l.sub.flood.u.opt = rgb(191,91,23, maxColorValue = 255),  
+      mean.future.drought.l.opt.heat.l.opt.flood.u.sub = rgb(190,174,212, maxColorValue = 255),
+      mean.future.drought.l.opt.heat.l.sub.flood.u.opt = rgb(255,255,153, maxColorValue = 255),                  
+      mean.future.drought.l.sub.heat.l.opt.flood.u.opt = rgb(253,192,134, maxColorValue = 255),
+      mean.future.drought.l.sub.heat.l.sub.flood.u.sub = rgb(240,2,127, maxColorValue = 255)
+      )
+    ) +
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - future drought l heat l flood u") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    ) 
+}
+
+# results in dB_profilef_d_u_h_u_f_l_plot
+dB_profilef_d_u_h_u_f_l_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,209:216)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.future.drought.u.opt.heat.u.opt.flood.l.opt = rgb(127,201,127, maxColorValue = 255),
+      mean.future.drought.u.opt.heat.u.sub.flood.l.sub = rgb(102,102,102, maxColorValue = 255),
+      mean.future.drought.u.sub.heat.u.opt.flood.l.sub = rgb(56,108,176, maxColorValue = 255),    
+      mean.future.drought.u.sub.heat.u.sub.flood.l.opt = rgb(191,91,23, maxColorValue = 255),  
+      mean.future.drought.u.opt.heat.u.opt.flood.l.sub = rgb(190,174,212, maxColorValue = 255),
+      mean.future.drought.u.opt.heat.u.sub.flood.l.opt = rgb(255,255,153, maxColorValue = 255),                  
+      mean.future.drought.u.sub.heat.u.opt.flood.l.opt = rgb(253,192,134, maxColorValue = 255),
+      mean.future.drought.u.sub.heat.u.sub.flood.l.sub = rgb(240,2,127, maxColorValue = 255)
+      )
+    ) +
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - future drought u heat u flood l") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    ) 
+}
+# results in dB_profilef_d_u_h_l_f_u_plot
+dB_profilef_d_u_h_l_f_u_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,193:200)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.future.drought.u.opt.heat.l.opt.flood.u.opt = rgb(127,201,127, maxColorValue = 255),
+      mean.future.drought.u.opt.heat.l.sub.flood.u.sub = rgb(102,102,102, maxColorValue = 255),
+      mean.future.drought.u.sub.heat.l.opt.flood.u.sub = rgb(56,108,176, maxColorValue = 255),    
+      mean.future.drought.u.sub.heat.l.sub.flood.u.opt = rgb(191,91,23, maxColorValue = 255),  
+      mean.future.drought.u.opt.heat.l.opt.flood.u.sub = rgb(190,174,212, maxColorValue = 255),
+      mean.future.drought.u.opt.heat.l.sub.flood.u.opt = rgb(255,255,153, maxColorValue = 255),                  
+      mean.future.drought.u.sub.heat.l.opt.flood.u.opt = rgb(253,192,134, maxColorValue = 255),
+      mean.future.drought.u.sub.heat.l.sub.flood.u.sub = rgb(240,2,127, maxColorValue = 255)
+      )
+    ) +
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - future drought u heat l flood u") +
+    theme(
+      legend.position = "bottom", legend.text=element_text(size=7),
+      panel.grid.major.x = element_line(colour = "grey"),
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_text(angle = 90, hjust = 1, size = 7)
+    ) 
+}
+# results in dB_profilef_d_l_h_u_f_u_plot
+dB_profilef_d_l_h_u_f_u_plot_make_f <- function(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop) {
+
+    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>% 
+    `names<-`(c("Landuse")) %>%
+      cbind(dplyr::select(dB_profile_summary,217:224)) %>%
+reshape2::melt(value.name = "limits", na.rm = FALSE, id.vars = "Landuse") %>%
+
+ggplot(aes(x = Landuse,
+           y = limits,
+           fill = variable)) +
+  geom_bar(position = "fill", stat = "identity", show.legend = T) +
+  scale_y_continuous(labels = percent) +
+  scale_fill_manual(
+      values = c(
+      mean.future.drought.l.opt.heat.u.opt.flood.u.opt = rgb(127,201,127, maxColorValue = 255),
+      mean.future.drought.l.opt.heat.u.sub.flood.u.sub = rgb(102,102,102, maxColorValue = 255),
+      mean.future.drought.l.sub.heat.u.opt.flood.u.sub = rgb(56,108,176, maxColorValue = 255),    
+      mean.future.drought.l.sub.heat.u.sub.flood.u.opt = rgb(191,91,23, maxColorValue = 255),  
+      mean.future.drought.l.opt.heat.u.opt.flood.u.sub = rgb(190,174,212, maxColorValue = 255),
+      mean.future.drought.l.opt.heat.u.sub.flood.u.opt = rgb(255,255,153, maxColorValue = 255),                  
+      mean.future.drought.l.sub.heat.u.opt.flood.u.opt = rgb(253,192,134, maxColorValue = 255),
+      mean.future.drought.l.sub.heat.u.sub.flood.u.sub = rgb(240,2,127, maxColorValue = 255)
+      )
+    ) +
+    labs(fill = "") +
+    labs(y = "Risk Types") +
+    labs(x = "Sourcing Area")  +
+    labs(title = "Climate Risk Profile per Crop Sourcing Area - future drought l heat u flood u") +
     theme(
       legend.position = "bottom", legend.text=element_text(size=7),
       panel.grid.major.x = element_line(colour = "grey"),
