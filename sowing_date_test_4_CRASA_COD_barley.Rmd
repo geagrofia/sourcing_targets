@@ -1,0 +1,1179 @@
+---
+title: "Mapping Sowing Date for Barley in DR Congo"
+author: "A Farrow"
+date: "`r Sys.Date()`"
+output:
+  html_document:  
+    code_folding: "hide"
+    theme: united
+    number_sections: no
+    toc: yes
+    toc_float: true
+    toc_depth: 2
+---
+
+```{r setup, include = FALSE}
+
+library(fuZR)
+library(knitr)
+library(irm)
+library(tibble)
+library(tidyverse)
+library(sf)
+library(terra)
+library(lubridate)
+library(kableExtra)
+
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+
+# Create a dataset for DR Congo
+
+In this section I create a dataset based on the historical season onset for DR Congo to apply the dynamic sowing date method.
+
+The season onset has a width of 179 pixels and a height of 170 pixels, but this includes all of Africa so needs to be cropped to DR Congo
+
+The cropped dataset has a sowing date set between 112 and 180 days, with the earliest sowing date in the south-west corner and the latest in the north-east.
+
+I add dekadal precipitation for each observation for DR Congo.
+
+A raster mask is created for later use in creating the separate dekadal precipitation raster layers.
+
+
+```{r data_Ethiopia}
+
+# the season onset will be resampled to the higher resolution precipitation
+
+# get precipitation for DR Congo
+r_prec <-rast("D:/repos/sourcing_targets/data/input/chirps_all.tif")
+
+# do a rough crop to boundaries of DR Congo
+r_prec_cod <- crop(r_prec, ext(10.5, 32, -13, 6))
+
+# reclassify to remove NA values (NAflag doesn't work because there are multiple NA values)
+m <- c(-9999,-1, NA)
+rclmat <- matrix(m, ncol=3, byrow=TRUE)
+r_prec_cod_NA <- classify(r_prec_cod, rclmat, include.lowest=TRUE)
+r_prec_cod_NA
+
+# get onset for DR Congo
+r_hist_barley___onset <-rast("D:/repos/sourcing_targets/data/COD/barley/hist_barley___onset.tif")
+r_hist_barley___onset
+plot(r_hist_barley___onset)
+
+# do a rough crop to boundaries of DR Congo
+r_cod_hist_barley___onset <- crop(r_hist_barley___onset, ext(10.5, 32, -13, 6))
+r_cod_hist_barley___onset
+plot(r_cod_hist_barley___onset)
+
+r_cod_hist_barley___onset_rsmp <- resample(r_cod_hist_barley___onset, r_prec_cod,  method="near")
+r_cod_hist_barley___onset_rsmp
+plot(r_cod_hist_barley___onset_rsmp)
+
+# convert to df
+cod_sow_date_df <- as.data.frame(r_cod_hist_barley___onset_rsmp, xy=TRUE, cells=TRUE, na.rm=NA)
+cod_prec_df <- as.data.frame(r_prec_cod, xy=TRUE, cells=TRUE, na.rm=NA)
+
+cod_all_df <- inner_join(cod_sow_date_df, cod_prec_df, by=c("cell"))
+
+```
+
+# Phenology calculations for DR Congo
+
+I modify the normal phenology calculatons.
+
+I read a csv file with the lengths of phenological stages.
+
+The csv file should only contain integer values for phenological stage lengths. This is so that the function for calculating the percentage of each calendar month in the period does not double-count those days that are in more than one phenological stage.
+
+The start and end dates of each phenological stage are now made more explicit and there is now no overlap - again so that days are not double-counted.
+
+The overall length of the growing period is maintained.
+
+```{r phenology_Ethiopia}
+
+growth_stages <-
+    read.csv(paste0("D:/repos/sourcing_targets/data/COD/barley/sowing_date_barley_int.csv"))
+
+cod_all_df$est_e <- cod_all_df$hist_barley___onset + growth_stages$est_length[1]
+cod_all_df$veg_s <- cod_all_df$est_e + 1
+cod_all_df$veg_e <- cod_all_df$veg_s + growth_stages$veg_length[1] - 1
+cod_all_df$flw_s <- cod_all_df$veg_e + 1
+cod_all_df$flw_e <- cod_all_df$flw_s + growth_stages$flw_length[1] - 1
+cod_all_df$yld_s <- cod_all_df$flw_e + 1 
+cod_all_df$yld_e <- cod_all_df$yld_s + growth_stages$yld_length[1] - 1
+cod_all_df$rip_s <- cod_all_df$yld_e + 1 
+cod_all_df$rip_e <- cod_all_df$rip_s + growth_stages$rip_length[1] - 1
+
+growth_stages %>%
+    kable(digits = 3, caption = "Growth Stage Lengths") %>% kable_styling("striped", full_width = T) %>% print
+
+num_years <- max(ceiling(cod_all_df$rip_e / 365))
+cat(paste("Growth Stages span", num_years, "calendar years"))
+
+```
+
+
+# Mask for phenological periods for DR Congo
+
+The maps below give the distribution of each phenological stage over the months.
+
+I use the same function as Walvoort (here called growth_period_long_tbl, but called .growth_period_dekad in CRASA), and apply this on a cell-by-cell basis using the start and end days for each cell.
+
+When the function is applied to the tibble using 'apply' it produces a 342 *x* 36 matrix. I transpose this matrix, append it to the original tibble and create a temporary data frame. I convert this to a sf object and create rasters for each month *x* growing period combination. I join the individual rasters in a SpatRaster brick for each growing period - to be used later.
+
+I also run a portion of the function to check on which days are used to define the phenological stages.
+
+
+<div class="fold o">   
+```{r phen_stages_functions_Ethiopia, cache = FALSE, fig.width=8, fig.height=7, out.width=700}
+
+
+dekad <- function(x, type = c("month", "year"), ...) {
+  type <- match.arg(type)
+  x <- as.Date(x, ...)
+  res <- ifelse(day(x) > 20,  3, ifelse(day(x) > 10, 2, 1))
+  if(type == "year") res <- month(x)*3 + res - 3
+  return(res)
+}
+
+growth_period_long_dekad_tbl <- function (x, day_begin, day_end, num_years) 
+{
+  days <- 1:365
+  day_dekads <- days %>% as.character %>% as.Date("%j") %>% 
+    dekad(type = "year") %>% as.integer 
+  dekads <- rep.int(day_dekads, num_years)
+  days <- round(x[day_begin]):round(x[day_end])
+  tabulate(bin = dekads[days], nbins = 36L)* num_years/tabulate(bin = dekads, 
+                                                                nbins = 36L)
+}
+
+growth_period_long_tbl <- function(x, day_begin, day_end, num_years) {
+  
+  days <- 1:365
+    day_months <- days %>% as.character %>% as.Date("%j") %>% 
+        format("%m") %>% as.integer
+    months <- rep.int(day_months, num_years)
+    days <- round(x[day_begin]):round(x[day_end])
+    tabulate(bin = months[days], nbins = 12L)* num_years/tabulate(bin = months, 
+        nbins = 12L)
+
+}
+
+
+daystest <- function(x, start_day, end_day) {
+  
+  c(round(x[start_day]),round(x[end_day]))
+}
+
+
+#test the days to include
+grow_p_matrix_days <- t(apply(cod_all_df, 1, daystest, start_day = "hist_barley___onset", end_day = "rip_e" ))
+grow_e_matrix_days <- t(apply(cod_all_df , 1, daystest, start_day = "hist_barley___onset", end_day = "est_e" ))
+grow_v_matrix_days <- t(apply(cod_all_df, 1, daystest, start_day = "veg_s", end_day = "veg_e" ))
+grow_f_matrix_days <- t(apply(cod_all_df, 1, daystest, start_day = "flw_s", end_day = "flw_e" ))
+grow_y_matrix_days <- t(apply(cod_all_df, 1, daystest, start_day = "yld_s", end_day = "yld_e" ))
+grow_r_matrix_days <- t(apply(cod_all_df, 1, daystest, start_day = "rip_s", end_day = "rip_e" ))
+```
+
+## Growing Period - monthly  distribution
+
+```{r phen_stages_gp_mth_Ethiopia, cache = FALSE, fig.width=8, fig.height=7, out.width=700}
+
+#get a matrix of values showing the proportion of each month in the growing period for each cell
+grow_p_matrix_m <- t(apply(cod_all_df, 1, growth_period_long_tbl, day_begin = "hist_barley___onset", day_end = "rip_e", num_years = num_years ))
+
+#join the matrix to the existing data frame
+cod_all_df_mth_gp <- data.frame(cod_all_df, grow_p_matrix_m)
+
+#convert first to sf object
+cod_all_sf_mth_gp <-
+  st_as_sf(cod_all_df_mth_gp,
+           coords = c("x.x", "y.x"),
+           crs = 4236)
+
+#create monthly raster masks for the growing period
+mth_01_gp_r <- rasterize(cod_all_sf_mth_gp, r_prec_cod_NA, field = "X1")
+mth_02_gp_r <- rasterize(cod_all_sf_mth_gp, r_prec_cod_NA, field = "X2")
+mth_03_gp_r <- rasterize(cod_all_sf_mth_gp, r_prec_cod_NA, field = "X3")
+mth_04_gp_r <- rasterize(cod_all_sf_mth_gp, r_prec_cod_NA, field = "X4")
+mth_05_gp_r <- rasterize(cod_all_sf_mth_gp, r_prec_cod_NA, field = "X5")
+mth_06_gp_r <- rasterize(cod_all_sf_mth_gp, r_prec_cod_NA, field = "X6")
+mth_07_gp_r <- rasterize(cod_all_sf_mth_gp, r_prec_cod_NA, field = "X7")
+mth_08_gp_r <- rasterize(cod_all_sf_mth_gp, r_prec_cod_NA, field = "X8")
+mth_09_gp_r <- rasterize(cod_all_sf_mth_gp, r_prec_cod_NA, field = "X9")
+mth_10_gp_r <- rasterize(cod_all_sf_mth_gp, r_prec_cod_NA, field = "X10")
+mth_11_gp_r <- rasterize(cod_all_sf_mth_gp, r_prec_cod_NA, field = "X11")
+mth_12_gp_r <- rasterize(cod_all_sf_mth_gp, r_prec_cod_NA, field = "X12")
+
+mth_gp_r <-
+  rast(
+    list(
+      mth_01_gp_r,
+      mth_02_gp_r,
+      mth_03_gp_r,
+      mth_04_gp_r,
+      mth_05_gp_r,
+      mth_06_gp_r,
+      mth_07_gp_r,
+      mth_08_gp_r,
+      mth_09_gp_r,
+      mth_10_gp_r,
+      mth_11_gp_r,
+      mth_12_gp_r
+    )
+  )
+
+plot(mth_gp_r, main = "growing period", maxnl = 12)
+
+writeRaster(mth_gp_r, 
+    "D:/repos/sourcing_targets/data/COD/barley/mth_gp_r.tif",
+    overwrite = TRUE,
+    filetype = "GTiff"
+  )
+
+```
+
+## Growing Period - dekadal  distribution
+
+```{r phen_stages_gp_dek_Ethiopia, cache = FALSE, fig.width=8, fig.height=7, out.width=700}
+
+#get a matrix of values showing the proportion of each dekad in the growing period for each cell
+
+grow_p_matrix_d <- t(apply(cod_all_df, 1, growth_period_long_dekad_tbl, day_begin = "hist_barley___onset", day_end = "rip_e", num_years = num_years))
+
+#join the matrix to the existing data frame
+cod_all_df_dek_gp <- data.frame(cod_all_df, grow_p_matrix_d)
+
+#convert first to sf object
+cod_all_sf_dek_gp <-
+  st_as_sf(cod_all_df_dek_gp,
+           coords = c("x.x", "y.x"),
+           crs = 4236)
+
+#create dekadal raster masks for the growing period
+dek_01_gp_r <- rasterize(cod_all_sf_dek_gp, r_prec_cod_NA, field = "X1")
+dek_02_gp_r <- rasterize(cod_all_sf_dek_gp, r_prec_cod_NA, field = "X2")
+dek_03_gp_r <- rasterize(cod_all_sf_dek_gp, r_prec_cod_NA, field = "X3")
+dek_04_gp_r <- rasterize(cod_all_sf_dek_gp, r_prec_cod_NA, field = "X4")
+dek_05_gp_r <- rasterize(cod_all_sf_dek_gp, r_prec_cod_NA, field = "X5")
+dek_06_gp_r <- rasterize(cod_all_sf_dek_gp, r_prec_cod_NA, field = "X6")
+dek_07_gp_r <- rasterize(cod_all_sf_dek_gp, r_prec_cod_NA, field = "X7")
+dek_08_gp_r <- rasterize(cod_all_sf_dek_gp, r_prec_cod_NA, field = "X8")
+dek_09_gp_r <- rasterize(cod_all_sf_dek_gp, r_prec_cod_NA, field = "X9")
+dek_10_gp_r <- rasterize(cod_all_sf_dek_gp, r_prec_cod_NA, field = "X10")
+dek_11_gp_r <- rasterize(cod_all_sf_dek_gp, r_prec_cod_NA, field = "X11")
+dek_12_gp_r <- rasterize(cod_all_sf_dek_gp, r_prec_cod_NA, field = "X12")
+dek_13_gp_r <- rasterize(cod_all_sf_dek_gp, r_prec_cod_NA, field = "X13")
+dek_14_gp_r <- rasterize(cod_all_sf_dek_gp, r_prec_cod_NA, field = "X14")
+dek_15_gp_r <- rasterize(cod_all_sf_dek_gp, r_prec_cod_NA, field = "X15")
+dek_16_gp_r <- rasterize(cod_all_sf_dek_gp, r_prec_cod_NA, field = "X16")
+dek_17_gp_r <- rasterize(cod_all_sf_dek_gp, r_prec_cod_NA, field = "X17")
+dek_18_gp_r <- rasterize(cod_all_sf_dek_gp, r_prec_cod_NA, field = "X18")
+dek_19_gp_r <- rasterize(cod_all_sf_dek_gp, r_prec_cod_NA, field = "X19")
+dek_20_gp_r <- rasterize(cod_all_sf_dek_gp, r_prec_cod_NA, field = "X20")
+dek_21_gp_r <- rasterize(cod_all_sf_dek_gp, r_prec_cod_NA, field = "X21")
+dek_22_gp_r <- rasterize(cod_all_sf_dek_gp, r_prec_cod_NA, field = "X22")
+dek_23_gp_r <- rasterize(cod_all_sf_dek_gp, r_prec_cod_NA, field = "X23")
+dek_24_gp_r <- rasterize(cod_all_sf_dek_gp, r_prec_cod_NA, field = "X24")
+dek_25_gp_r <- rasterize(cod_all_sf_dek_gp, r_prec_cod_NA, field = "X25")
+dek_26_gp_r <- rasterize(cod_all_sf_dek_gp, r_prec_cod_NA, field = "X26")
+dek_27_gp_r <- rasterize(cod_all_sf_dek_gp, r_prec_cod_NA, field = "X27")
+dek_28_gp_r <- rasterize(cod_all_sf_dek_gp, r_prec_cod_NA, field = "X28")
+dek_29_gp_r <- rasterize(cod_all_sf_dek_gp, r_prec_cod_NA, field = "X29")
+dek_30_gp_r <- rasterize(cod_all_sf_dek_gp, r_prec_cod_NA, field = "X30")
+dek_31_gp_r <- rasterize(cod_all_sf_dek_gp, r_prec_cod_NA, field = "X31")
+dek_32_gp_r <- rasterize(cod_all_sf_dek_gp, r_prec_cod_NA, field = "X32")
+dek_33_gp_r <- rasterize(cod_all_sf_dek_gp, r_prec_cod_NA, field = "X33")
+dek_34_gp_r <- rasterize(cod_all_sf_dek_gp, r_prec_cod_NA, field = "X34")
+dek_35_gp_r <- rasterize(cod_all_sf_dek_gp, r_prec_cod_NA, field = "X35")
+dek_36_gp_r <- rasterize(cod_all_sf_dek_gp, r_prec_cod_NA, field = "X36")
+
+
+dek_gp_r <-
+  rast(
+    list(
+      dek_01_gp_r,
+      dek_02_gp_r,
+      dek_03_gp_r,
+      dek_04_gp_r,
+      dek_05_gp_r,
+      dek_06_gp_r,
+      dek_07_gp_r,
+      dek_08_gp_r,
+      dek_09_gp_r,
+      dek_10_gp_r,
+      dek_11_gp_r,
+      dek_12_gp_r,
+      dek_13_gp_r,
+      dek_14_gp_r,
+      dek_15_gp_r,
+      dek_16_gp_r,
+      dek_17_gp_r,
+      dek_18_gp_r,
+      dek_19_gp_r,
+      dek_20_gp_r,
+      dek_21_gp_r,
+      dek_22_gp_r,
+      dek_23_gp_r,
+      dek_24_gp_r,
+      dek_25_gp_r,
+      dek_26_gp_r,
+      dek_27_gp_r,
+      dek_28_gp_r,
+      dek_29_gp_r,
+      dek_30_gp_r,
+      dek_31_gp_r,
+      dek_32_gp_r,
+      dek_33_gp_r,
+      dek_34_gp_r,
+      dek_35_gp_r,
+      dek_36_gp_r
+    )
+  )
+
+plot(dek_gp_r, main = "growing period", maxnl = 36)
+
+writeRaster(dek_gp_r, 
+    "D:/repos/sourcing_targets/data/COD/barley/dek_gp_r.tif",
+    overwrite = TRUE,
+    filetype = "GTiff"
+  )
+
+```
+
+
+## Establishment stage - monthly  distribution
+
+```{r phen_stages_est_mth_Ethiopia, cache = FALSE, fig.width=8, fig.height=7, out.width=700}
+
+#get a matrix of values showing the proportion of each month in the establishment stage for each cell
+grow_e_matrix_m <- t(apply(cod_all_df, 1, growth_period_long_tbl, day_begin = "hist_barley___onset", day_end = "est_e", num_years = num_years ))
+
+#join the matrix to the existing data frame
+cod_all_df_mth_es <- data.frame(cod_all_df, grow_e_matrix_m)
+
+#convert first to sf object
+cod_all_sf_mth_es <-
+  st_as_sf(cod_all_df_mth_es,
+           coords = c("x.x", "y.x"),
+           crs = 4236)
+
+#create monthly raster masks for the establishment stage
+mth_01_es_r <- rasterize(cod_all_sf_mth_es, r_prec_cod_NA, field = "X1")
+mth_02_es_r <- rasterize(cod_all_sf_mth_es, r_prec_cod_NA, field = "X2")
+mth_03_es_r <- rasterize(cod_all_sf_mth_es, r_prec_cod_NA, field = "X3")
+mth_04_es_r <- rasterize(cod_all_sf_mth_es, r_prec_cod_NA, field = "X4")
+mth_05_es_r <- rasterize(cod_all_sf_mth_es, r_prec_cod_NA, field = "X5")
+mth_06_es_r <- rasterize(cod_all_sf_mth_es, r_prec_cod_NA, field = "X6")
+mth_07_es_r <- rasterize(cod_all_sf_mth_es, r_prec_cod_NA, field = "X7")
+mth_08_es_r <- rasterize(cod_all_sf_mth_es, r_prec_cod_NA, field = "X8")
+mth_09_es_r <- rasterize(cod_all_sf_mth_es, r_prec_cod_NA, field = "X9")
+mth_10_es_r <- rasterize(cod_all_sf_mth_es, r_prec_cod_NA, field = "X10")
+mth_11_es_r <- rasterize(cod_all_sf_mth_es, r_prec_cod_NA, field = "X11")
+mth_12_es_r <- rasterize(cod_all_sf_mth_es, r_prec_cod_NA, field = "X12")
+
+mth_es_r <-
+  rast(
+    list(
+      mth_01_es_r,
+      mth_02_es_r,
+      mth_03_es_r,
+      mth_04_es_r,
+      mth_05_es_r,
+      mth_06_es_r,
+      mth_07_es_r,
+      mth_08_es_r,
+      mth_09_es_r,
+      mth_10_es_r,
+      mth_11_es_r,
+      mth_12_es_r
+    )
+  )
+
+plot(mth_es_r, main = "establishment stage", maxnl = 12)
+
+writeRaster(mth_es_r, 
+    "D:/repos/sourcing_targets/data/COD/barley/mth_es_r.tif",
+    overwrite = TRUE,
+    filetype = "GTiff"
+  )
+
+```
+
+## Establishment stage - dekadal distribution
+
+```{r phen_stages_est_dek_Ethiopia, cache = FALSE, fig.width=8, fig.height=7, out.width=700}
+
+#get a matrix of values showing the proportion of each month in the establishment stage for each cell
+
+grow_e_matrix_d <- t(apply(cod_all_df, 1, growth_period_long_dekad_tbl, day_begin = "hist_barley___onset", day_end = "est_e", num_years = num_years))
+
+
+#join the matrix to the existing data frame
+cod_all_df_dek_es <- data.frame(cod_all_df, grow_e_matrix_d)
+
+#convert first to sf object
+cod_all_sf_dek_dek_es <-
+  st_as_sf(cod_all_df_dek_es,
+           coords = c("x.x", "y.x"),
+           crs = 4236)
+
+#create dekadal raster masks for the establishment stage
+dek_01_es_r <- rasterize(cod_all_sf_dek_dek_es, r_prec_cod_NA, field = "X1")
+dek_02_es_r <- rasterize(cod_all_sf_dek_dek_es, r_prec_cod_NA, field = "X2")
+dek_03_es_r <- rasterize(cod_all_sf_dek_dek_es, r_prec_cod_NA, field = "X3")
+dek_04_es_r <- rasterize(cod_all_sf_dek_dek_es, r_prec_cod_NA, field = "X4")
+dek_05_es_r <- rasterize(cod_all_sf_dek_dek_es, r_prec_cod_NA, field = "X5")
+dek_06_es_r <- rasterize(cod_all_sf_dek_dek_es, r_prec_cod_NA, field = "X6")
+dek_07_es_r <- rasterize(cod_all_sf_dek_dek_es, r_prec_cod_NA, field = "X7")
+dek_08_es_r <- rasterize(cod_all_sf_dek_dek_es, r_prec_cod_NA, field = "X8")
+dek_09_es_r <- rasterize(cod_all_sf_dek_dek_es, r_prec_cod_NA, field = "X9")
+dek_10_es_r <- rasterize(cod_all_sf_dek_dek_es, r_prec_cod_NA, field = "X10")
+dek_11_es_r <- rasterize(cod_all_sf_dek_dek_es, r_prec_cod_NA, field = "X11")
+dek_12_es_r <- rasterize(cod_all_sf_dek_dek_es, r_prec_cod_NA, field = "X12")
+dek_13_es_r <- rasterize(cod_all_sf_dek_dek_es, r_prec_cod_NA, field = "X13")
+dek_14_es_r <- rasterize(cod_all_sf_dek_dek_es, r_prec_cod_NA, field = "X14")
+dek_15_es_r <- rasterize(cod_all_sf_dek_dek_es, r_prec_cod_NA, field = "X15")
+dek_16_es_r <- rasterize(cod_all_sf_dek_dek_es, r_prec_cod_NA, field = "X16")
+dek_17_es_r <- rasterize(cod_all_sf_dek_dek_es, r_prec_cod_NA, field = "X17")
+dek_18_es_r <- rasterize(cod_all_sf_dek_dek_es, r_prec_cod_NA, field = "X18")
+dek_19_es_r <- rasterize(cod_all_sf_dek_dek_es, r_prec_cod_NA, field = "X19")
+dek_20_es_r <- rasterize(cod_all_sf_dek_dek_es, r_prec_cod_NA, field = "X20")
+dek_21_es_r <- rasterize(cod_all_sf_dek_dek_es, r_prec_cod_NA, field = "X21")
+dek_22_es_r <- rasterize(cod_all_sf_dek_dek_es, r_prec_cod_NA, field = "X22")
+dek_23_es_r <- rasterize(cod_all_sf_dek_dek_es, r_prec_cod_NA, field = "X23")
+dek_24_es_r <- rasterize(cod_all_sf_dek_dek_es, r_prec_cod_NA, field = "X24")
+dek_25_es_r <- rasterize(cod_all_sf_dek_dek_es, r_prec_cod_NA, field = "X25")
+dek_26_es_r <- rasterize(cod_all_sf_dek_dek_es, r_prec_cod_NA, field = "X26")
+dek_27_es_r <- rasterize(cod_all_sf_dek_dek_es, r_prec_cod_NA, field = "X27")
+dek_28_es_r <- rasterize(cod_all_sf_dek_dek_es, r_prec_cod_NA, field = "X28")
+dek_29_es_r <- rasterize(cod_all_sf_dek_dek_es, r_prec_cod_NA, field = "X29")
+dek_30_es_r <- rasterize(cod_all_sf_dek_dek_es, r_prec_cod_NA, field = "X30")
+dek_31_es_r <- rasterize(cod_all_sf_dek_dek_es, r_prec_cod_NA, field = "X31")
+dek_32_es_r <- rasterize(cod_all_sf_dek_dek_es, r_prec_cod_NA, field = "X32")
+dek_33_es_r <- rasterize(cod_all_sf_dek_dek_es, r_prec_cod_NA, field = "X33")
+dek_34_es_r <- rasterize(cod_all_sf_dek_dek_es, r_prec_cod_NA, field = "X34")
+dek_35_es_r <- rasterize(cod_all_sf_dek_dek_es, r_prec_cod_NA, field = "X35")
+dek_36_es_r <- rasterize(cod_all_sf_dek_dek_es, r_prec_cod_NA, field = "X36")
+
+
+dek_es_r <-
+  rast(
+    list(
+      dek_01_es_r,
+      dek_02_es_r,
+      dek_03_es_r,
+      dek_04_es_r,
+      dek_05_es_r,
+      dek_06_es_r,
+      dek_07_es_r,
+      dek_08_es_r,
+      dek_09_es_r,
+      dek_10_es_r,
+      dek_11_es_r,
+      dek_12_es_r,
+      dek_13_es_r,
+      dek_14_es_r,
+      dek_15_es_r,
+      dek_16_es_r,
+      dek_17_es_r,
+      dek_18_es_r,
+      dek_19_es_r,
+      dek_20_es_r,
+      dek_21_es_r,
+      dek_22_es_r,
+      dek_23_es_r,
+      dek_24_es_r,
+      dek_25_es_r,
+      dek_26_es_r,
+      dek_27_es_r,
+      dek_28_es_r,
+      dek_29_es_r,
+      dek_30_es_r,
+      dek_31_es_r,
+      dek_32_es_r,
+      dek_33_es_r,
+      dek_34_es_r,
+      dek_35_es_r,
+      dek_36_es_r
+    )
+  )
+
+plot(dek_es_r, main = "establishment stage", maxnl = 36)
+
+writeRaster(dek_es_r, 
+    "D:/repos/sourcing_targets/data/COD/barley/dek_es_r.tif",
+    overwrite = TRUE,
+    filetype = "GTiff"
+  )
+
+```
+
+## Vegetative stage - monthly  distribution
+
+```{r phen_stages_veg_mth_Ethiopia, cache = FALSE, fig.width=8, fig.height=7, out.width=700}
+
+#get a matrix of values showing the proportion of each month in the Vegetative stage for each cell
+grow_v_matrix_m <- t(apply(cod_all_df, 1, growth_period_long_tbl, day_begin = "veg_s", day_end = "veg_e", num_years = num_years ))
+
+#join the matrix to the existing data frame
+cod_all_df_mth_vs <- data.frame(cod_all_df, grow_v_matrix_m)
+
+#convert first to sf object
+cod_all_sf_mth_vs <-
+  st_as_sf(cod_all_df_mth_vs,
+           coords = c("x.x", "y.x"),
+           crs = 4236)
+
+#create monthly raster masks for the Vegetative stage
+mth_01_vs_r <- rasterize(cod_all_sf_mth_vs, r_prec_cod_NA, field = "X1")
+mth_02_vs_r <- rasterize(cod_all_sf_mth_vs, r_prec_cod_NA, field = "X2")
+mth_03_vs_r <- rasterize(cod_all_sf_mth_vs, r_prec_cod_NA, field = "X3")
+mth_04_vs_r <- rasterize(cod_all_sf_mth_vs, r_prec_cod_NA, field = "X4")
+mth_05_vs_r <- rasterize(cod_all_sf_mth_vs, r_prec_cod_NA, field = "X5")
+mth_06_vs_r <- rasterize(cod_all_sf_mth_vs, r_prec_cod_NA, field = "X6")
+mth_07_vs_r <- rasterize(cod_all_sf_mth_vs, r_prec_cod_NA, field = "X7")
+mth_08_vs_r <- rasterize(cod_all_sf_mth_vs, r_prec_cod_NA, field = "X8")
+mth_09_vs_r <- rasterize(cod_all_sf_mth_vs, r_prec_cod_NA, field = "X9")
+mth_10_vs_r <- rasterize(cod_all_sf_mth_vs, r_prec_cod_NA, field = "X10")
+mth_11_vs_r <- rasterize(cod_all_sf_mth_vs, r_prec_cod_NA, field = "X11")
+mth_12_vs_r <- rasterize(cod_all_sf_mth_vs, r_prec_cod_NA, field = "X12")
+
+mth_vs_r <-
+  rast(
+    list(
+      mth_01_vs_r,
+      mth_02_vs_r,
+      mth_03_vs_r,
+      mth_04_vs_r,
+      mth_05_vs_r,
+      mth_06_vs_r,
+      mth_07_vs_r,
+      mth_08_vs_r,
+      mth_09_vs_r,
+      mth_10_vs_r,
+      mth_11_vs_r,
+      mth_12_vs_r
+    )
+  )
+
+plot(mth_vs_r, main = "Vegetative stage", maxnl = 12)
+
+writeRaster(mth_vs_r, 
+    "D:/repos/sourcing_targets/data/COD/barley/mth_vs_r.tif",
+    overwrite = TRUE,
+    filetype = "GTiff"
+  )
+
+```
+
+## Vegetative stage - dekadal distribution
+
+```{r phen_stages_veg_dek_Ethiopia, cache = FALSE, fig.width=8, fig.height=7, out.width=700}
+
+#get a matrix of values showing the proportion of each month in the vegetative stage for each cell
+
+grow_v_matrix_d <- t(apply(cod_all_df, 1, growth_period_long_dekad_tbl, day_begin = "veg_s", day_end = "veg_e", num_years = num_years))
+
+
+# dekadal distribution
+
+#join the matrix to the existing data frame
+cod_all_df_dek_vs <- data.frame(cod_all_df, grow_v_matrix_d)
+
+#convert first to sf object
+cod_all_sf_dek_vs <-
+  st_as_sf(cod_all_df_dek_vs,
+           coords = c("x.x", "y.x"),
+           crs = 4236)
+
+#create dekadal raster masks for the vegetative stage
+dek_01_vs_r <- rasterize(cod_all_sf_dek_vs, r_prec_cod_NA, field = "X1")
+dek_02_vs_r <- rasterize(cod_all_sf_dek_vs, r_prec_cod_NA, field = "X2")
+dek_03_vs_r <- rasterize(cod_all_sf_dek_vs, r_prec_cod_NA, field = "X3")
+dek_04_vs_r <- rasterize(cod_all_sf_dek_vs, r_prec_cod_NA, field = "X4")
+dek_05_vs_r <- rasterize(cod_all_sf_dek_vs, r_prec_cod_NA, field = "X5")
+dek_06_vs_r <- rasterize(cod_all_sf_dek_vs, r_prec_cod_NA, field = "X6")
+dek_07_vs_r <- rasterize(cod_all_sf_dek_vs, r_prec_cod_NA, field = "X7")
+dek_08_vs_r <- rasterize(cod_all_sf_dek_vs, r_prec_cod_NA, field = "X8")
+dek_09_vs_r <- rasterize(cod_all_sf_dek_vs, r_prec_cod_NA, field = "X9")
+dek_10_vs_r <- rasterize(cod_all_sf_dek_vs, r_prec_cod_NA, field = "X10")
+dek_11_vs_r <- rasterize(cod_all_sf_dek_vs, r_prec_cod_NA, field = "X11")
+dek_12_vs_r <- rasterize(cod_all_sf_dek_vs, r_prec_cod_NA, field = "X12")
+dek_13_vs_r <- rasterize(cod_all_sf_dek_vs, r_prec_cod_NA, field = "X13")
+dek_14_vs_r <- rasterize(cod_all_sf_dek_vs, r_prec_cod_NA, field = "X14")
+dek_15_vs_r <- rasterize(cod_all_sf_dek_vs, r_prec_cod_NA, field = "X15")
+dek_16_vs_r <- rasterize(cod_all_sf_dek_vs, r_prec_cod_NA, field = "X16")
+dek_17_vs_r <- rasterize(cod_all_sf_dek_vs, r_prec_cod_NA, field = "X17")
+dek_18_vs_r <- rasterize(cod_all_sf_dek_vs, r_prec_cod_NA, field = "X18")
+dek_19_vs_r <- rasterize(cod_all_sf_dek_vs, r_prec_cod_NA, field = "X19")
+dek_20_vs_r <- rasterize(cod_all_sf_dek_vs, r_prec_cod_NA, field = "X20")
+dek_21_vs_r <- rasterize(cod_all_sf_dek_vs, r_prec_cod_NA, field = "X21")
+dek_22_vs_r <- rasterize(cod_all_sf_dek_vs, r_prec_cod_NA, field = "X22")
+dek_23_vs_r <- rasterize(cod_all_sf_dek_vs, r_prec_cod_NA, field = "X23")
+dek_24_vs_r <- rasterize(cod_all_sf_dek_vs, r_prec_cod_NA, field = "X24")
+dek_25_vs_r <- rasterize(cod_all_sf_dek_vs, r_prec_cod_NA, field = "X25")
+dek_26_vs_r <- rasterize(cod_all_sf_dek_vs, r_prec_cod_NA, field = "X26")
+dek_27_vs_r <- rasterize(cod_all_sf_dek_vs, r_prec_cod_NA, field = "X27")
+dek_28_vs_r <- rasterize(cod_all_sf_dek_vs, r_prec_cod_NA, field = "X28")
+dek_29_vs_r <- rasterize(cod_all_sf_dek_vs, r_prec_cod_NA, field = "X29")
+dek_30_vs_r <- rasterize(cod_all_sf_dek_vs, r_prec_cod_NA, field = "X30")
+dek_31_vs_r <- rasterize(cod_all_sf_dek_vs, r_prec_cod_NA, field = "X31")
+dek_32_vs_r <- rasterize(cod_all_sf_dek_vs, r_prec_cod_NA, field = "X32")
+dek_33_vs_r <- rasterize(cod_all_sf_dek_vs, r_prec_cod_NA, field = "X33")
+dek_34_vs_r <- rasterize(cod_all_sf_dek_vs, r_prec_cod_NA, field = "X34")
+dek_35_vs_r <- rasterize(cod_all_sf_dek_vs, r_prec_cod_NA, field = "X35")
+dek_36_vs_r <- rasterize(cod_all_sf_dek_vs, r_prec_cod_NA, field = "X36")
+
+
+dek_vs_r <-
+  rast(
+    list(
+      dek_01_vs_r,
+      dek_02_vs_r,
+      dek_03_vs_r,
+      dek_04_vs_r,
+      dek_05_vs_r,
+      dek_06_vs_r,
+      dek_07_vs_r,
+      dek_08_vs_r,
+      dek_09_vs_r,
+      dek_10_vs_r,
+      dek_11_vs_r,
+      dek_12_vs_r,
+      dek_13_vs_r,
+      dek_14_vs_r,
+      dek_15_vs_r,
+      dek_16_vs_r,
+      dek_17_vs_r,
+      dek_18_vs_r,
+      dek_19_vs_r,
+      dek_20_vs_r,
+      dek_21_vs_r,
+      dek_22_vs_r,
+      dek_23_vs_r,
+      dek_24_vs_r,
+      dek_25_vs_r,
+      dek_26_vs_r,
+      dek_27_vs_r,
+      dek_28_vs_r,
+      dek_29_vs_r,
+      dek_30_vs_r,
+      dek_31_vs_r,
+      dek_32_vs_r,
+      dek_33_vs_r,
+      dek_34_vs_r,
+      dek_35_vs_r,
+      dek_36_vs_r
+    )
+  )
+
+plot(dek_vs_r, main = "vegetative stage", maxnl = 36)
+
+writeRaster(dek_vs_r, 
+    "D:/repos/sourcing_targets/data/COD/barley/dek_vs_r.tif",
+    overwrite = TRUE,
+    filetype = "GTiff"
+  )
+
+```
+
+
+## Flowering stage - monthly  distribution
+
+```{r phen_stages_flw_mth_Ethiopia, cache = FALSE, fig.width=8, fig.height=7, out.width=700}
+
+#get a matrix of values showing the proportion of each month in the flowering stage for each cell
+grow_f_matrix_m <- t(apply(cod_all_df, 1, growth_period_long_tbl, day_begin = "flw_s", day_end = "flw_e", num_years = num_years ))
+
+#join the matrix to the existing data frame
+cod_all_df_mth_fs <- data.frame(cod_all_df, grow_f_matrix_m)
+
+#convert first to sf object
+cod_all_sf_mth_fs <-
+  st_as_sf(cod_all_df_mth_fs,
+           coords = c("x.x", "y.x"),
+           crs = 4236)
+
+#create monthly raster masks for the flowering stage
+mth_01_fs_r <- rasterize(cod_all_sf_mth_fs, r_prec_cod_NA, field = "X1")
+mth_02_fs_r <- rasterize(cod_all_sf_mth_fs, r_prec_cod_NA, field = "X2")
+mth_03_fs_r <- rasterize(cod_all_sf_mth_fs, r_prec_cod_NA, field = "X3")
+mth_04_fs_r <- rasterize(cod_all_sf_mth_fs, r_prec_cod_NA, field = "X4")
+mth_05_fs_r <- rasterize(cod_all_sf_mth_fs, r_prec_cod_NA, field = "X5")
+mth_06_fs_r <- rasterize(cod_all_sf_mth_fs, r_prec_cod_NA, field = "X6")
+mth_07_fs_r <- rasterize(cod_all_sf_mth_fs, r_prec_cod_NA, field = "X7")
+mth_08_fs_r <- rasterize(cod_all_sf_mth_fs, r_prec_cod_NA, field = "X8")
+mth_09_fs_r <- rasterize(cod_all_sf_mth_fs, r_prec_cod_NA, field = "X9")
+mth_10_fs_r <- rasterize(cod_all_sf_mth_fs, r_prec_cod_NA, field = "X10")
+mth_11_fs_r <- rasterize(cod_all_sf_mth_fs, r_prec_cod_NA, field = "X11")
+mth_12_fs_r <- rasterize(cod_all_sf_mth_fs, r_prec_cod_NA, field = "X12")
+
+mth_fs_r <-
+  rast(
+    list(
+      mth_01_fs_r,
+      mth_02_fs_r,
+      mth_03_fs_r,
+      mth_04_fs_r,
+      mth_05_fs_r,
+      mth_06_fs_r,
+      mth_07_fs_r,
+      mth_08_fs_r,
+      mth_09_fs_r,
+      mth_10_fs_r,
+      mth_11_fs_r,
+      mth_12_fs_r
+    )
+  )
+
+plot(mth_fs_r, main = "Flowering stage", maxnl = 12)
+
+writeRaster(mth_fs_r, 
+    "D:/repos/sourcing_targets/data/COD/barley/mth_fs_r.tif",
+    overwrite = TRUE,
+    filetype = "GTiff"
+  )
+```
+
+## Flowering stage - dekadal distribution
+
+```{r phen_stages_flw_dek_Ethiopia, cache = FALSE, fig.width=8, fig.height=7, out.width=700}
+
+#get a matrix of values showing the proportion of each month in the flowering stage for each cell
+
+grow_f_matrix_d <- t(apply(cod_all_df, 1, growth_period_long_dekad_tbl, day_begin = "flw_s", day_end = "flw_e", num_years = num_years))
+
+
+#join the matrix to the existing data frame
+cod_all_df_dek_fs <- data.frame(cod_all_df, grow_f_matrix_d)
+
+#convert first to sf object
+cod_all_sf_dek_fs <-
+  st_as_sf(cod_all_df_dek_fs,
+           coords = c("x.x", "y.x"),
+           crs = 4236)
+
+#create dekadal raster masks for the flowering stage
+dek_01_fs_r <- rasterize(cod_all_sf_dek_fs, r_prec_cod_NA, field = "X1")
+dek_02_fs_r <- rasterize(cod_all_sf_dek_fs, r_prec_cod_NA, field = "X2")
+dek_03_fs_r <- rasterize(cod_all_sf_dek_fs, r_prec_cod_NA, field = "X3")
+dek_04_fs_r <- rasterize(cod_all_sf_dek_fs, r_prec_cod_NA, field = "X4")
+dek_05_fs_r <- rasterize(cod_all_sf_dek_fs, r_prec_cod_NA, field = "X5")
+dek_06_fs_r <- rasterize(cod_all_sf_dek_fs, r_prec_cod_NA, field = "X6")
+dek_07_fs_r <- rasterize(cod_all_sf_dek_fs, r_prec_cod_NA, field = "X7")
+dek_08_fs_r <- rasterize(cod_all_sf_dek_fs, r_prec_cod_NA, field = "X8")
+dek_09_fs_r <- rasterize(cod_all_sf_dek_fs, r_prec_cod_NA, field = "X9")
+dek_10_fs_r <- rasterize(cod_all_sf_dek_fs, r_prec_cod_NA, field = "X10")
+dek_11_fs_r <- rasterize(cod_all_sf_dek_fs, r_prec_cod_NA, field = "X11")
+dek_12_fs_r <- rasterize(cod_all_sf_dek_fs, r_prec_cod_NA, field = "X12")
+dek_13_fs_r <- rasterize(cod_all_sf_dek_fs, r_prec_cod_NA, field = "X13")
+dek_14_fs_r <- rasterize(cod_all_sf_dek_fs, r_prec_cod_NA, field = "X14")
+dek_15_fs_r <- rasterize(cod_all_sf_dek_fs, r_prec_cod_NA, field = "X15")
+dek_16_fs_r <- rasterize(cod_all_sf_dek_fs, r_prec_cod_NA, field = "X16")
+dek_17_fs_r <- rasterize(cod_all_sf_dek_fs, r_prec_cod_NA, field = "X17")
+dek_18_fs_r <- rasterize(cod_all_sf_dek_fs, r_prec_cod_NA, field = "X18")
+dek_19_fs_r <- rasterize(cod_all_sf_dek_fs, r_prec_cod_NA, field = "X19")
+dek_20_fs_r <- rasterize(cod_all_sf_dek_fs, r_prec_cod_NA, field = "X20")
+dek_21_fs_r <- rasterize(cod_all_sf_dek_fs, r_prec_cod_NA, field = "X21")
+dek_22_fs_r <- rasterize(cod_all_sf_dek_fs, r_prec_cod_NA, field = "X22")
+dek_23_fs_r <- rasterize(cod_all_sf_dek_fs, r_prec_cod_NA, field = "X23")
+dek_24_fs_r <- rasterize(cod_all_sf_dek_fs, r_prec_cod_NA, field = "X24")
+dek_25_fs_r <- rasterize(cod_all_sf_dek_fs, r_prec_cod_NA, field = "X25")
+dek_26_fs_r <- rasterize(cod_all_sf_dek_fs, r_prec_cod_NA, field = "X26")
+dek_27_fs_r <- rasterize(cod_all_sf_dek_fs, r_prec_cod_NA, field = "X27")
+dek_28_fs_r <- rasterize(cod_all_sf_dek_fs, r_prec_cod_NA, field = "X28")
+dek_29_fs_r <- rasterize(cod_all_sf_dek_fs, r_prec_cod_NA, field = "X29")
+dek_30_fs_r <- rasterize(cod_all_sf_dek_fs, r_prec_cod_NA, field = "X30")
+dek_31_fs_r <- rasterize(cod_all_sf_dek_fs, r_prec_cod_NA, field = "X31")
+dek_32_fs_r <- rasterize(cod_all_sf_dek_fs, r_prec_cod_NA, field = "X32")
+dek_33_fs_r <- rasterize(cod_all_sf_dek_fs, r_prec_cod_NA, field = "X33")
+dek_34_fs_r <- rasterize(cod_all_sf_dek_fs, r_prec_cod_NA, field = "X34")
+dek_35_fs_r <- rasterize(cod_all_sf_dek_fs, r_prec_cod_NA, field = "X35")
+dek_36_fs_r <- rasterize(cod_all_sf_dek_fs, r_prec_cod_NA, field = "X36")
+
+
+dek_fs_r <-
+  rast(
+    list(
+      dek_01_fs_r,
+      dek_02_fs_r,
+      dek_03_fs_r,
+      dek_04_fs_r,
+      dek_05_fs_r,
+      dek_06_fs_r,
+      dek_07_fs_r,
+      dek_08_fs_r,
+      dek_09_fs_r,
+      dek_10_fs_r,
+      dek_11_fs_r,
+      dek_12_fs_r,
+      dek_13_fs_r,
+      dek_14_fs_r,
+      dek_15_fs_r,
+      dek_16_fs_r,
+      dek_17_fs_r,
+      dek_18_fs_r,
+      dek_19_fs_r,
+      dek_20_fs_r,
+      dek_21_fs_r,
+      dek_22_fs_r,
+      dek_23_fs_r,
+      dek_24_fs_r,
+      dek_25_fs_r,
+      dek_26_fs_r,
+      dek_27_fs_r,
+      dek_28_fs_r,
+      dek_29_fs_r,
+      dek_30_fs_r,
+      dek_31_fs_r,
+      dek_32_fs_r,
+      dek_33_fs_r,
+      dek_34_fs_r,
+      dek_35_fs_r,
+      dek_36_fs_r
+    )
+  )
+
+plot(dek_fs_r, main = "flowering stage", maxnl = 36)
+
+writeRaster(dek_fs_r, 
+    "D:/repos/sourcing_targets/data/COD/barley/dek_fs_r.tif",
+    overwrite = TRUE,
+    filetype = "GTiff"
+  )
+```
+
+
+## Yield Formation stage - monthly  distribution
+
+```{r phen_stages_yld_mth_Ethiopia, cache = FALSE, fig.width=8, fig.height=7, out.width=700}
+
+#get a matrix of values showing the proportion of each month in the yield formation stage for each cell
+grow_y_matrix_m <- t(apply(cod_all_df, 1, growth_period_long_tbl, day_begin = "yld_s", day_end = "yld_e", num_years = num_years ))
+
+#join the matrix to the existing data frame
+cod_all_df_mth_ys <- data.frame(cod_all_df, grow_y_matrix_m)
+
+#convert first to sf object
+cod_all_sf_mth_ys <-
+  st_as_sf(cod_all_df_mth_fs,
+           coords = c("x.x", "y.x"),
+           crs = 4236)
+
+#create monthly raster masks for the yield formation stage
+mth_01_ys_r <- rasterize(cod_all_sf_mth_ys, r_prec_cod_NA, field = "X1")
+mth_02_ys_r <- rasterize(cod_all_sf_mth_ys, r_prec_cod_NA, field = "X2")
+mth_03_ys_r <- rasterize(cod_all_sf_mth_ys, r_prec_cod_NA, field = "X3")
+mth_04_ys_r <- rasterize(cod_all_sf_mth_ys, r_prec_cod_NA, field = "X4")
+mth_05_ys_r <- rasterize(cod_all_sf_mth_ys, r_prec_cod_NA, field = "X5")
+mth_06_ys_r <- rasterize(cod_all_sf_mth_ys, r_prec_cod_NA, field = "X6")
+mth_07_ys_r <- rasterize(cod_all_sf_mth_ys, r_prec_cod_NA, field = "X7")
+mth_08_ys_r <- rasterize(cod_all_sf_mth_ys, r_prec_cod_NA, field = "X8")
+mth_09_ys_r <- rasterize(cod_all_sf_mth_ys, r_prec_cod_NA, field = "X9")
+mth_10_ys_r <- rasterize(cod_all_sf_mth_ys, r_prec_cod_NA, field = "X10")
+mth_11_ys_r <- rasterize(cod_all_sf_mth_ys, r_prec_cod_NA, field = "X11")
+mth_12_ys_r <- rasterize(cod_all_sf_mth_ys, r_prec_cod_NA, field = "X12")
+
+mth_ys_r <-
+  rast(
+    list(
+      mth_01_ys_r,
+      mth_02_ys_r,
+      mth_03_ys_r,
+      mth_04_ys_r,
+      mth_05_ys_r,
+      mth_06_ys_r,
+      mth_07_ys_r,
+      mth_08_ys_r,
+      mth_09_ys_r,
+      mth_10_ys_r,
+      mth_11_ys_r,
+      mth_12_ys_r
+    )
+  )
+
+plot(mth_ys_r, main = "yield formation stage", maxnl = 12)
+
+writeRaster(mth_ys_r, 
+    "D:/repos/sourcing_targets/data/COD/barley/mth_ys_r.tif",
+    overwrite = TRUE,
+    filetype = "GTiff"
+  )
+```
+
+## Yield Formation stage - dekadal distribution
+
+```{r phen_stages_yld_dek_Ethiopia, cache = FALSE, fig.width=8, fig.height=7, out.width=700}
+
+#get a matrix of values showing the proportion of each month in the yield formation stage for each cell
+
+grow_y_matrix_d <- t(apply(cod_all_df, 1, growth_period_long_dekad_tbl, day_begin = "yld_s", day_end = "yld_e", num_years = num_years))
+
+
+#join the matrix to the existing data frame
+cod_all_df_dek_ys <- data.frame(cod_all_df, grow_y_matrix_d)
+
+#convert first to sf object
+cod_all_sf_dek_ys <-
+  st_as_sf(cod_all_df_dek_ys,
+           coords = c("x.x", "y.x"),
+           crs = 4236)
+
+#create dekadal raster masks for the yield formation stage
+dek_01_ys_r <- rasterize(cod_all_sf_dek_ys, r_prec_cod_NA, field = "X1")
+dek_02_ys_r <- rasterize(cod_all_sf_dek_ys, r_prec_cod_NA, field = "X2")
+dek_03_ys_r <- rasterize(cod_all_sf_dek_ys, r_prec_cod_NA, field = "X3")
+dek_04_ys_r <- rasterize(cod_all_sf_dek_ys, r_prec_cod_NA, field = "X4")
+dek_05_ys_r <- rasterize(cod_all_sf_dek_ys, r_prec_cod_NA, field = "X5")
+dek_06_ys_r <- rasterize(cod_all_sf_dek_ys, r_prec_cod_NA, field = "X6")
+dek_07_ys_r <- rasterize(cod_all_sf_dek_ys, r_prec_cod_NA, field = "X7")
+dek_08_ys_r <- rasterize(cod_all_sf_dek_ys, r_prec_cod_NA, field = "X8")
+dek_09_ys_r <- rasterize(cod_all_sf_dek_ys, r_prec_cod_NA, field = "X9")
+dek_10_ys_r <- rasterize(cod_all_sf_dek_ys, r_prec_cod_NA, field = "X10")
+dek_11_ys_r <- rasterize(cod_all_sf_dek_ys, r_prec_cod_NA, field = "X11")
+dek_12_ys_r <- rasterize(cod_all_sf_dek_ys, r_prec_cod_NA, field = "X12")
+dek_13_ys_r <- rasterize(cod_all_sf_dek_ys, r_prec_cod_NA, field = "X13")
+dek_14_ys_r <- rasterize(cod_all_sf_dek_ys, r_prec_cod_NA, field = "X14")
+dek_15_ys_r <- rasterize(cod_all_sf_dek_ys, r_prec_cod_NA, field = "X15")
+dek_16_ys_r <- rasterize(cod_all_sf_dek_ys, r_prec_cod_NA, field = "X16")
+dek_17_ys_r <- rasterize(cod_all_sf_dek_ys, r_prec_cod_NA, field = "X17")
+dek_18_ys_r <- rasterize(cod_all_sf_dek_ys, r_prec_cod_NA, field = "X18")
+dek_19_ys_r <- rasterize(cod_all_sf_dek_ys, r_prec_cod_NA, field = "X19")
+dek_20_ys_r <- rasterize(cod_all_sf_dek_ys, r_prec_cod_NA, field = "X20")
+dek_21_ys_r <- rasterize(cod_all_sf_dek_ys, r_prec_cod_NA, field = "X21")
+dek_22_ys_r <- rasterize(cod_all_sf_dek_ys, r_prec_cod_NA, field = "X22")
+dek_23_ys_r <- rasterize(cod_all_sf_dek_ys, r_prec_cod_NA, field = "X23")
+dek_24_ys_r <- rasterize(cod_all_sf_dek_ys, r_prec_cod_NA, field = "X24")
+dek_25_ys_r <- rasterize(cod_all_sf_dek_ys, r_prec_cod_NA, field = "X25")
+dek_26_ys_r <- rasterize(cod_all_sf_dek_ys, r_prec_cod_NA, field = "X26")
+dek_27_ys_r <- rasterize(cod_all_sf_dek_ys, r_prec_cod_NA, field = "X27")
+dek_28_ys_r <- rasterize(cod_all_sf_dek_ys, r_prec_cod_NA, field = "X28")
+dek_29_ys_r <- rasterize(cod_all_sf_dek_ys, r_prec_cod_NA, field = "X29")
+dek_30_ys_r <- rasterize(cod_all_sf_dek_ys, r_prec_cod_NA, field = "X30")
+dek_31_ys_r <- rasterize(cod_all_sf_dek_ys, r_prec_cod_NA, field = "X31")
+dek_32_ys_r <- rasterize(cod_all_sf_dek_ys, r_prec_cod_NA, field = "X32")
+dek_33_ys_r <- rasterize(cod_all_sf_dek_ys, r_prec_cod_NA, field = "X33")
+dek_34_ys_r <- rasterize(cod_all_sf_dek_ys, r_prec_cod_NA, field = "X34")
+dek_35_ys_r <- rasterize(cod_all_sf_dek_ys, r_prec_cod_NA, field = "X35")
+dek_36_ys_r <- rasterize(cod_all_sf_dek_ys, r_prec_cod_NA, field = "X36")
+
+
+dek_ys_r <-
+  rast(
+    list(
+      dek_01_ys_r,
+      dek_02_ys_r,
+      dek_03_ys_r,
+      dek_04_ys_r,
+      dek_05_ys_r,
+      dek_06_ys_r,
+      dek_07_ys_r,
+      dek_08_ys_r,
+      dek_09_ys_r,
+      dek_10_ys_r,
+      dek_11_ys_r,
+      dek_12_ys_r,
+      dek_13_ys_r,
+      dek_14_ys_r,
+      dek_15_ys_r,
+      dek_16_ys_r,
+      dek_17_ys_r,
+      dek_18_ys_r,
+      dek_19_ys_r,
+      dek_20_ys_r,
+      dek_21_ys_r,
+      dek_22_ys_r,
+      dek_23_ys_r,
+      dek_24_ys_r,
+      dek_25_ys_r,
+      dek_26_ys_r,
+      dek_27_ys_r,
+      dek_28_ys_r,
+      dek_29_ys_r,
+      dek_30_ys_r,
+      dek_31_ys_r,
+      dek_32_ys_r,
+      dek_33_ys_r,
+      dek_34_ys_r,
+      dek_35_ys_r,
+      dek_36_ys_r
+    )
+  )
+
+plot(dek_ys_r, main = "yield formation stage", maxnl = 36)
+
+writeRaster(dek_ys_r, 
+    "D:/repos/sourcing_targets/data/COD/barley/dek_ys_r.tif",
+    overwrite = TRUE,
+    filetype = "GTiff"
+  )
+```
+
+## Ripening stage - monthly  distribution
+
+```{r phen_stages_rip_mth_Ethiopia, cache = FALSE, fig.width=8, fig.height=7, out.width=700}
+
+#get a matrix of values showing the proportion of each month in the Ripening stage for each cell
+grow_r_matrix_m <- t(apply(cod_all_df, 1, growth_period_long_tbl, day_begin = "rip_s", day_end = "rip_e", num_years = num_years ))
+
+#join the matrix to the existing data frame
+cod_all_df_mth_rs <- data.frame(cod_all_df, grow_r_matrix_m)
+
+#convert first to sf object
+cod_all_sf_mth_rs <-
+  st_as_sf(cod_all_df_mth_rs,
+           coords = c("x.x", "y.x"),
+           crs = 4236)
+
+#create monthly raster masks for the Ripening stage
+mth_01_rs_r <- rasterize(cod_all_sf_mth_rs, r_prec_cod_NA, field = "X1")
+mth_02_rs_r <- rasterize(cod_all_sf_mth_rs, r_prec_cod_NA, field = "X2")
+mth_03_rs_r <- rasterize(cod_all_sf_mth_rs, r_prec_cod_NA, field = "X3")
+mth_04_rs_r <- rasterize(cod_all_sf_mth_rs, r_prec_cod_NA, field = "X4")
+mth_05_rs_r <- rasterize(cod_all_sf_mth_rs, r_prec_cod_NA, field = "X5")
+mth_06_rs_r <- rasterize(cod_all_sf_mth_rs, r_prec_cod_NA, field = "X6")
+mth_07_rs_r <- rasterize(cod_all_sf_mth_rs, r_prec_cod_NA, field = "X7")
+mth_08_rs_r <- rasterize(cod_all_sf_mth_rs, r_prec_cod_NA, field = "X8")
+mth_09_rs_r <- rasterize(cod_all_sf_mth_rs, r_prec_cod_NA, field = "X9")
+mth_10_rs_r <- rasterize(cod_all_sf_mth_rs, r_prec_cod_NA, field = "X10")
+mth_11_rs_r <- rasterize(cod_all_sf_mth_rs, r_prec_cod_NA, field = "X11")
+mth_12_rs_r <- rasterize(cod_all_sf_mth_rs, r_prec_cod_NA, field = "X12")
+
+mth_rs_r <-
+  rast(
+    list(
+      mth_01_rs_r,
+      mth_02_rs_r,
+      mth_03_rs_r,
+      mth_04_rs_r,
+      mth_05_rs_r,
+      mth_06_rs_r,
+      mth_07_rs_r,
+      mth_08_rs_r,
+      mth_09_rs_r,
+      mth_10_rs_r,
+      mth_11_rs_r,
+      mth_12_rs_r
+    )
+  )
+
+plot(mth_rs_r, main = "Ripening stage", maxnl = 12)
+
+writeRaster(mth_rs_r, 
+    "D:/repos/sourcing_targets/data/COD/barley/mth_rs_r.tif",
+    overwrite = TRUE,
+    filetype = "GTiff"
+  )
+```
+
+## Ripening stage - dekadal distribution
+
+```{r phen_stages_rip_dek_Ethiopia, cache = FALSE, fig.width=8, fig.height=7, out.width=700}
+
+#get a matrix of values showing the proportion of each month in the ripening stage for each cell
+
+grow_r_matrix_d <- t(apply(cod_all_df, 1, growth_period_long_dekad_tbl, day_begin = "rip_s", day_end = "rip_e", num_years = num_years))
+
+# dekadal distribution
+#join the matrix to the existing data frame
+cod_all_df_dek_rs <- data.frame(cod_all_df, grow_r_matrix_d)
+
+#convert first to sf object
+cod_all_sf_dek_rs <-
+  st_as_sf(cod_all_df_dek_rs,
+           coords = c("x.x", "y.x"),
+           crs = 4236)
+
+#create dekadal raster masks for the ripening stage
+dek_01_rs_r <- rasterize(cod_all_sf_dek_rs, r_prec_cod_NA, field = "X1")
+dek_02_rs_r <- rasterize(cod_all_sf_dek_rs, r_prec_cod_NA, field = "X2")
+dek_03_rs_r <- rasterize(cod_all_sf_dek_rs, r_prec_cod_NA, field = "X3")
+dek_04_rs_r <- rasterize(cod_all_sf_dek_rs, r_prec_cod_NA, field = "X4")
+dek_05_rs_r <- rasterize(cod_all_sf_dek_rs, r_prec_cod_NA, field = "X5")
+dek_06_rs_r <- rasterize(cod_all_sf_dek_rs, r_prec_cod_NA, field = "X6")
+dek_07_rs_r <- rasterize(cod_all_sf_dek_rs, r_prec_cod_NA, field = "X7")
+dek_08_rs_r <- rasterize(cod_all_sf_dek_rs, r_prec_cod_NA, field = "X8")
+dek_09_rs_r <- rasterize(cod_all_sf_dek_rs, r_prec_cod_NA, field = "X9")
+dek_10_rs_r <- rasterize(cod_all_sf_dek_rs, r_prec_cod_NA, field = "X10")
+dek_11_rs_r <- rasterize(cod_all_sf_dek_rs, r_prec_cod_NA, field = "X11")
+dek_12_rs_r <- rasterize(cod_all_sf_dek_rs, r_prec_cod_NA, field = "X12")
+dek_13_rs_r <- rasterize(cod_all_sf_dek_rs, r_prec_cod_NA, field = "X13")
+dek_14_rs_r <- rasterize(cod_all_sf_dek_rs, r_prec_cod_NA, field = "X14")
+dek_15_rs_r <- rasterize(cod_all_sf_dek_rs, r_prec_cod_NA, field = "X15")
+dek_16_rs_r <- rasterize(cod_all_sf_dek_rs, r_prec_cod_NA, field = "X16")
+dek_17_rs_r <- rasterize(cod_all_sf_dek_rs, r_prec_cod_NA, field = "X17")
+dek_18_rs_r <- rasterize(cod_all_sf_dek_rs, r_prec_cod_NA, field = "X18")
+dek_19_rs_r <- rasterize(cod_all_sf_dek_rs, r_prec_cod_NA, field = "X19")
+dek_20_rs_r <- rasterize(cod_all_sf_dek_rs, r_prec_cod_NA, field = "X20")
+dek_21_rs_r <- rasterize(cod_all_sf_dek_rs, r_prec_cod_NA, field = "X21")
+dek_22_rs_r <- rasterize(cod_all_sf_dek_rs, r_prec_cod_NA, field = "X22")
+dek_23_rs_r <- rasterize(cod_all_sf_dek_rs, r_prec_cod_NA, field = "X23")
+dek_24_rs_r <- rasterize(cod_all_sf_dek_rs, r_prec_cod_NA, field = "X24")
+dek_25_rs_r <- rasterize(cod_all_sf_dek_rs, r_prec_cod_NA, field = "X25")
+dek_26_rs_r <- rasterize(cod_all_sf_dek_rs, r_prec_cod_NA, field = "X26")
+dek_27_rs_r <- rasterize(cod_all_sf_dek_rs, r_prec_cod_NA, field = "X27")
+dek_28_rs_r <- rasterize(cod_all_sf_dek_rs, r_prec_cod_NA, field = "X28")
+dek_29_rs_r <- rasterize(cod_all_sf_dek_rs, r_prec_cod_NA, field = "X29")
+dek_30_rs_r <- rasterize(cod_all_sf_dek_rs, r_prec_cod_NA, field = "X30")
+dek_31_rs_r <- rasterize(cod_all_sf_dek_rs, r_prec_cod_NA, field = "X31")
+dek_32_rs_r <- rasterize(cod_all_sf_dek_rs, r_prec_cod_NA, field = "X32")
+dek_33_rs_r <- rasterize(cod_all_sf_dek_rs, r_prec_cod_NA, field = "X33")
+dek_34_rs_r <- rasterize(cod_all_sf_dek_rs, r_prec_cod_NA, field = "X34")
+dek_35_rs_r <- rasterize(cod_all_sf_dek_rs, r_prec_cod_NA, field = "X35")
+dek_36_rs_r <- rasterize(cod_all_sf_dek_rs, r_prec_cod_NA, field = "X36")
+
+
+dek_rs_r <-
+  rast(
+    list(
+      dek_01_rs_r,
+      dek_02_rs_r,
+      dek_03_rs_r,
+      dek_04_rs_r,
+      dek_05_rs_r,
+      dek_06_rs_r,
+      dek_07_rs_r,
+      dek_08_rs_r,
+      dek_09_rs_r,
+      dek_10_rs_r,
+      dek_11_rs_r,
+      dek_12_rs_r,
+      dek_13_rs_r,
+      dek_14_rs_r,
+      dek_15_rs_r,
+      dek_16_rs_r,
+      dek_17_rs_r,
+      dek_18_rs_r,
+      dek_19_rs_r,
+      dek_20_rs_r,
+      dek_21_rs_r,
+      dek_22_rs_r,
+      dek_23_rs_r,
+      dek_24_rs_r,
+      dek_25_rs_r,
+      dek_26_rs_r,
+      dek_27_rs_r,
+      dek_28_rs_r,
+      dek_29_rs_r,
+      dek_30_rs_r,
+      dek_31_rs_r,
+      dek_32_rs_r,
+      dek_33_rs_r,
+      dek_34_rs_r,
+      dek_35_rs_r,
+      dek_36_rs_r
+    )
+  )
+
+plot(dek_rs_r, main = "ripening stage", maxnl = 36)
+
+writeRaster(dek_gp_r, 
+    "D:/repos/sourcing_targets/data/COD/barley/dek_rs_r.tif",
+    overwrite = TRUE,
+    filetype = "GTiff"
+  )
+```
