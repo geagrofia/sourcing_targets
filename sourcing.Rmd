@@ -1,7 +1,7 @@
 ---
-title: "Burundi - Sorghum"
+title: "DR Congo - Malt Barley"
 author: "A Farrow"
-date: "29/11/2021"
+date: "01/02/2023"
 header-includes:
    - \usepackage[default]{sourcesanspro}
    - \usepackage[T1]{fontenc}
@@ -54,7 +54,8 @@ tar_option_set(
     "fuZR",
     "kableExtra",
     "units",
-    "magrittr"
+    "magrittr",
+    "geodata"
   )
 )
 source("R/functions.R")
@@ -69,20 +70,11 @@ Many parameters are defined in the cc_data file. We load this here.
 
 ```{targets parameters}
 list(
-  tar_target(cc_row, 22),
-  tar_target(drought_threshold_l, 7),
-  tar_target(drought_threshold_l_width, 3.5),
-  tar_target(heat_threshold_l, 7),
-  tar_target(heat_threshold_l_width, 3.5),
-  tar_target(flood_threshold_l, 2),
-  tar_target(flood_threshold_l_width, 1),
-  tar_target(drought_threshold_u, 10),
-  tar_target(drought_threshold_u_width, 5),
-  tar_target(heat_threshold_u, 10),
-  tar_target(heat_threshold_u_width, 5),
-  tar_target(flood_threshold_u, 4),
-  tar_target(flood_threshold_u_width, 2)
+  tar_target(cc_row, 9)
+  
 )
+
+
 ```
 
 ## Global spatial data
@@ -111,32 +103,142 @@ list(
   tar_target(crop, crop_get_f(cc_data, cc_row)),
   tar_target(drought, drought_get_f(cc_data, cc_row)),
   tar_target(heat, heat_get_f(cc_data, cc_row)),
-  tar_target(flood, flood_get_f(cc_data, cc_row)))
+  tar_target(flood, flood_get_f(cc_data, cc_row)),
+  
+  tar_target(drought_threshold_l, drought_threshold_l_get_f(cc_data, cc_row)),
+  tar_target(drought_threshold_l_width, drought_threshold_l_width_get_f(cc_data, cc_row)),
+  tar_target(drought_threshold_u, drought_threshold_u_get_f(cc_data, cc_row)),
+  tar_target(drought_threshold_u_width, drought_threshold_u_width_get_f(cc_data, cc_row)),  
+  
+  tar_target(heat_threshold_l, heat_threshold_l_get_f(cc_data, cc_row)),
+  tar_target(heat_threshold_l_width, heat_threshold_l_width_get_f(cc_data, cc_row)),
+  tar_target(heat_threshold_u, heat_threshold_u_get_f(cc_data, cc_row)),
+  tar_target(heat_threshold_u_width, heat_threshold_u_width_get_f(cc_data, cc_row)),  
+  
+  tar_target(flood_threshold_l, flood_threshold_l_get_f(cc_data, cc_row)),
+  tar_target(flood_threshold_l_width, flood_threshold_l_width_get_f(cc_data, cc_row)),
+  tar_target(flood_threshold_u, flood_threshold_u_get_f(cc_data, cc_row)),
+  tar_target(flood_threshold_u_width, flood_threshold_u_width_get_f(cc_data, cc_row)),
+  
+  tar_target(aggregation_value, aggregation_value_get_f(cc_data, cc_row))
+  
+  )
 ```
 
 ## Country spatial data
 
 ```{targets country_crop_data}
-list(
-  tar_target(v_crop, v_crop_get_f(cc_data, cc_row)),
+
+# now split up for debugging
+
+
+#list(
+#  tar_target(v_crop, v_crop_get_f(cc_data, cc_row)),
   
-  tar_target(v_crop_extent, v_crop_extent_f(v_crop)),
+#  tar_target(v_crop_extent, v_crop_extent_f(v_crop)),
+#  tar_target(
+#    v_crop_plot,
+#    v_crop_plot_f(v_crop, v_crop_extent, ISO, crop, world)
+#  ),
+  
+#  tar_target(v_ISO, v_ISO_get_f(ISO)),
+#  tar_target(v_ISO1, v_ISO1_get_f(ISO)),
+#  tar_target(v_ISO_extent, v_ISO_extent_f(v_ISO)),
+#  tar_target(v_ISO_plot, v_ISO_plot_f(v_ISO, ISO)),
+  
+#  tar_target(r_clim_mask, r_clim_mask_get_f(ISO)),
+  
+#  tar_target(r_lc_global,  r_lc_global_get_f(r_clim_mask)),
+  
+#  tar_target(r_lc_file,  r_lc_make_write_f(r_lc_global, r_clim_mask, ISO)),
+#  tar_target(r_lc,  r_lc_get_f(r_lc_file, ISO)),
+#  tar_target(r_lc_plot, r_lc_plot_f(r_lc, world))
+#)
+
+```
+
+```{targets country_crop_data_a}
+list(
+  tar_target(v_crop, v_crop_get_f(cc_data, cc_row))
+  
+)
+
+```
+
+```{targets country_crop_data_b}
+list(
+  tar_target(v_crop_extent, v_crop_extent_f(v_crop))
+)
+
+```
+
+```{targets country_crop_data_c}
+list(
   tar_target(
     v_crop_plot,
-    v_crop_plot_f(v_crop, v_crop_extent, ISO, crop, world)
-  ),
-  
-  tar_target(v_ISO, v_ISO_get_f(ISO)),
-  tar_target(v_ISO1, v_ISO1_get_f(ISO)),
-  tar_target(v_ISO_extent, v_ISO_extent_f(v_ISO)),
-  tar_target(v_ISO_plot, v_ISO_plot_f(v_ISO, ISO)),
-  
-  tar_target(r_clim_mask, r_clim_mask_get_f(ISO)),
-  
-  tar_target(r_lc_global,  r_lc_global_get_f(r_clim_mask)),
-  
-  tar_target(r_lc_file,  r_lc_make_write_f(r_lc_global, r_clim_mask, ISO)),
-  tar_target(r_lc,  r_lc_get_f(r_lc_file, ISO)),
+    v_crop_plot_f(v_crop, v_crop_extent, ISO, crop, world))
+)
+
+```
+
+```{targets country_crop_data_d}
+list(
+  tar_target(v_ISO, v_ISO_get_f(ISO))
+)
+
+```
+
+```{targets country_crop_data_e}
+list(
+  tar_target(v_ISO1, v_ISO1_get_f(cc_data, cc_row, ISO))
+)
+
+```
+
+```{targets country_crop_data_f}
+list(
+  tar_target(v_ISO_extent, v_ISO_extent_f(v_ISO))
+)
+
+```
+
+```{targets country_crop_data_g}
+list(
+  tar_target(v_ISO_plot, v_ISO_plot_f(v_ISO, ISO))
+)
+
+```
+
+```{targets country_crop_data_h}
+list(
+  tar_target(r_clim_mask, r_clim_mask_get_f(ISO))
+)
+
+```
+
+```{targets country_crop_data_i}
+list(
+  tar_target(r_lc_global,  r_lc_global_get_f(r_clim_mask, cc_data, cc_row))
+)
+
+```
+
+```{targets country_crop_data_j}
+list(
+  tar_target(r_lc_file,  r_lc_make_write_f(r_lc_global, aggregation_value, r_clim_mask, ISO))
+)
+
+```
+
+```{targets country_crop_data_k}
+list(
+  tar_target(r_lc,  r_lc_get_f(r_lc_file, ISO))
+)
+
+```
+
+```{targets country_crop_data_l}
+list(
   tar_target(r_lc_plot, r_lc_plot_f(r_lc, world))
 )
 
@@ -163,56 +265,114 @@ list(
 
 ```{targets spatial_data_prep_processing_1aiii}   
 list(
-    tar_target(r_ISO_file, r_ISO_make_write_f(r_ISO_a, v_ISO_extent, ISO)),
-    tar_target(r_ISO, r_ISO_get_f(ISO, r_ISO_file))
+    tar_target(r_ISO_file, r_ISO_make_write_f(r_ISO_a, v_ISO_extent, ISO))
 )
 
 ```
-  
 
-```{targets spatial_data_prep_processing_1b}
+```{targets spatial_data_prep_processing_1aiv}   
+list( tar_target(r_ISO, r_ISO_get_f(ISO, r_ISO_file))
+)
+
+```
+
+
+```{targets spatial_data_prep_processing_1bi}
 list(
-  tar_target(r_lc_ISO_file, r_lc_ISO_make_write_f(r_lc, r_ISO, ISO)),
+  tar_target(r_lc_ISO_file, r_lc_ISO_make_write_f(r_lc, r_ISO, ISO))
+)
+
+```
+
+```{targets spatial_data_prep_processing_1bii}
+list(
   tar_target(r_lc_ISO, r_lc_ISO_get_f(ISO, r_lc_ISO_file))
 )
 
 ```
 
-
-
-```{targets spatial_data_prep_processing_2}
+```{targets spatial_data_prep_processing_2a}
 
 list(
-  tar_target(r_crop_file, r_crop_make_write_f(v_crop, r_lc_ISO, ISO, crop)),
-  tar_target(r_crop, r_crop_get_f(r_crop_file, ISO, crop)),
+  tar_target(r_crop_file, r_crop_make_write_f(v_crop, r_lc_ISO, ISO, crop))
+)
+  
+```
+
+```{targets spatial_data_prep_processing_2b}
+
+list(
+  tar_target(r_crop, r_crop_get_f(r_crop_file, ISO, crop))
+)
+  
+```
+
+```{targets spatial_data_prep_processing_2c}
+
+list(
   tar_target(
     r_crop_ISO_file,
     r_crop_ISO_make_write_f(r_crop, r_ISO, ISO, crop)
-  ),
+  )
+)
+  
+```
+
+```{targets spatial_data_prep_processing_2d}
+
+list(
   tar_target(r_crop_ISO, r_crop_ISO_get_f(r_crop_ISO_file, ISO, crop))
 )
   
 ```
 
-```{targets spatial_data_prep_processing_3}
+```{targets spatial_data_prep_processing_3a}
 
 list(
-  tar_target(r_crop_ISO_lc_file, r_crop_ISO_lc_file_make_write_f(r_lc_ISO, r_crop_ISO, ISO, crop)),
-  tar_target(r_crop_ISO_lc, r_crop_ISO_lc_get_f(r_crop_ISO_lc_file, ISO, crop)),
-  tar_target(r_crop_ISO_lc_rcl_file, r_crop_ISO_lc_rcl_make_write_f(r_crop_ISO_lc, ISO, crop)),
-  tar_target(r_crop_ISO_lc_rcl, r_crop_ISO_lc_rcl_get_f(r_crop_ISO_lc_rcl_file, ISO, crop))
-
+  tar_target(r_crop_ISO_lc_file, r_crop_ISO_lc_file_make_write_f(r_lc_ISO, r_crop_ISO, ISO, crop))
 )
   
 ```
 
-```{targets spatial_data_prep_processing_4a}
+```{targets spatial_data_prep_processing_3b}
+
+list(
+  tar_target(r_crop_ISO_lc, r_crop_ISO_lc_get_f(r_crop_ISO_lc_file, ISO, crop))
+)
+  
+```
+
+```{targets spatial_data_prep_processing_3c}
+
+list(
+  tar_target(r_crop_ISO_lc_rcl_file, r_crop_ISO_lc_rcl_make_write_f(r_crop_ISO_lc, ISO, crop))
+)
+  
+```
+
+```{targets spatial_data_prep_processing_3d}
+
+list(
+  tar_target(r_crop_ISO_lc_rcl, r_crop_ISO_lc_rcl_get_f(r_crop_ISO_lc_rcl_file, ISO, crop))
+)
+  
+```
+
+```{targets spatial_data_prep_processing_4ai}
 
 list(
   tar_target(
     r_crop_ISO_lc_rcl_agg_file,
     r_crop_ISO_lc_rcl_agg_make_write_f(r_crop_ISO_lc_rcl, ISO, crop)
-  ),
+  )
+)
+
+``` 
+
+
+```{targets spatial_data_prep_processing_4aii}
+
+list(
   tar_target(
     r_crop_ISO_lc_rcl_agg,
     r_crop_ISO_lc_rcl_agg_get_f(r_crop_ISO_lc_rcl_agg_file, ISO, crop)
@@ -220,7 +380,7 @@ list(
 )
 
 ``` 
-  
+
   
 ```{targets spatial_data_prep_processing_4b}
   
@@ -2162,6 +2322,18 @@ tar_read(crop)
 tar_read(drought)
 tar_read(heat)
 tar_read(flood)
+tar_read(drought_threshold_l)
+tar_read(drought_threshold_l_width)
+tar_read(drought_threshold_u)
+tar_read(drought_threshold_u_width)
+tar_read(heat_threshold_l)
+tar_read(heat_threshold_l_width)
+tar_read(heat_threshold_u)
+tar_read(heat_threshold_u_width)
+tar_read(flood_threshold_l)
+tar_read(flood_threshold_l_width)
+tar_read(flood_threshold_u)
+tar_read(flood_threshold_u_width)
 
 ```
 
