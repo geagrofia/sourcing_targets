@@ -5143,18 +5143,27 @@ dB_impact_full_make_f <- function(dB_impact,
     mutate(droughtc_l_heatc_l_h = getMembership(fpm_droughtc_l_heatc_l$heat)) %>%
     mutate(droughtc_l_heatc_l_dh = getMembership(fpm_droughtc_l_heatc_l$drought_heat)) %>%
     mutate(droughtc_l_heatc_l_max =
-             ifelse(
+
                
                # A Farrow 10/01/2023 precedence rules required for values == 0.5
                # easiest is to use the order in which the risk classes appear
                # therefore change > operators to >= operators
                
+               
+               # A Farrow 09/02/2023 sometimes the 0.5 threshold is too high for instance when 
+               # four classes have a value of 0.25
+               # so need to include the suboptimal option as an explicit if statement
+               # then the else is a mixture
+           
+             ifelse(               
                droughtc_l_heatc_l_o >= 0.5, 
                0,
                ifelse(
                  droughtc_l_heatc_l_d >= 0.5,
                  1,
-                 ifelse(droughtc_l_heatc_l_h >= 0.5, 2, 4)
+                 ifelse(droughtc_l_heatc_l_h >= 0.5,
+                    2,
+                    ifelse(droughtc_l_heatc_l_dh >= 0.5, 4, 8)) # this is now explicit and where 8 is now an 'uncertain' risk profile
                )
              )) %>%
     
@@ -5169,7 +5178,9 @@ dB_impact_full_make_f <- function(dB_impact,
                ifelse(
                  droughtc_l_floodc_l_d >= 0.5,
                  1,
-                 ifelse(droughtc_l_floodc_l_f >= 0.5, 3, 5)
+                 ifelse(droughtc_l_floodc_l_f >= 0.5, 
+                    3,
+                      ifelse(droughtc_l_heatc_l_df >= 0.5, 5, 8))
                )
              )) %>%
     
@@ -5184,7 +5195,9 @@ dB_impact_full_make_f <- function(dB_impact,
                ifelse(
                  heatc_l_floodc_l_h >= 0.5,
                  2,
-                 ifelse(heatc_l_floodc_l_f >= 0.5, 3, 6)
+                 ifelse(heatc_l_floodc_l_f >= 0.5,
+                        3,
+                        ifelse(droughtc_l_heatc_l_hf >= 0.5, 6, 8))
                )
              )) %>%
     
@@ -5222,7 +5235,12 @@ dB_impact_full_make_f <- function(dB_impact,
                   ifelse(
                     droughtc_l_heatc_l_floodc_l_df >= 0.5,
                     5,
-                    ifelse(droughtc_l_heatc_l_floodc_l_hf >= 0.5, 6, 7)
+                    ifelse(
+                      droughtc_l_heatc_l_floodc_l_hf >= 0.5,
+                      6,
+                      ifelse(
+                        droughtc_l_heatc_l_floodc_l_dhf >= 0.5, 7, 8)
+                    )
                   )
                 )
               )
@@ -5242,7 +5260,10 @@ dB_impact_full_make_f <- function(dB_impact,
                ifelse(
                  droughtf_l_heatf_l_d >= 0.5,
                  1,
-                 ifelse(droughtf_l_heatf_l_h >= 0.5, 2, 4)
+                 ifelse(droughtf_l_heatf_l_h >= 0.5, 
+                    2, 
+                    ifelse(droughtf_l_heatf_l_dh >= 0.5, 4, 8)
+                 )
                )
              )) %>%
     
@@ -5257,7 +5278,10 @@ dB_impact_full_make_f <- function(dB_impact,
                ifelse(
                  droughtf_l_floodf_l_d >= 0.5,
                  1,
-                 ifelse(droughtf_l_floodf_l_f >= 0.5, 3, 5)
+                 ifelse(droughtf_l_floodf_l_f >= 0.5,
+                    3,
+                    ifelse(droughtf_l_floodf_l_df >= 0.5,  5, 8)
+                 )
                )
              )) %>%
     
@@ -5272,7 +5296,10 @@ dB_impact_full_make_f <- function(dB_impact,
                ifelse(
                  heatf_l_floodf_l_h >= 0.5,
                  2,
-                 ifelse(heatf_l_floodf_l_f >= 0.5, 3, 6)
+                 ifelse(heatf_l_floodf_l_f >= 0.5, 
+                    3, 
+                    ifelse(heatf_l_floodf_l_hf >= 0.5, 6, 8)
+                 )
                )
              )) %>%
     
@@ -5311,7 +5338,12 @@ dB_impact_full_make_f <- function(dB_impact,
                   ifelse(
                     droughtf_l_heatf_l_floodf_l_df >= 0.5,
                     5,
-                    ifelse(droughtf_l_heatf_l_floodf_l_hf >= 0.5, 6, 7)
+                    ifelse(
+                      droughtf_l_heatf_l_floodf_l_hf >= 0.5, 
+                      6, 
+                      ifelse(
+                        droughtf_l_heatf_l_floodf_l_dhf >= 0.5, 7, 8)
+                    )
                   )
                 )
               )
@@ -5352,7 +5384,10 @@ dB_impact_full_make_f <- function(dB_impact,
                ifelse(
                  droughtc_u_heatc_u_d >= 0.5,
                  1,
-                 ifelse(droughtc_u_heatc_u_h >= 0.5, 2, 4)
+                 ifelse(droughtc_u_heatc_u_h >= 0.5,
+                    2,
+                    ifelse(droughtc_u_heatc_u_dh >= 0.5, 4, 8)
+                 )
                )
              )) %>%
     
@@ -5367,7 +5402,10 @@ dB_impact_full_make_f <- function(dB_impact,
                ifelse(
                  droughtc_u_floodc_u_d >= 0.5,
                  1,
-                 ifelse(droughtc_u_floodc_u_f >= 0.5, 3, 5)
+                 ifelse(droughtc_u_floodc_u_f >= 0.5, 
+                    3, 
+                    ifelse(droughtc_u_floodc_u_df >= 0.5, 5, 8)
+                 )
                )
              )) %>%
     
@@ -5382,7 +5420,10 @@ dB_impact_full_make_f <- function(dB_impact,
                ifelse(
                  heatc_u_floodc_u_h >= 0.5,
                  2,
-                 ifelse(heatc_u_floodc_u_f >= 0.5, 3, 6)
+                 ifelse(heatc_u_floodc_u_f >= 0.5, 
+                    3,
+                    ifelse(heatc_u_floodc_u_hf >= 0.5, 6, 8)
+                    )
                )
              )) %>%
     
@@ -5420,7 +5461,12 @@ dB_impact_full_make_f <- function(dB_impact,
                   ifelse(
                     droughtc_u_heatc_u_floodc_u_df >= 0.5,
                     5,
-                    ifelse(droughtc_u_heatc_u_floodc_u_hf >= 0.5, 6, 7)
+                    ifelse(
+                      droughtc_u_heatc_u_floodc_u_hf >= 0.5, 
+                      6, 
+                      ifelse(
+                        droughtc_u_heatc_u_floodc_u_dhf >= 0.5, 7, 8)
+                    )
                   )
                 )
               )
@@ -5440,7 +5486,10 @@ dB_impact_full_make_f <- function(dB_impact,
                ifelse(
                  droughtf_u_heatf_u_d >= 0.5,
                  1,
-                 ifelse(droughtf_u_heatf_u_h >= 0.5, 2, 4)
+                 ifelse(droughtf_u_heatf_u_h >= 0.5, 
+                    2, 
+                    ifelse(droughtf_u_heatf_u_dh >= 0.5, 4, 8)
+                 )
                )
              )) %>%
     
@@ -5455,7 +5504,10 @@ dB_impact_full_make_f <- function(dB_impact,
                ifelse(
                  droughtf_u_floodf_u_d >= 0.5,
                  1,
-                 ifelse(droughtf_u_floodf_u_f >= 0.5, 3, 5)
+                 ifelse(droughtf_u_floodf_u_f >= 0.5, 
+                    3, 
+                    ifelse(droughtf_u_floodf_u_df >= 0.5, 5, 8)
+                 )
                )
              )) %>%
     
@@ -5470,7 +5522,10 @@ dB_impact_full_make_f <- function(dB_impact,
                ifelse(
                  heatf_u_floodf_u_h >= 0.5,
                  2,
-                 ifelse(heatf_u_floodf_u_f >= 0.5, 3, 6)
+                 ifelse(heatf_u_floodf_u_f >= 0.5, 
+                    3, 
+                    ifelse(heatf_u_floodf_u_hf >= 0.5, 6, 8)
+                 )
                )
              )) %>%
     
@@ -5509,7 +5564,12 @@ dB_impact_full_make_f <- function(dB_impact,
                   ifelse(
                     droughtf_u_heatf_u_floodf_u_df >= 0.5,
                     5,
-                    ifelse(droughtf_u_heatf_u_floodf_u_hf >= 0.5, 6, 7)
+                    ifelse(
+                      droughtf_u_heatf_u_floodf_u_hf >= 0.5, 
+                      6,
+                      ifelse(
+                        droughtf_u_heatf_u_floodf_u_dhf >= 0.5, 7, 8)
+                    )
                   )
                 )
               )
@@ -5531,7 +5591,10 @@ dB_impact_full_make_f <- function(dB_impact,
                ifelse(
                  droughtc_l_heatc_u_d >= 0.5,
                  1,
-                 ifelse(droughtc_l_heatc_u_h >= 0.5, 2, 4)
+                 ifelse(droughtc_l_heatc_u_h >= 0.5, 
+                    2, 
+                    ifelse(droughtc_l_heatc_u_dh >= 0.5, 4, 8)
+                    )
                )
              )) %>%
     
@@ -5547,7 +5610,10 @@ dB_impact_full_make_f <- function(dB_impact,
                ifelse(
                  droughtc_u_heatc_l_d >= 0.5,
                  1,
-                 ifelse(droughtc_u_heatc_l_h >= 0.5, 2, 4)
+                 ifelse(droughtc_u_heatc_l_h >= 0.5, 
+                    2,  
+                    ifelse(droughtc_u_heatc_l_dh >= 0.5, 4, 8)
+                 )
                )
              )) %>%
     
@@ -5563,7 +5629,10 @@ dB_impact_full_make_f <- function(dB_impact,
                ifelse(
                  droughtc_l_floodc_u_d >= 0.5,
                  1,
-                 ifelse(droughtc_l_floodc_u_f >= 0.5, 3, 5)
+                 ifelse(droughtc_l_floodc_u_f >= 0.5, 
+                    3, 
+                    ifelse(droughtc_l_floodc_u_df >= 0.5, 5, 8)
+                 )
                )
              )) %>%
     
@@ -5579,7 +5648,10 @@ dB_impact_full_make_f <- function(dB_impact,
                ifelse(
                  droughtc_u_floodc_l_d >= 0.5,
                  1,
-                 ifelse(droughtc_u_floodc_l_f >= 0.5, 3, 5)
+                 ifelse(droughtc_u_floodc_l_f >= 0.5, 
+                   3,
+                   ifelse(droughtc_u_floodc_l_df >= 0.5, 5, 8)
+                 )
                )
              )) %>%
     
@@ -5595,7 +5667,10 @@ dB_impact_full_make_f <- function(dB_impact,
                ifelse(
                  heatc_l_floodc_u_h >= 0.5,
                  2,
-                 ifelse(heatc_l_floodc_u_f >= 0.5, 3, 6)
+                 ifelse(heatc_l_floodc_u_f >= 0.5, 
+                    3,
+                    ifelse(heatc_l_floodc_u_hf >= 0.5, 6, 8)
+                 )
                )
              )) %>%
     
@@ -5611,7 +5686,10 @@ dB_impact_full_make_f <- function(dB_impact,
                ifelse(
                  heatc_u_floodc_l_h >= 0.5,
                  2,
-                 ifelse(heatc_u_floodc_l_f >= 0.5, 3, 6)
+                 ifelse(heatc_u_floodc_l_f >= 0.5, 
+                    3, 
+                    ifelse(heatc_u_floodc_l_hf >= 0.5, 6, 8)
+                 )
                )
              )) %>%
     
@@ -5650,7 +5728,12 @@ dB_impact_full_make_f <- function(dB_impact,
                   ifelse(
                     droughtc_l_heatc_l_floodc_u_df >= 0.5,
                     5,
-                    ifelse(droughtc_l_heatc_l_floodc_u_hf >= 0.5, 6, 7)
+                    ifelse(
+                      droughtc_l_heatc_l_floodc_u_hf >= 0.5, 
+                      6, 
+                      ifelse(
+                        droughtc_l_heatc_l_floodc_u_dhf >= 0.5, 7, 8)
+                    )
                   )
                 )
               )
@@ -5694,7 +5777,12 @@ dB_impact_full_make_f <- function(dB_impact,
                   ifelse(
                     droughtc_l_heatc_u_floodc_l_df >= 0.5,
                     5,
-                    ifelse(droughtc_l_heatc_u_floodc_l_hf >= 0.5, 6, 7)
+                    ifelse(
+                      droughtc_l_heatc_u_floodc_l_hf >= 0.5, 
+                      6, 
+                      ifelse(
+                        droughtc_l_heatc_u_floodc_l_dhf >= 0.5, 7, 8)
+                    )
                   )
                 )
               )
@@ -5738,7 +5826,12 @@ dB_impact_full_make_f <- function(dB_impact,
                   ifelse(
                     droughtc_u_heatc_l_floodc_u_df >= 0.5,
                     5,
-                    ifelse(droughtc_u_heatc_l_floodc_u_hf >= 0.5, 6, 7)
+                    ifelse(
+                      droughtc_u_heatc_l_floodc_u_hf >= 0.5, 
+                      6, 
+                      ifelse(
+                        droughtc_u_heatc_l_floodc_u_dhf >= 0.5, 7, 8)
+                    )
                   )
                 )
               )
@@ -5782,7 +5875,12 @@ dB_impact_full_make_f <- function(dB_impact,
                   ifelse(
                     droughtc_u_heatc_l_floodc_l_df >= 0.5,
                     5,
-                    ifelse(droughtc_u_heatc_l_floodc_l_hf >= 0.5, 6, 7)
+                    ifelse(
+                      droughtc_u_heatc_l_floodc_l_hf >= 0.5, 
+                      6, 
+                      ifelse(
+                        droughtc_u_heatc_l_floodc_l_dhf >= 0.5, 7, 8)
+                    )
                   )
                 )
               )
@@ -5826,7 +5924,12 @@ dB_impact_full_make_f <- function(dB_impact,
                   ifelse(
                     droughtc_u_heatc_u_floodc_l_df >= 0.5,
                     5,
-                    ifelse(droughtc_u_heatc_u_floodc_l_hf >= 0.5, 6, 7)
+                    ifelse(
+                      droughtc_u_heatc_u_floodc_l_hf >= 0.5, 
+                      6, 
+                      ifelse(
+                        droughtc_u_heatc_u_floodc_l_dhf >= 0.5, 7, 8)
+                    )
                   )
                 )
               )
@@ -5870,7 +5973,10 @@ dB_impact_full_make_f <- function(dB_impact,
                   ifelse(
                     droughtc_l_heatc_u_floodc_u_df >= 0.5,
                     5,
-                    ifelse(droughtc_l_heatc_u_floodc_u_hf >= 0.5, 6, 7)
+                    ifelse(droughtc_l_heatc_u_floodc_u_hf >= 0.5, 
+                      6, 
+                      ifelse(droughtc_l_heatc_u_floodc_u_dhf >= 0.5, 7, 8)
+                    )
                   )
                 )
               )
@@ -5891,7 +5997,10 @@ dB_impact_full_make_f <- function(dB_impact,
                ifelse(
                  droughtf_l_heatf_u_d >= 0.5,
                  1,
-                 ifelse(droughtf_l_heatf_u_h >= 0.5, 2, 4)
+                 ifelse(droughtf_l_heatf_u_h >= 0.5, 
+                    2, 
+                    ifelse(droughtf_l_heatf_u_dh >= 0.5, 4, 8)
+                 )
                )
              )) %>%
     
@@ -5907,7 +6016,10 @@ dB_impact_full_make_f <- function(dB_impact,
                ifelse(
                  droughtf_u_heatf_l_d >= 0.5,
                  1,
-                 ifelse(droughtf_u_heatf_l_h >= 0.5, 2, 4)
+                 ifelse(droughtf_u_heatf_l_h >= 0.5, 
+                   2, 
+                   ifelse(droughtf_u_heatf_l_dh >= 0.5, 4, 8)
+                 )
                )
              )) %>%
     
@@ -5923,7 +6035,10 @@ dB_impact_full_make_f <- function(dB_impact,
                ifelse(
                  droughtf_l_floodf_u_d >= 0.5,
                  1,
-                 ifelse(droughtf_l_floodf_u_f >= 0.5, 3, 5)
+                 ifelse(droughtf_l_floodf_u_f >= 0.5, 
+                   3, 
+                   ifelse(droughtf_l_floodf_u_df >= 0.5, 5, 8)
+                 )
                )
              )) %>%
     
@@ -5939,7 +6054,10 @@ dB_impact_full_make_f <- function(dB_impact,
                ifelse(
                  droughtf_u_floodf_l_d >= 0.5,
                  1,
-                 ifelse(droughtf_u_floodf_l_f >= 0.5, 3, 5)
+                 ifelse(droughtf_u_floodf_l_f >= 0.5, 
+                   3, 
+                   ifelse(droughtf_u_floodf_l_df >= 0.5, 5, 8)
+                 )
                )
              )) %>%
     
@@ -5955,7 +6073,10 @@ dB_impact_full_make_f <- function(dB_impact,
                ifelse(
                  heatf_l_floodf_u_h >= 0.5,
                  2,
-                 ifelse(heatf_l_floodf_u_f >= 0.5, 3, 6)
+                 ifelse(heatf_l_floodf_u_f >= 0.5, 
+                   3, 
+                   ifelse(heatf_l_floodf_u_hf >= 0.5, 6, 8)
+                 )
                )
              )) %>%
     
@@ -5971,7 +6092,10 @@ dB_impact_full_make_f <- function(dB_impact,
                ifelse(
                  heatf_u_floodf_l_h >= 0.5,
                  2,
-                 ifelse(heatf_u_floodf_l_f >= 0.5, 3, 6)
+                 ifelse(heatf_u_floodf_l_f >= 0.5, 
+                    3, 
+                    ifelse(heatf_u_floodf_l_hf >= 0.5, 6, 8)
+                 )
                )
              )) %>%
     
@@ -6010,7 +6134,12 @@ dB_impact_full_make_f <- function(dB_impact,
                   ifelse(
                     droughtf_l_heatf_l_floodf_u_df >= 0.5,
                     5,
-                    ifelse(droughtf_l_heatf_l_floodf_u_hf >= 0.5, 6, 7)
+                    ifelse(
+                      droughtf_l_heatf_l_floodf_u_hf >= 0.5, 
+                      6, 
+                      ifelse(
+                        droughtf_l_heatf_l_floodf_u_dhf >= 0.5, 7, 8)
+                    )
                   )
                 )
               )
@@ -6054,7 +6183,13 @@ dB_impact_full_make_f <- function(dB_impact,
                   ifelse(
                     droughtf_l_heatf_u_floodf_l_df >= 0.5,
                     5,
-                    ifelse(droughtf_l_heatf_u_floodf_l_hf >= 0.5, 6, 7)
+                    ifelse(
+                      droughtf_l_heatf_u_floodf_l_hf >= 0.5, 
+                      6, 
+                      ifelse(
+                        droughtf_l_heatf_u_floodf_l_dhf >= 0.5, 
+                         7, 8)
+                    )
                   )
                 )
               )
@@ -6098,7 +6233,12 @@ dB_impact_full_make_f <- function(dB_impact,
                   ifelse(
                     droughtf_u_heatf_l_floodf_u_df >= 0.5,
                     5,
-                    ifelse(droughtf_u_heatf_l_floodf_u_hf >= 0.5, 6, 7)
+                    ifelse(
+                      droughtf_u_heatf_l_floodf_u_hf >= 0.5, 
+                      6,
+                      ifelse(
+                        droughtf_u_heatf_l_floodf_u_dhf >= 0.5, 7, 8)
+                    )
                   )
                 )
               )
@@ -6142,7 +6282,12 @@ dB_impact_full_make_f <- function(dB_impact,
                   ifelse(
                     droughtf_u_heatf_l_floodf_l_df >= 0.5,
                     5,
-                    ifelse(droughtf_u_heatf_l_floodf_l_hf >= 0.5, 6, 7)
+                    ifelse(
+                      droughtf_u_heatf_l_floodf_l_hf >= 0.5, 
+                      6, 
+                      ifelse(
+                        droughtf_u_heatf_l_floodf_l_dhf >= 0.5, 7, 8)
+                    )
                   )
                 )
               )
@@ -6186,7 +6331,12 @@ dB_impact_full_make_f <- function(dB_impact,
                   ifelse(
                     droughtf_u_heatf_u_floodf_l_df >= 0.5,
                     5,
-                    ifelse(droughtf_u_heatf_u_floodf_l_hf >= 0.5, 6, 7)
+                    ifelse(
+                      droughtf_u_heatf_u_floodf_l_hf >= 0.5, 
+                      6, 
+                      ifelse(
+                        droughtf_u_heatf_u_floodf_l_dhf >= 0.5, 7, 8)
+                    )
                   )
                 )
               )
@@ -6230,7 +6380,12 @@ dB_impact_full_make_f <- function(dB_impact,
                   ifelse(
                     droughtf_l_heatf_u_floodf_u_df >= 0.5,
                     5,
-                    ifelse(droughtf_l_heatf_u_floodf_u_hf >= 0.5, 6, 7)
+                    ifelse(
+                      droughtf_l_heatf_u_floodf_u_hf >= 0.5, 
+                      6, 
+                      ifelse(
+                        droughtf_l_heatf_u_floodf_u_dhf >= 0.5, 7, 8)
+                    )
                   )
                 )
               )
