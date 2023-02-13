@@ -2065,7 +2065,575 @@ list(
 
 ### Plot Spatial Impact Data
 
+#### Past Lower threshold
 
+```{targets impact_data_plot_1}
+
+list(
+  tar_target(
+    r_droughtc_l_heatc_l_max_plot,
+    r_droughtc_l_heatc_l_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  ),
+  tar_target(
+    r_droughtc_l_floodc_l_max_plot,
+    r_droughtc_l_floodc_l_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  ),
+  tar_target(
+    r_heatc_l_floodc_l_max_plot,
+    r_heatc_l_floodc_l_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  ),
+  tar_target(
+    r_droughtc_l_heatc_l_floodc_l_max_plot,
+    r_droughtc_l_heatc_l_floodc_l_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  )
+)
+
+```
+
+#### Past Upper threshold
+
+```{targets impact_data_plot_2}
+
+list(
+  tar_target(
+    r_droughtc_u_heatc_u_max_plot,
+    r_droughtc_u_heatc_u_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  ),
+  tar_target(
+    r_droughtc_u_floodc_u_max_plot,
+    r_droughtc_u_floodc_u_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  ),
+  tar_target(
+    r_heatc_u_floodc_u_max_plot,
+    r_heatc_u_floodc_u_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  ),
+  tar_target(
+    r_droughtc_u_heatc_u_floodc_u_max_plot,
+    r_droughtc_u_heatc_u_floodc_u_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  )
+)
+
+```
+#### Past Mixed threshold
+
+```{targets impact_data_plot_3}
+
+list(
+  tar_target(
+    r_droughtc_l_heatc_u_max_plot,
+    r_droughtc_l_heatc_u_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  ),
+  tar_target(
+    r_droughtc_u_heatc_l_max_plot,
+    r_droughtc_u_heatc_l_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  ),
+  tar_target(
+    r_droughtc_l_floodc_u_max_plot,
+    r_droughtc_l_floodc_u_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  ),
+  tar_target(
+    r_droughtc_u_floodc_l_max_plot,
+    r_droughtc_u_floodc_l_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  ),
+  tar_target(
+    r_heatc_l_floodc_u_max_plot,
+    r_heatc_l_floodc_u_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  ),
+  tar_target(
+    r_heatc_u_floodc_l_max_plot,
+    r_heatc_u_floodc_l_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  ),
+  tar_target(
+    r_droughtc_l_heatc_l_floodc_u_max_plot,
+    r_droughtc_l_heatc_l_floodc_u_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  ),
+  tar_target(
+    r_droughtc_l_heatc_u_floodc_l_max_plot,
+    r_droughtc_l_heatc_u_floodc_l_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  ),
+  tar_target(
+    r_droughtc_u_heatc_l_floodc_l_max_plot,
+    r_droughtc_u_heatc_l_floodc_l_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  ),
+  tar_target(
+    r_droughtc_l_heatc_u_floodc_u_max_plot,
+    r_droughtc_l_heatc_u_floodc_u_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  ),
+  tar_target(
+    r_droughtc_u_heatc_l_floodc_u_max_plot,
+    r_droughtc_u_heatc_l_floodc_u_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  ),
+  tar_target(
+    r_droughtc_u_heatc_u_floodc_l_max_plot,
+    r_droughtc_u_heatc_u_floodc_l_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  )
+)
+```
+
+#### Future Lower threshold
+
+```{targets impact_data_plot_4}
+
+list(
+  tar_target(
+    r_droughtf_l_heatf_l_max_plot,
+    r_droughtf_l_heatf_l_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  ),
+  tar_target(
+    r_droughtf_l_floodf_l_max_plot,
+    r_droughtf_l_floodf_l_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  ),
+  tar_target(
+    r_heatf_l_floodf_l_max_plot,
+    r_heatf_l_floodf_l_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  ),
+  tar_target(
+    r_droughtf_l_heatf_l_floodf_l_max_plot,
+    r_droughtf_l_heatf_l_floodf_l_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  )
+)
+
+```
+
+#### Future Upper threshold
+
+```{targets impact_data_plot_5}
+
+list(
+  tar_target(
+    r_droughtf_u_heatf_u_max_plot,
+    r_droughtf_u_heatf_u_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  ),
+  tar_target(
+    r_droughtf_u_floodf_u_max_plot,
+    r_droughtf_u_floodf_u_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  ),
+  tar_target(
+    r_heatf_u_floodf_u_max_plot,
+    r_heatf_u_floodf_u_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  ),
+  tar_target(
+    r_droughtf_u_heatf_u_floodf_u_max_plot,
+    r_droughtf_u_heatf_u_floodf_u_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  )
+)
+
+```
+#### Future Mixed threshold
+
+```{targets impact_data_plot_6}
+
+list(
+  tar_target(
+    r_droughtf_l_heatf_u_max_plot,
+    r_droughtf_l_heatf_u_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  ),
+  tar_target(
+    r_droughtf_u_heatf_l_max_plot,
+    r_droughtf_u_heatf_l_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  ),
+  tar_target(
+    r_droughtf_l_floodf_u_max_plot,
+    r_droughtf_l_floodf_u_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  ),
+  tar_target(
+    r_droughtf_u_floodf_l_max_plot,
+    r_droughtf_u_floodf_l_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  ),
+  tar_target(
+    r_heatf_l_floodf_u_max_plot,
+    r_heatf_l_floodf_u_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  ),
+  tar_target(
+    r_heatf_u_floodf_l_max_plot,
+    r_heatf_u_floodf_l_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  ),
+  tar_target(
+    r_droughtf_l_heatf_l_floodf_u_max_plot,
+    r_droughtf_l_heatf_l_floodf_u_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  ),
+  tar_target(
+    r_droughtf_l_heatf_u_floodf_l_max_plot,
+    r_droughtf_l_heatf_u_floodf_l_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  ),
+  tar_target(
+    r_droughtf_u_heatf_l_floodf_l_max_plot,
+    r_droughtf_u_heatf_l_floodf_l_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  ),
+  tar_target(
+    r_droughtf_l_heatf_u_floodf_u_max_plot,
+    r_droughtf_l_heatf_u_floodf_u_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  ),
+  tar_target(
+    r_droughtf_u_heatf_l_floodf_u_max_plot,
+    r_droughtf_u_heatf_l_floodf_u_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  ),
+  tar_target(
+    r_droughtf_u_heatf_u_floodf_l_max_plot,
+    r_droughtf_u_heatf_u_floodf_l_max_plot_f(
+      r_droughtc_l_heatc_l_max,
+      v_ISO1,
+      v_crop_ISO_lc_rcl_agg,
+      v_ISO_extent,
+      world,
+      ISO,
+      crop,
+      flood
+    )
+  )
+)
+```
 
 
 ## Impact Zonal Statistics
@@ -3083,6 +3651,11 @@ tar_read(dB_profilec_d_l_h_l_plot)
 
 ```
 
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_droughtc_l_heatc_l_max_plot)
+
+```
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
@@ -3090,6 +3663,11 @@ tar_read(dB_profilec_d_l_f_l_plot)
 
 ```
 
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_droughtc_l_floodc_l_max_plot)
+
+```
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
@@ -3097,6 +3675,11 @@ tar_read(dB_profilec_h_l_f_l_plot)
 
 ```
 
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_heatc_l_floodc_l_max_plot)
+
+```
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
@@ -3105,12 +3688,23 @@ tar_read(dB_profilec_d_l_h_l_f_l_plot)
 
 ```
 
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_droughtc_l_heatc_l_floodc_l_max_plot)
+
+```
 
 ### Past - Upper thresholds 
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
 tar_read(dB_profilec_d_u_h_u_plot)
+
+```
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_droughtc_u_heatc_u_max_plot)
 
 ```
 
@@ -3121,6 +3715,12 @@ tar_read(dB_profilec_d_u_f_u_plot)
 
 ```
 
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_droughtc_u_floodc_u_max_plot)
+
+```
+
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
@@ -3128,12 +3728,24 @@ tar_read(dB_profilec_h_u_f_u_plot)
 
 ```
 
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_heatc_u_floodc_u_max_plot)
+
+```
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
 tar_read(dB_profilec_d_u_h_u_f_u_plot)
 
 ```
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_droughtc_u_heatc_u_floodc_u_max_plot)
+
+```
+
 
 ### Past - Mixed thresholds 
 
@@ -3143,29 +3755,60 @@ tar_read(dB_profilec_d_u_h_u_f_u_plot)
 tar_read(dB_profilec_d_u_h_l_plot)
 ```
 
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_droughtc_u_heatc_l_max_plot)
+
+```
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 tar_read(dB_profilec_d_l_h_u_plot)
 ```
 
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_droughtc_l_heatc_u_max_plot)
+
+```
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 tar_read(dB_profilec_d_u_f_l_plot)
 ```
 
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_droughtc_u_floodc_l_max_plot)
+
+```
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 tar_read(dB_profilec_d_l_f_u_plot)
 ```
 
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_droughtc_l_floodc_u_max_plot)
+
+```
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 tar_read(dB_profilec_h_u_f_l_plot)
 ```
 
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_heatc_u_floodc_l_max_plot)
+
+```
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 tar_read(dB_profilec_h_l_f_u_plot)
+```
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_heatc_l_floodc_u_max_plot)
+
 ```
 
 
@@ -3173,9 +3816,21 @@ tar_read(dB_profilec_h_l_f_u_plot)
 tar_read(dB_profilec_d_u_h_l_f_l_plot)
 ```
 
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_droughtc_u_heatc_l_floodc_l_max_plot)
+
+```
+
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 tar_read(dB_profilec_d_l_h_u_f_l_plot)
+```
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_droughtc_l_heatc_u_floodc_l_max_plot)
+
 ```
 
 
@@ -3183,96 +3838,210 @@ tar_read(dB_profilec_d_l_h_u_f_l_plot)
 tar_read(dB_profilec_d_l_h_l_f_u_plot)
 ```
 
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_droughtc_l_heatc_l_floodc_u_max_plot)
+
+```
+
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 tar_read(dB_profilec_d_u_h_u_f_l_plot)
 ```
 
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_droughtc_u_heatc_u_floodc_l_max_plot)
+
+```
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 tar_read(dB_profilec_d_u_h_l_f_u_plot)
 ```
 
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_droughtc_u_heatc_l_floodc_u_max_plot)
+
+```
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 tar_read(dB_profilec_d_l_h_u_f_u_plot)
 
 ```
 
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_droughtc_l_heatc_u_floodc_u_max_plot)
+
+```
+
 ### Future - Lower thresholds 
 
-
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
 tar_read(dB_profilef_d_l_h_l_plot)
+
 ```
 
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_droughtf_l_heatf_l_max_plot)
+
+```
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
 tar_read(dB_profilef_d_l_f_l_plot)
+
 ```
 
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_droughtf_l_floodf_l_max_plot)
+
+```
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
 tar_read(dB_profilef_h_l_f_l_plot)
+
 ```
 
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_heatf_l_floodf_l_max_plot)
+
+```
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+
 tar_read(dB_profilef_d_l_h_l_f_l_plot)
-```  
+
+```
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_droughtf_l_heatf_l_floodf_l_max_plot)
+
+```
 
 ### Future - Upper thresholds 
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
 tar_read(dB_profilef_d_u_h_u_plot)
+
+```
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_droughtf_u_heatf_u_max_plot)
+
 ```
 
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
 tar_read(dB_profilef_d_u_f_u_plot)
+
+```
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_droughtf_u_floodf_u_max_plot)
+
 ```
 
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
 tar_read(dB_profilef_h_u_f_u_plot)
+
 ```
 
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_heatf_u_floodf_u_max_plot)
+
+```
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
 tar_read(dB_profilef_d_u_h_u_f_u_plot)
 
 ```
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_droughtf_u_heatf_u_floodf_u_max_plot)
+
+```
+
 
 ### Future - Mixed thresholds 
 
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
 tar_read(dB_profilef_d_u_h_l_plot)
 ```
 
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_droughtf_u_heatf_l_max_plot)
+
+```
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 tar_read(dB_profilef_d_l_h_u_plot)
 ```
 
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_droughtf_l_heatf_u_max_plot)
+
+```
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 tar_read(dB_profilef_d_u_f_l_plot)
 ```
 
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_droughtf_u_floodf_l_max_plot)
+
+```
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 tar_read(dB_profilef_d_l_f_u_plot)
 ```
 
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_droughtf_l_floodf_u_max_plot)
+
+```
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 tar_read(dB_profilef_h_u_f_l_plot)
 ```
 
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_heatf_u_floodf_l_max_plot)
+
+```
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 tar_read(dB_profilef_h_l_f_u_plot)
+```
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_heatf_l_floodf_u_max_plot)
+
 ```
 
 
@@ -3280,9 +4049,21 @@ tar_read(dB_profilef_h_l_f_u_plot)
 tar_read(dB_profilef_d_u_h_l_f_l_plot)
 ```
 
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_droughtf_u_heatf_l_floodf_l_max_plot)
+
+```
+
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 tar_read(dB_profilef_d_l_h_u_f_l_plot)
+```
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_droughtf_l_heatf_u_floodf_l_max_plot)
+
 ```
 
 
@@ -3290,19 +4071,41 @@ tar_read(dB_profilef_d_l_h_u_f_l_plot)
 tar_read(dB_profilef_d_l_h_l_f_u_plot)
 ```
 
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_droughtf_l_heatf_l_floodf_u_max_plot)
+
+```
+
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 tar_read(dB_profilef_d_u_h_u_f_l_plot)
 ```
 
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_droughtf_u_heatf_u_floodf_l_max_plot)
+
+```
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 tar_read(dB_profilef_d_u_h_l_f_u_plot)
 ```
 
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_droughtf_u_heatf_l_floodf_u_max_plot)
+
+```
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 tar_read(dB_profilef_d_l_h_u_f_u_plot)
+
+```
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+tar_read(r_droughtf_l_heatf_u_floodf_u_max_plot)
 
 ```
 
