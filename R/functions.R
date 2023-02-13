@@ -7396,8 +7396,10 @@ r_droughtc_l_heatc_l_max_plot_f <-
            ISO,
            crop,
            flood) {
+
     gplot(r_droughtc_l_heatc_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value)), alpha = 1) +
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -7428,17 +7430,18 @@ r_droughtc_l_heatc_l_max_plot_f <-
       )  +
       scale_fill_manual(
         values = c(
-          "0"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
-          "1"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
-          "2"  = rgb(255, 255, 153, maxColorValue = 255), # heat
-          "3"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
-          "4"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
-          "5"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
-          "6"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
-          "7"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
-          "8"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
           "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
-        ), na.translate = F
+        ),
+        na.translate = F
       ) +
       xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
       ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
@@ -7474,7 +7477,8 @@ r_droughtc_l_floodc_l_max_plot_f <-
            crop,
            flood) {
     gplot(r_droughtc_l_floodc_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value)), alpha = 1) +
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -7505,17 +7509,18 @@ r_droughtc_l_floodc_l_max_plot_f <-
       )  +
       scale_fill_manual(
         values = c(
-          "0"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
-          "1"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
-          "2"  = rgb(255, 255, 153, maxColorValue = 255), # heat
-          "3"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
-          "4"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
-          "5"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
-          "6"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
-          "7"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
-          "8"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
           "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
-        ), na.translate = F
+        ),
+        na.translate = F
       ) +
       xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
       ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
@@ -7551,7 +7556,8 @@ r_heatc_l_floodc_l_max_plot_f <-
            crop,
            flood) {
     gplot(r_heatc_l_floodc_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value)), alpha = 1) +
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -7582,17 +7588,18 @@ r_heatc_l_floodc_l_max_plot_f <-
       )  +
       scale_fill_manual(
         values = c(
-          "0"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
-          "1"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
-          "2"  = rgb(255, 255, 153, maxColorValue = 255), # heat
-          "3"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
-          "4"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
-          "5"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
-          "6"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
-          "7"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
-          "8"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
           "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
-        ), na.translate = F
+        ),
+        na.translate = F
       ) +
       xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
       ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
@@ -7629,7 +7636,8 @@ r_droughtc_l_heatc_l_floodc_l_max_plot_f <-
            crop,
            flood) {
     gplot(r_droughtc_l_heatc_l_floodc_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value)), alpha = 1) +
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -7660,17 +7668,18 @@ r_droughtc_l_heatc_l_floodc_l_max_plot_f <-
       )  +
       scale_fill_manual(
         values = c(
-          "0"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
-          "1"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
-          "2"  = rgb(255, 255, 153, maxColorValue = 255), # heat
-          "3"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
-          "4"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
-          "5"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
-          "6"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
-          "7"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
-          "8"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
           "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
-        ), na.translate = F
+        ),
+        na.translate = F
       ) +
       xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
       ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
@@ -7708,7 +7717,8 @@ r_droughtc_u_heatc_u_max_plot_f <-
            crop,
            flood) {
     gplot(r_droughtc_u_heatc_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value)), alpha = 1) +
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -7739,17 +7749,18 @@ r_droughtc_u_heatc_u_max_plot_f <-
       )  +
       scale_fill_manual(
         values = c(
-          "0"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
-          "1"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
-          "2"  = rgb(255, 255, 153, maxColorValue = 255), # heat
-          "3"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
-          "4"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
-          "5"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
-          "6"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
-          "7"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
-          "8"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
           "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
-        ), na.translate = F
+        ),
+        na.translate = F
       ) +
       xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
       ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
@@ -7785,7 +7796,8 @@ r_droughtc_u_floodc_u_max_plot_f <-
            crop,
            flood) {
     gplot(r_droughtc_u_floodc_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value)), alpha = 1) +
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -7816,17 +7828,18 @@ r_droughtc_u_floodc_u_max_plot_f <-
       )  +
       scale_fill_manual(
         values = c(
-          "0"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
-          "1"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
-          "2"  = rgb(255, 255, 153, maxColorValue = 255), # heat
-          "3"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
-          "4"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
-          "5"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
-          "6"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
-          "7"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
-          "8"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
           "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
-        ), na.translate = F
+        ),
+        na.translate = F
       ) +
       xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
       ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
@@ -7862,7 +7875,8 @@ r_heatc_u_floodc_u_max_plot_f <-
            crop,
            flood) {
     gplot(r_heatc_u_floodc_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value)), alpha = 1) +
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -7893,17 +7907,18 @@ r_heatc_u_floodc_u_max_plot_f <-
       )  +
       scale_fill_manual(
         values = c(
-          "0"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
-          "1"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
-          "2"  = rgb(255, 255, 153, maxColorValue = 255), # heat
-          "3"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
-          "4"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
-          "5"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
-          "6"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
-          "7"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
-          "8"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
           "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
-        ), na.translate = F
+        ),
+        na.translate = F
       ) +
       xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
       ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
@@ -7940,7 +7955,8 @@ r_droughtc_u_heatc_u_floodc_u_max_plot_f <-
            crop,
            flood) {
     gplot(r_droughtc_u_heatc_u_floodc_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value)), alpha = 1) +
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -7971,17 +7987,18 @@ r_droughtc_u_heatc_u_floodc_u_max_plot_f <-
       )  +
       scale_fill_manual(
         values = c(
-          "0"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
-          "1"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
-          "2"  = rgb(255, 255, 153, maxColorValue = 255), # heat
-          "3"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
-          "4"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
-          "5"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
-          "6"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
-          "7"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
-          "8"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
           "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
-        ), na.translate = F
+        ),
+        na.translate = F
       ) +
       xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
       ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
