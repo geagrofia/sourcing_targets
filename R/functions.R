@@ -7385,6 +7385,8 @@ r_droughtf_u_heatf_u_floodf_l_max_get_f <-
 
 ### Plot Spatial Impact Data
 
+#### Past climate
+#### Lower thresholds
 
 # results in r_droughtc_l_heatc_l_max_plot
 r_droughtc_l_heatc_l_max_plot_f <-
@@ -7704,6 +7706,9 @@ r_droughtc_l_heatc_l_floodc_l_max_plot_f <-
       ) +
       coord_sf(expand = FALSE)
   }
+
+
+#### Upper thresholds
 
 
 # results in r_droughtc_u_heatc_u_max_plot
@@ -8026,7 +8031,2601 @@ r_droughtc_u_heatc_u_floodc_u_max_plot_f <-
 
 
 
+#### Mixed thresholds
 
+
+# results in r_droughtc_l_heatc_l_max_plot
+r_droughtc_l_heatc_u_max_plot_f <-
+  function(r_droughtc_l_heatc_u_max,
+           v_ISO1,
+           v_crop_ISO_lc_rcl_agg,
+           v_ISO_extent,
+           world,
+           ISO,
+           crop,
+           flood) {
+    
+    gplot(r_droughtc_l_heatc_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      geom_sf(
+        data = world,
+        fill = NA,
+        col = 'dark grey',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      ) +
+      geom_sf(
+        data = v_ISO1,
+        fill = NA,
+        col = 'black',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
+        fill = NA,
+        col = 'dark blue',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+        fill = NA,
+        col = 'dark green',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      scale_fill_manual(
+        values = c(
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
+        ),
+        na.translate = F
+      ) +
+      xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
+      ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
+      labs(
+        fill = paste0(
+          "--------------------\nPast\n",
+          "Impact\n",
+          "drought (l)\n",
+          "heat (u)\n\n",
+          ISO,
+          "\n",
+          crop,
+          "\n--------------------"
+        )
+      ) +
+      theme(
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+      ) +
+      coord_sf(expand = FALSE)
+  }
+
+
+
+
+# results in r_droughtc_u_heatc_l_max_plot
+r_droughtc_u_heatc_l_max_plot_f <-
+  function(r_droughtc_u_heatc_l_max,
+           v_ISO1,
+           v_crop_ISO_lc_rcl_agg,
+           v_ISO_extent,
+           world,
+           ISO,
+           crop,
+           flood) {
+    
+    gplot(r_droughtc_u_heatc_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      geom_sf(
+        data = world,
+        fill = NA,
+        col = 'dark grey',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      ) +
+      geom_sf(
+        data = v_ISO1,
+        fill = NA,
+        col = 'black',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
+        fill = NA,
+        col = 'dark blue',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+        fill = NA,
+        col = 'dark green',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      scale_fill_manual(
+        values = c(
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
+        ),
+        na.translate = F
+      ) +
+      xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
+      ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
+      labs(
+        fill = paste0(
+          "--------------------\nPast\n",
+          "Impact\n",
+          "drought (u)\n",
+          "heat (l)\n\n",
+          ISO,
+          "\n",
+          crop,
+          "\n--------------------"
+        )
+      ) +
+      theme(
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+      ) +
+      coord_sf(expand = FALSE)
+  }
+
+
+
+r_droughtc_l_floodc_u_max_plot_f <-
+  function(r_droughtc_l_floodc_u_max,
+           v_ISO1,
+           v_crop_ISO_lc_rcl_agg,
+           v_ISO_extent,
+           world,
+           ISO,
+           crop,
+           flood) {
+    
+    gplot(r_droughtc_l_floodc_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      geom_sf(
+        data = world,
+        fill = NA,
+        col = 'dark grey',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      ) +
+      geom_sf(
+        data = v_ISO1,
+        fill = NA,
+        col = 'black',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
+        fill = NA,
+        col = 'dark blue',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+        fill = NA,
+        col = 'dark green',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      scale_fill_manual(
+        values = c(
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
+        ),
+        na.translate = F
+      ) +
+      xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
+      ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
+      labs(
+        fill = paste0(
+          "--------------------\nPast\n",
+          "Impact\n",
+          "drought (l)\n",
+          "flood (u)\n\n",
+          ISO,
+          "\n",
+          crop,
+          "\n--------------------"
+        )
+      ) +
+      theme(
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+      ) +
+      coord_sf(expand = FALSE)
+  }
+
+
+r_droughtc_u_floodc_l_max_plot_f <-
+  function(r_droughtc_u_floodc_l_max,
+           v_ISO1,
+           v_crop_ISO_lc_rcl_agg,
+           v_ISO_extent,
+           world,
+           ISO,
+           crop,
+           flood) {
+    
+    gplot(r_droughtc_u_floodc_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      geom_sf(
+        data = world,
+        fill = NA,
+        col = 'dark grey',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      ) +
+      geom_sf(
+        data = v_ISO1,
+        fill = NA,
+        col = 'black',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
+        fill = NA,
+        col = 'dark blue',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+        fill = NA,
+        col = 'dark green',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      scale_fill_manual(
+        values = c(
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
+        ),
+        na.translate = F
+      ) +
+      xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
+      ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
+      labs(
+        fill = paste0(
+          "--------------------\nPast\n",
+          "Impact\n",
+          "drought (u)\n",
+          "flood (l)\n\n",
+          ISO,
+          "\n",
+          crop,
+          "\n--------------------"
+        )
+      ) +
+      theme(
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+      ) +
+      coord_sf(expand = FALSE)
+  }
+
+
+
+r_heatc_l_floodc_u_max_plot_f <-
+  function(r_heatc_l_floodc_u_max,
+           v_ISO1,
+           v_crop_ISO_lc_rcl_agg,
+           v_ISO_extent,
+           world,
+           ISO,
+           crop,
+           flood) {
+    
+    gplot(r_heatc_l_floodc_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      geom_sf(
+        data = world,
+        fill = NA,
+        col = 'dark grey',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      ) +
+      geom_sf(
+        data = v_ISO1,
+        fill = NA,
+        col = 'black',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
+        fill = NA,
+        col = 'dark blue',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+        fill = NA,
+        col = 'dark green',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      scale_fill_manual(
+        values = c(
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
+        ),
+        na.translate = F
+      ) +
+      xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
+      ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
+      labs(
+        fill = paste0(
+          "--------------------\nPast\n",
+          "Impact\n",
+          "heat (l)\n",
+          "flood (u)\n\n",
+          ISO,
+          "\n",
+          crop,
+          "\n--------------------"
+        )
+      ) +
+      theme(
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+      ) +
+      coord_sf(expand = FALSE)
+  }
+
+
+
+
+r_heatc_u_floodc_l_max_plot_f <-
+  function(r_heatc_u_floodc_l_max,
+           v_ISO1,
+           v_crop_ISO_lc_rcl_agg,
+           v_ISO_extent,
+           world,
+           ISO,
+           crop,
+           flood) {
+    
+    gplot(r_heatc_u_floodc_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      geom_sf(
+        data = world,
+        fill = NA,
+        col = 'dark grey',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      ) +
+      geom_sf(
+        data = v_ISO1,
+        fill = NA,
+        col = 'black',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
+        fill = NA,
+        col = 'dark blue',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+        fill = NA,
+        col = 'dark green',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      scale_fill_manual(
+        values = c(
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
+        ),
+        na.translate = F
+      ) +
+      xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
+      ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
+      labs(
+        fill = paste0(
+          "--------------------\nPast\n",
+          "Impact\n",
+          "heat (l)\n",
+          "flood (u)\n\n",
+          ISO,
+          "\n",
+          crop,
+          "\n--------------------"
+        )
+      ) +
+      theme(
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+      ) +
+      coord_sf(expand = FALSE)
+  }
+
+r_droughtc_l_heatc_l_floodc_u_max_plot_f <-
+  function(r_droughtc_l_heatc_l_floodc_u_max,
+           v_ISO1,
+           v_crop_ISO_lc_rcl_agg,
+           v_ISO_extent,
+           world,
+           ISO,
+           crop,
+           flood) {
+    
+    gplot(r_droughtc_l_heatc_l_floodc_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      geom_sf(
+        data = world,
+        fill = NA,
+        col = 'dark grey',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      ) +
+      geom_sf(
+        data = v_ISO1,
+        fill = NA,
+        col = 'black',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
+        fill = NA,
+        col = 'dark blue',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+        fill = NA,
+        col = 'dark green',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      scale_fill_manual(
+        values = c(
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
+        ),
+        na.translate = F
+      ) +
+      xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
+      ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
+      labs(
+        fill = paste0(
+          "--------------------\nPast\n",
+          "Impact\n",
+          "drought (l)",
+          "heat (l)\n",
+          "flood (u)\n\n",
+          ISO,
+          "\n",
+          crop,
+          "\n--------------------"
+        )
+      ) +
+      theme(
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+      ) +
+      coord_sf(expand = FALSE)
+  }
+
+
+r_droughtc_l_heatc_u_floodc_l_max_plot_f <-
+  function(r_droughtc_l_heatc_u_floodc_l_max,
+           v_ISO1,
+           v_crop_ISO_lc_rcl_agg,
+           v_ISO_extent,
+           world,
+           ISO,
+           crop,
+           flood) {
+    
+    gplot(r_droughtc_l_heatc_u_floodc_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      geom_sf(
+        data = world,
+        fill = NA,
+        col = 'dark grey',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      ) +
+      geom_sf(
+        data = v_ISO1,
+        fill = NA,
+        col = 'black',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
+        fill = NA,
+        col = 'dark blue',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+        fill = NA,
+        col = 'dark green',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      scale_fill_manual(
+        values = c(
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
+        ),
+        na.translate = F
+      ) +
+      xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
+      ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
+      labs(
+        fill = paste0(
+          "--------------------\nPast\n",
+          "Impact\n",
+          "drought (l)",
+          "heat (u)\n",
+          "flood (l)\n\n",
+          ISO,
+          "\n",
+          crop,
+          "\n--------------------"
+        )
+      ) +
+      theme(
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+      ) +
+      coord_sf(expand = FALSE)
+  }
+
+
+r_droughtc_u_heatc_l_floodc_l_max_plot_f <-
+  function(r_droughtc_u_heatc_l_floodc_l_max,
+           v_ISO1,
+           v_crop_ISO_lc_rcl_agg,
+           v_ISO_extent,
+           world,
+           ISO,
+           crop,
+           flood) {
+    
+    gplot(r_droughtc_u_heatc_l_floodc_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      geom_sf(
+        data = world,
+        fill = NA,
+        col = 'dark grey',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      ) +
+      geom_sf(
+        data = v_ISO1,
+        fill = NA,
+        col = 'black',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
+        fill = NA,
+        col = 'dark blue',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+        fill = NA,
+        col = 'dark green',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      scale_fill_manual(
+        values = c(
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
+        ),
+        na.translate = F
+      ) +
+      xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
+      ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
+      labs(
+        fill = paste0(
+          "--------------------\nPast\n",
+          "Impact\n",
+          "drought (u)",
+          "heat (l)\n",
+          "flood (l)\n\n",
+          ISO,
+          "\n",
+          crop,
+          "\n--------------------"
+        )
+      ) +
+      theme(
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+      ) +
+      coord_sf(expand = FALSE)
+  }
+
+
+r_droughtc_l_heatc_u_floodc_u_max_plot_f <-
+  function(r_droughtc_l_heatc_u_floodc_u_max,
+           v_ISO1,
+           v_crop_ISO_lc_rcl_agg,
+           v_ISO_extent,
+           world,
+           ISO,
+           crop,
+           flood) {
+    
+    gplot(r_droughtc_l_heatc_u_floodc_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      geom_sf(
+        data = world,
+        fill = NA,
+        col = 'dark grey',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      ) +
+      geom_sf(
+        data = v_ISO1,
+        fill = NA,
+        col = 'black',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
+        fill = NA,
+        col = 'dark blue',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+        fill = NA,
+        col = 'dark green',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      scale_fill_manual(
+        values = c(
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
+        ),
+        na.translate = F
+      ) +
+      xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
+      ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
+      labs(
+        fill = paste0(
+          "--------------------\nPast\n",
+          "Impact\n",
+          "drought (l)",
+          "heat (u)\n",
+          "flood (u)\n\n",
+          ISO,
+          "\n",
+          crop,
+          "\n--------------------"
+        )
+      ) +
+      theme(
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+      ) +
+      coord_sf(expand = FALSE)
+  }
+
+
+r_droughtc_u_heatc_l_floodc_u_max_plot_f <-
+  function(r_droughtc_u_heatc_l_floodc_u_max,
+           v_ISO1,
+           v_crop_ISO_lc_rcl_agg,
+           v_ISO_extent,
+           world,
+           ISO,
+           crop,
+           flood) {
+    
+    gplot(r_droughtc_u_heatc_l_floodc_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      geom_sf(
+        data = world,
+        fill = NA,
+        col = 'dark grey',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      ) +
+      geom_sf(
+        data = v_ISO1,
+        fill = NA,
+        col = 'black',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
+        fill = NA,
+        col = 'dark blue',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+        fill = NA,
+        col = 'dark green',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      scale_fill_manual(
+        values = c(
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
+        ),
+        na.translate = F
+      ) +
+      xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
+      ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
+      labs(
+        fill = paste0(
+          "--------------------\nPast\n",
+          "Impact\n",
+          "drought (u)",
+          "heat (l)\n",
+          "flood (u)\n\n",
+          ISO,
+          "\n",
+          crop,
+          "\n--------------------"
+        )
+      ) +
+      theme(
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+      ) +
+      coord_sf(expand = FALSE)
+  }
+
+
+r_droughtc_u_heatc_u_floodc_l_max_plot_f <-
+  function(r_droughtc_u_heatc_u_floodc_l_max,
+           v_ISO1,
+           v_crop_ISO_lc_rcl_agg,
+           v_ISO_extent,
+           world,
+           ISO,
+           crop,
+           flood) {
+    
+    gplot(r_droughtc_u_heatc_u_floodc_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      geom_sf(
+        data = world,
+        fill = NA,
+        col = 'dark grey',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      ) +
+      geom_sf(
+        data = v_ISO1,
+        fill = NA,
+        col = 'black',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
+        fill = NA,
+        col = 'dark blue',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+        fill = NA,
+        col = 'dark green',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      scale_fill_manual(
+        values = c(
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
+        ),
+        na.translate = F
+      ) +
+      xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
+      ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
+      labs(
+        fill = paste0(
+          "--------------------\nPast\n",
+          "Impact\n",
+          "drought (u)",
+          "heat (u)\n",
+          "flood (l)\n\n",
+          ISO,
+          "\n",
+          crop,
+          "\n--------------------"
+        )
+      ) +
+      theme(
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+      ) +
+      coord_sf(expand = FALSE)
+  }
+
+#### Future climate
+#### Lower thresholds
+
+# results in r_droughtf_l_heatf_l_max_plot
+r_droughtf_l_heatf_l_max_plot_f <-
+  function(r_droughtf_l_heatf_l_max,
+           v_ISO1,
+           v_crop_ISO_lc_rcl_agg,
+           v_ISO_extent,
+           world,
+           ISO,
+           crop,
+           flood) {
+    
+    gplot(r_droughtf_l_heatf_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      geom_sf(
+        data = world,
+        fill = NA,
+        col = 'dark grey',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      ) +
+      geom_sf(
+        data = v_ISO1,
+        fill = NA,
+        col = 'black',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
+        fill = NA,
+        col = 'dark blue',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+        fill = NA,
+        col = 'dark green',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      scale_fill_manual(
+        values = c(
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
+        ),
+        na.translate = F
+      ) +
+      xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
+      ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
+      labs(
+        fill = paste0(
+          "--------------------\nFuture\n",
+          "Impact\n",
+          "drought (l)\n",
+          "heat (l)\n\n",
+          ISO,
+          "\n",
+          crop,
+          "\n--------------------"
+        )
+      ) +
+      theme(
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+      ) +
+      coord_sf(expand = FALSE)
+  }
+
+# results in r_droughtf_l_floodf_l_max_plot
+r_droughtf_l_floodf_l_max_plot_f <-
+  function(r_droughtf_l_floodf_l_max,
+           v_ISO1,
+           v_crop_ISO_lc_rcl_agg,
+           v_ISO_extent,
+           world,
+           ISO,
+           crop,
+           flood) {
+    gplot(r_droughtf_l_floodf_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      geom_sf(
+        data = world,
+        fill = NA,
+        col = 'dark grey',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      ) +
+      geom_sf(
+        data = v_ISO1,
+        fill = NA,
+        col = 'black',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
+        fill = NA,
+        col = 'dark blue',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+        fill = NA,
+        col = 'dark green',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      scale_fill_manual(
+        values = c(
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
+        ),
+        na.translate = F
+      ) +
+      xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
+      ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
+      labs(
+        fill = paste0(
+          "--------------------\nFuture\n",
+          "Impact\n",
+          "drought (l)\n",
+          "flood (l)\n\n",
+          ISO,
+          "\n",
+          crop,
+          "\n--------------------"
+        )
+      ) +
+      theme(
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+      ) +
+      coord_sf(expand = FALSE)
+  }
+
+# results in r_heatf_l_floodf_l_max_plot
+r_heatf_l_floodf_l_max_plot_f <-
+  function(r_heatf_l_floodf_l_max,
+           v_ISO1,
+           v_crop_ISO_lc_rcl_agg,
+           v_ISO_extent,
+           world,
+           ISO,
+           crop,
+           flood) {
+    gplot(r_heatf_l_floodf_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      geom_sf(
+        data = world,
+        fill = NA,
+        col = 'dark grey',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      ) +
+      geom_sf(
+        data = v_ISO1,
+        fill = NA,
+        col = 'black',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
+        fill = NA,
+        col = 'dark blue',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+        fill = NA,
+        col = 'dark green',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      scale_fill_manual(
+        values = c(
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
+        ),
+        na.translate = F
+      ) +
+      xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
+      ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
+      labs(
+        fill = paste0(
+          "--------------------\nFuture\n",
+          "Impact\n",
+          "heat (l)\n",
+          "flood (l)\n\n",
+          ISO,
+          "\n",
+          crop,
+          "\n--------------------"
+        )
+      ) +
+      theme(
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+      ) +
+      coord_sf(expand = FALSE)
+  }
+
+
+# results in r_droughtf_l_heatf_l_floodf_l_max_plot
+r_droughtf_l_heatf_l_floodf_l_max_plot_f <-
+  function(r_droughtf_l_heatf_l_floodf_l_max,
+           v_ISO1,
+           v_crop_ISO_lc_rcl_agg,
+           v_ISO_extent,
+           world,
+           ISO,
+           crop,
+           flood) {
+    gplot(r_droughtf_l_heatf_l_floodf_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      geom_sf(
+        data = world,
+        fill = NA,
+        col = 'dark grey',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      ) +
+      geom_sf(
+        data = v_ISO1,
+        fill = NA,
+        col = 'black',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
+        fill = NA,
+        col = 'dark blue',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+        fill = NA,
+        col = 'dark green',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      scale_fill_manual(
+        values = c(
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
+        ),
+        na.translate = F
+      ) +
+      xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
+      ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
+      labs(
+        fill = paste0(
+          "--------------------\nFuture\n",
+          "Impact\n",
+          "drought (l)\n",
+          "heat (l)\n",
+          "flood (l)\n\n",
+          ISO,
+          "\n",
+          crop,
+          "\n--------------------"
+        )
+      ) +
+      theme(
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+      ) +
+      coord_sf(expand = FALSE)
+  }
+
+
+#### Upper thresholds
+
+
+# results in r_droughtf_u_heatf_u_max_plot
+r_droughtf_u_heatf_u_max_plot_f <-
+  function(r_droughtf_u_heatf_u_max,
+           v_ISO1,
+           v_crop_ISO_lc_rcl_agg,
+           v_ISO_extent,
+           world,
+           ISO,
+           crop,
+           flood) {
+    gplot(r_droughtf_u_heatf_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      geom_sf(
+        data = world,
+        fill = NA,
+        col = 'dark grey',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      ) +
+      geom_sf(
+        data = v_ISO1,
+        fill = NA,
+        col = 'black',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
+        fill = NA,
+        col = 'dark blue',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+        fill = NA,
+        col = 'dark green',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      scale_fill_manual(
+        values = c(
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
+        ),
+        na.translate = F
+      ) +
+      xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
+      ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
+      labs(
+        fill = paste0(
+          "--------------------\nFuture\n",
+          "Impact\n",
+          "drought (u)\n",
+          "heat (u)\n\n",
+          ISO,
+          "\n",
+          crop,
+          "\n--------------------"
+        )
+      ) +
+      theme(
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+      ) +
+      coord_sf(expand = FALSE)
+  }
+
+# results in r_droughtf_u_floodf_u_max_plot
+r_droughtf_u_floodf_u_max_plot_f <-
+  function(r_droughtf_u_floodf_u_max,
+           v_ISO1,
+           v_crop_ISO_lc_rcl_agg,
+           v_ISO_extent,
+           world,
+           ISO,
+           crop,
+           flood) {
+    gplot(r_droughtf_u_floodf_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      geom_sf(
+        data = world,
+        fill = NA,
+        col = 'dark grey',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      ) +
+      geom_sf(
+        data = v_ISO1,
+        fill = NA,
+        col = 'black',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
+        fill = NA,
+        col = 'dark blue',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+        fill = NA,
+        col = 'dark green',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      scale_fill_manual(
+        values = c(
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
+        ),
+        na.translate = F
+      ) +
+      xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
+      ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
+      labs(
+        fill = paste0(
+          "--------------------\nFuture\n",
+          "Impact\n",
+          "drought (u)\n",
+          "flood (u)\n\n",
+          ISO,
+          "\n",
+          crop,
+          "\n--------------------"
+        )
+      ) +
+      theme(
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+      ) +
+      coord_sf(expand = FALSE)
+  }
+
+# results in r_heatf_u_floodf_u_max_plot
+r_heatf_u_floodf_u_max_plot_f <-
+  function(r_heatf_u_floodf_u_max,
+           v_ISO1,
+           v_crop_ISO_lc_rcl_agg,
+           v_ISO_extent,
+           world,
+           ISO,
+           crop,
+           flood) {
+    gplot(r_heatf_u_floodf_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      geom_sf(
+        data = world,
+        fill = NA,
+        col = 'dark grey',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      ) +
+      geom_sf(
+        data = v_ISO1,
+        fill = NA,
+        col = 'black',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
+        fill = NA,
+        col = 'dark blue',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+        fill = NA,
+        col = 'dark green',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      scale_fill_manual(
+        values = c(
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
+        ),
+        na.translate = F
+      ) +
+      xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
+      ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
+      labs(
+        fill = paste0(
+          "--------------------\nFuture\n",
+          "Impact\n",
+          "heat (u)\n",
+          "flood (u)\n\n",
+          ISO,
+          "\n",
+          crop,
+          "\n--------------------"
+        )
+      ) +
+      theme(
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+      ) +
+      coord_sf(expand = FALSE)
+  }
+
+
+# results in r_droughtf_u_heatf_u_floodf_u_max_plot
+r_droughtf_u_heatf_u_floodf_u_max_plot_f <-
+  function(r_droughtf_u_heatf_u_floodf_u_max,
+           v_ISO1,
+           v_crop_ISO_lc_rcl_agg,
+           v_ISO_extent,
+           world,
+           ISO,
+           crop,
+           flood) {
+    gplot(r_droughtf_u_heatf_u_floodf_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      geom_sf(
+        data = world,
+        fill = NA,
+        col = 'dark grey',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      ) +
+      geom_sf(
+        data = v_ISO1,
+        fill = NA,
+        col = 'black',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
+        fill = NA,
+        col = 'dark blue',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+        fill = NA,
+        col = 'dark green',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      scale_fill_manual(
+        values = c(
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
+        ),
+        na.translate = F
+      ) +
+      xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
+      ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
+      labs(
+        fill = paste0(
+          "--------------------\nFuture\n",
+          "Impact\n",
+          "drought (u)\n",
+          "heat (u)\n",
+          "flood (u)\n\n",
+          ISO,
+          "\n",
+          crop,
+          "\n--------------------"
+        )
+      ) +
+      theme(
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+      ) +
+      coord_sf(expand = FALSE)
+  }
+
+
+
+#### Mixed thresholds
+
+
+# results in r_droughtf_l_heatf_l_max_plot
+r_droughtf_l_heatf_u_max_plot_f <-
+  function(r_droughtf_l_heatf_u_max,
+           v_ISO1,
+           v_crop_ISO_lc_rcl_agg,
+           v_ISO_extent,
+           world,
+           ISO,
+           crop,
+           flood) {
+    
+    gplot(r_droughtf_l_heatf_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      geom_sf(
+        data = world,
+        fill = NA,
+        col = 'dark grey',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      ) +
+      geom_sf(
+        data = v_ISO1,
+        fill = NA,
+        col = 'black',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
+        fill = NA,
+        col = 'dark blue',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+        fill = NA,
+        col = 'dark green',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      scale_fill_manual(
+        values = c(
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
+        ),
+        na.translate = F
+      ) +
+      xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
+      ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
+      labs(
+        fill = paste0(
+          "--------------------\nFuture\n",
+          "Impact\n",
+          "drought (l)\n",
+          "heat (u)\n\n",
+          ISO,
+          "\n",
+          crop,
+          "\n--------------------"
+        )
+      ) +
+      theme(
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+      ) +
+      coord_sf(expand = FALSE)
+  }
+
+
+
+
+# results in r_droughtf_u_heatf_l_max_plot
+r_droughtf_u_heatf_l_max_plot_f <-
+  function(r_droughtf_u_heatf_l_max,
+           v_ISO1,
+           v_crop_ISO_lc_rcl_agg,
+           v_ISO_extent,
+           world,
+           ISO,
+           crop,
+           flood) {
+    
+    gplot(r_droughtf_u_heatf_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      geom_sf(
+        data = world,
+        fill = NA,
+        col = 'dark grey',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      ) +
+      geom_sf(
+        data = v_ISO1,
+        fill = NA,
+        col = 'black',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
+        fill = NA,
+        col = 'dark blue',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+        fill = NA,
+        col = 'dark green',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      scale_fill_manual(
+        values = c(
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
+        ),
+        na.translate = F
+      ) +
+      xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
+      ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
+      labs(
+        fill = paste0(
+          "--------------------\nFuture\n",
+          "Impact\n",
+          "drought (u)\n",
+          "heat (l)\n\n",
+          ISO,
+          "\n",
+          crop,
+          "\n--------------------"
+        )
+      ) +
+      theme(
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+      ) +
+      coord_sf(expand = FALSE)
+  }
+
+
+
+r_droughtf_l_floodf_u_max_plot_f <-
+  function(r_droughtf_l_floodf_u_max,
+           v_ISO1,
+           v_crop_ISO_lc_rcl_agg,
+           v_ISO_extent,
+           world,
+           ISO,
+           crop,
+           flood) {
+    
+    gplot(r_droughtf_l_floodf_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      geom_sf(
+        data = world,
+        fill = NA,
+        col = 'dark grey',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      ) +
+      geom_sf(
+        data = v_ISO1,
+        fill = NA,
+        col = 'black',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
+        fill = NA,
+        col = 'dark blue',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+        fill = NA,
+        col = 'dark green',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      scale_fill_manual(
+        values = c(
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
+        ),
+        na.translate = F
+      ) +
+      xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
+      ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
+      labs(
+        fill = paste0(
+          "--------------------\nFuture\n",
+          "Impact\n",
+          "drought (l)\n",
+          "flood (u)\n\n",
+          ISO,
+          "\n",
+          crop,
+          "\n--------------------"
+        )
+      ) +
+      theme(
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+      ) +
+      coord_sf(expand = FALSE)
+  }
+
+
+r_droughtf_u_floodf_l_max_plot_f <-
+  function(r_droughtf_u_floodf_l_max,
+           v_ISO1,
+           v_crop_ISO_lc_rcl_agg,
+           v_ISO_extent,
+           world,
+           ISO,
+           crop,
+           flood) {
+    
+    gplot(r_droughtf_u_floodf_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      geom_sf(
+        data = world,
+        fill = NA,
+        col = 'dark grey',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      ) +
+      geom_sf(
+        data = v_ISO1,
+        fill = NA,
+        col = 'black',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
+        fill = NA,
+        col = 'dark blue',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+        fill = NA,
+        col = 'dark green',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      scale_fill_manual(
+        values = c(
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
+        ),
+        na.translate = F
+      ) +
+      xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
+      ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
+      labs(
+        fill = paste0(
+          "--------------------\nFuture\n",
+          "Impact\n",
+          "drought (u)\n",
+          "flood (l)\n\n",
+          ISO,
+          "\n",
+          crop,
+          "\n--------------------"
+        )
+      ) +
+      theme(
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+      ) +
+      coord_sf(expand = FALSE)
+  }
+
+
+
+r_heatf_l_floodf_u_max_plot_f <-
+  function(r_heatf_l_floodf_u_max,
+           v_ISO1,
+           v_crop_ISO_lc_rcl_agg,
+           v_ISO_extent,
+           world,
+           ISO,
+           crop,
+           flood) {
+    
+    gplot(r_heatf_l_floodf_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      geom_sf(
+        data = world,
+        fill = NA,
+        col = 'dark grey',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      ) +
+      geom_sf(
+        data = v_ISO1,
+        fill = NA,
+        col = 'black',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
+        fill = NA,
+        col = 'dark blue',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+        fill = NA,
+        col = 'dark green',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      scale_fill_manual(
+        values = c(
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
+        ),
+        na.translate = F
+      ) +
+      xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
+      ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
+      labs(
+        fill = paste0(
+          "--------------------\nFuture\n",
+          "Impact\n",
+          "heat (l)\n",
+          "flood (u)\n\n",
+          ISO,
+          "\n",
+          crop,
+          "\n--------------------"
+        )
+      ) +
+      theme(
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+      ) +
+      coord_sf(expand = FALSE)
+  }
+
+
+
+
+r_heatf_u_floodf_l_max_plot_f <-
+  function(r_heatf_u_floodf_l_max,
+           v_ISO1,
+           v_crop_ISO_lc_rcl_agg,
+           v_ISO_extent,
+           world,
+           ISO,
+           crop,
+           flood) {
+    
+    gplot(r_heatf_u_floodf_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      geom_sf(
+        data = world,
+        fill = NA,
+        col = 'dark grey',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      ) +
+      geom_sf(
+        data = v_ISO1,
+        fill = NA,
+        col = 'black',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
+        fill = NA,
+        col = 'dark blue',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+        fill = NA,
+        col = 'dark green',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      scale_fill_manual(
+        values = c(
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
+        ),
+        na.translate = F
+      ) +
+      xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
+      ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
+      labs(
+        fill = paste0(
+          "--------------------\nFuture\n",
+          "Impact\n",
+          "heat (l)\n",
+          "flood (u)\n\n",
+          ISO,
+          "\n",
+          crop,
+          "\n--------------------"
+        )
+      ) +
+      theme(
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+      ) +
+      coord_sf(expand = FALSE)
+  }
+
+r_droughtf_l_heatf_l_floodf_u_max_plot_f <-
+  function(r_droughtf_l_heatf_l_floodf_u_max,
+           v_ISO1,
+           v_crop_ISO_lc_rcl_agg,
+           v_ISO_extent,
+           world,
+           ISO,
+           crop,
+           flood) {
+    
+    gplot(r_droughtf_l_heatf_l_floodf_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      geom_sf(
+        data = world,
+        fill = NA,
+        col = 'dark grey',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      ) +
+      geom_sf(
+        data = v_ISO1,
+        fill = NA,
+        col = 'black',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
+        fill = NA,
+        col = 'dark blue',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+        fill = NA,
+        col = 'dark green',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      scale_fill_manual(
+        values = c(
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
+        ),
+        na.translate = F
+      ) +
+      xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
+      ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
+      labs(
+        fill = paste0(
+          "--------------------\nFuture\n",
+          "Impact\n",
+          "drought (l)",
+          "heat (l)\n",
+          "flood (u)\n\n",
+          ISO,
+          "\n",
+          crop,
+          "\n--------------------"
+        )
+      ) +
+      theme(
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+      ) +
+      coord_sf(expand = FALSE)
+  }
+
+
+r_droughtf_l_heatf_u_floodf_l_max_plot_f <-
+  function(r_droughtf_l_heatf_u_floodf_l_max,
+           v_ISO1,
+           v_crop_ISO_lc_rcl_agg,
+           v_ISO_extent,
+           world,
+           ISO,
+           crop,
+           flood) {
+    
+    gplot(r_droughtf_l_heatf_u_floodf_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      geom_sf(
+        data = world,
+        fill = NA,
+        col = 'dark grey',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      ) +
+      geom_sf(
+        data = v_ISO1,
+        fill = NA,
+        col = 'black',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
+        fill = NA,
+        col = 'dark blue',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+        fill = NA,
+        col = 'dark green',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      scale_fill_manual(
+        values = c(
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
+        ),
+        na.translate = F
+      ) +
+      xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
+      ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
+      labs(
+        fill = paste0(
+          "--------------------\nFuture\n",
+          "Impact\n",
+          "drought (l)",
+          "heat (u)\n",
+          "flood (l)\n\n",
+          ISO,
+          "\n",
+          crop,
+          "\n--------------------"
+        )
+      ) +
+      theme(
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+      ) +
+      coord_sf(expand = FALSE)
+  }
+
+
+r_droughtf_u_heatf_l_floodf_l_max_plot_f <-
+  function(r_droughtf_u_heatf_l_floodf_l_max,
+           v_ISO1,
+           v_crop_ISO_lc_rcl_agg,
+           v_ISO_extent,
+           world,
+           ISO,
+           crop,
+           flood) {
+    
+    gplot(r_droughtf_u_heatf_l_floodf_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      geom_sf(
+        data = world,
+        fill = NA,
+        col = 'dark grey',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      ) +
+      geom_sf(
+        data = v_ISO1,
+        fill = NA,
+        col = 'black',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
+        fill = NA,
+        col = 'dark blue',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+        fill = NA,
+        col = 'dark green',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      scale_fill_manual(
+        values = c(
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
+        ),
+        na.translate = F
+      ) +
+      xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
+      ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
+      labs(
+        fill = paste0(
+          "--------------------\nFuture\n",
+          "Impact\n",
+          "drought (u)",
+          "heat (l)\n",
+          "flood (l)\n\n",
+          ISO,
+          "\n",
+          crop,
+          "\n--------------------"
+        )
+      ) +
+      theme(
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+      ) +
+      coord_sf(expand = FALSE)
+  }
+
+
+r_droughtf_l_heatf_u_floodf_u_max_plot_f <-
+  function(r_droughtf_l_heatf_u_floodf_u_max,
+           v_ISO1,
+           v_crop_ISO_lc_rcl_agg,
+           v_ISO_extent,
+           world,
+           ISO,
+           crop,
+           flood) {
+    
+    gplot(r_droughtf_l_heatf_u_floodf_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      geom_sf(
+        data = world,
+        fill = NA,
+        col = 'dark grey',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      ) +
+      geom_sf(
+        data = v_ISO1,
+        fill = NA,
+        col = 'black',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
+        fill = NA,
+        col = 'dark blue',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+        fill = NA,
+        col = 'dark green',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      scale_fill_manual(
+        values = c(
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
+        ),
+        na.translate = F
+      ) +
+      xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
+      ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
+      labs(
+        fill = paste0(
+          "--------------------\nFuture\n",
+          "Impact\n",
+          "drought (l)",
+          "heat (u)\n",
+          "flood (u)\n\n",
+          ISO,
+          "\n",
+          crop,
+          "\n--------------------"
+        )
+      ) +
+      theme(
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+      ) +
+      coord_sf(expand = FALSE)
+  }
+
+
+r_droughtf_u_heatf_l_floodf_u_max_plot_f <-
+  function(r_droughtf_u_heatf_l_floodf_u_max,
+           v_ISO1,
+           v_crop_ISO_lc_rcl_agg,
+           v_ISO_extent,
+           world,
+           ISO,
+           crop,
+           flood) {
+    
+    gplot(r_droughtf_u_heatf_l_floodf_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      geom_sf(
+        data = world,
+        fill = NA,
+        col = 'dark grey',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      ) +
+      geom_sf(
+        data = v_ISO1,
+        fill = NA,
+        col = 'black',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
+        fill = NA,
+        col = 'dark blue',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+        fill = NA,
+        col = 'dark green',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      scale_fill_manual(
+        values = c(
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
+        ),
+        na.translate = F
+      ) +
+      xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
+      ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
+      labs(
+        fill = paste0(
+          "--------------------\nFuture\n",
+          "Impact\n",
+          "drought (u)",
+          "heat (l)\n",
+          "flood (u)\n\n",
+          ISO,
+          "\n",
+          crop,
+          "\n--------------------"
+        )
+      ) +
+      theme(
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+      ) +
+      coord_sf(expand = FALSE)
+  }
+
+
+r_droughtf_u_heatf_u_floodf_l_max_plot_f <-
+  function(r_droughtf_u_heatf_u_floodf_l_max,
+           v_ISO1,
+           v_crop_ISO_lc_rcl_agg,
+           v_ISO_extent,
+           world,
+           ISO,
+           crop,
+           flood) {
+    
+    gplot(r_droughtf_u_heatf_u_floodf_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      geom_sf(
+        data = world,
+        fill = NA,
+        col = 'dark grey',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      ) +
+      geom_sf(
+        data = v_ISO1,
+        fill = NA,
+        col = 'black',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
+        fill = NA,
+        col = 'dark blue',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      geom_sf(
+        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+        fill = NA,
+        col = 'dark green',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      scale_fill_manual(
+        values = c(
+          "No Risk"  = rgb(127, 201, 127, maxColorValue = 255), # all 3 opt
+          "D"  = rgb(253, 192, 134, maxColorValue = 255), #  drought
+          "H"  = rgb(255, 255, 153, maxColorValue = 255), # heat
+          "F"  = rgb(190, 174, 212, maxColorValue = 255), # flood  
+          "DH"  = rgb(191, 91, 23, maxColorValue = 255), # drought and heat
+          "DF"  = rgb(56, 108, 176, maxColorValue = 255), # drought and flood
+          "HF"  = rgb(102, 102, 102, maxColorValue = 255),  # heat and flood
+          "DHF"  = rgb(240, 2, 127, maxColorValue = 255),   # all 3 sub
+          "Mix"  = rgb(125, 125, 125, maxColorValue = 255),   # mixture uncertain
+          "NA" = rgb(255, 255, 255, maxColorValue = 255)   # NA
+        ),
+        na.translate = F
+      ) +
+      xlim ((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax) + 1) +
+      ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
+      labs(
+        fill = paste0(
+          "--------------------\nFuture\n",
+          "Impact\n",
+          "drought (u)",
+          "heat (u)\n",
+          "flood (l)\n\n",
+          ISO,
+          "\n",
+          crop,
+          "\n--------------------"
+        )
+      ) +
+      theme(
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+      ) +
+      coord_sf(expand = FALSE)
+  }
 
 
   ## Impact zonal statistics
