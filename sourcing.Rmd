@@ -2086,7 +2086,7 @@ list(
   tar_target(
     r_droughtc_l_floodc_l_max_plot,
     r_droughtc_l_floodc_l_max_plot_f(
-      r_droughtc_l_heatc_l_max,
+      r_droughtc_l_floodc_l_max,
       v_ISO1,
       v_crop_ISO_lc_rcl_agg,
       v_ISO_extent,
@@ -2099,7 +2099,7 @@ list(
   tar_target(
     r_heatc_l_floodc_l_max_plot,
     r_heatc_l_floodc_l_max_plot_f(
-      r_droughtc_l_heatc_l_max,
+      r_heatc_l_floodc_l_max,
       v_ISO1,
       v_crop_ISO_lc_rcl_agg,
       v_ISO_extent,
@@ -2112,7 +2112,7 @@ list(
   tar_target(
     r_droughtc_l_heatc_l_floodc_l_max_plot,
     r_droughtc_l_heatc_l_floodc_l_max_plot_f(
-      r_droughtc_l_heatc_l_max,
+      r_droughtc_l_heatc_l_floodc_l_max,
       v_ISO1,
       v_crop_ISO_lc_rcl_agg,
       v_ISO_extent,
@@ -2134,7 +2134,7 @@ list(
   tar_target(
     r_droughtc_u_heatc_u_max_plot,
     r_droughtc_u_heatc_u_max_plot_f(
-      r_droughtc_l_heatc_l_max,
+      r_droughtc_u_heatc_u_max,
       v_ISO1,
       v_crop_ISO_lc_rcl_agg,
       v_ISO_extent,
@@ -2147,7 +2147,7 @@ list(
   tar_target(
     r_droughtc_u_floodc_u_max_plot,
     r_droughtc_u_floodc_u_max_plot_f(
-      r_droughtc_l_heatc_l_max,
+      r_droughtc_u_floodc_u_max,
       v_ISO1,
       v_crop_ISO_lc_rcl_agg,
       v_ISO_extent,
@@ -2160,7 +2160,7 @@ list(
   tar_target(
     r_heatc_u_floodc_u_max_plot,
     r_heatc_u_floodc_u_max_plot_f(
-      r_droughtc_l_heatc_l_max,
+       r_heatc_u_floodc_u_max,
       v_ISO1,
       v_crop_ISO_lc_rcl_agg,
       v_ISO_extent,
@@ -2173,7 +2173,7 @@ list(
   tar_target(
     r_droughtc_u_heatc_u_floodc_u_max_plot,
     r_droughtc_u_heatc_u_floodc_u_max_plot_f(
-      r_droughtc_l_heatc_l_max,
+      r_droughtc_u_heatc_u_floodc_u_max,
       v_ISO1,
       v_crop_ISO_lc_rcl_agg,
       v_ISO_extent,
@@ -2194,7 +2194,7 @@ list(
   tar_target(
     r_droughtc_l_heatc_u_max_plot,
     r_droughtc_l_heatc_u_max_plot_f(
-      r_droughtc_l_heatc_l_max,
+      r_droughtc_l_heatc_u_max,
       v_ISO1,
       v_crop_ISO_lc_rcl_agg,
       v_ISO_extent,
@@ -2207,7 +2207,7 @@ list(
   tar_target(
     r_droughtc_u_heatc_l_max_plot,
     r_droughtc_u_heatc_l_max_plot_f(
-      r_droughtc_l_heatc_l_max,
+       r_droughtc_u_heatc_l_max,
       v_ISO1,
       v_crop_ISO_lc_rcl_agg,
       v_ISO_extent,
@@ -2220,7 +2220,7 @@ list(
   tar_target(
     r_droughtc_l_floodc_u_max_plot,
     r_droughtc_l_floodc_u_max_plot_f(
-      r_droughtc_l_heatc_l_max,
+      r_droughtc_l_floodc_u_max,
       v_ISO1,
       v_crop_ISO_lc_rcl_agg,
       v_ISO_extent,
@@ -2233,7 +2233,7 @@ list(
   tar_target(
     r_droughtc_u_floodc_l_max_plot,
     r_droughtc_u_floodc_l_max_plot_f(
-      r_droughtc_l_heatc_l_max,
+      r_droughtc_u_floodc_l_max,
       v_ISO1,
       v_crop_ISO_lc_rcl_agg,
       v_ISO_extent,
@@ -2246,7 +2246,7 @@ list(
   tar_target(
     r_heatc_l_floodc_u_max_plot,
     r_heatc_l_floodc_u_max_plot_f(
-      r_droughtc_l_heatc_l_max,
+      r_heatc_l_floodc_u_max,
       v_ISO1,
       v_crop_ISO_lc_rcl_agg,
       v_ISO_extent,
@@ -2259,7 +2259,7 @@ list(
   tar_target(
     r_heatc_u_floodc_l_max_plot,
     r_heatc_u_floodc_l_max_plot_f(
-      r_droughtc_l_heatc_l_max,
+      r_heatc_u_floodc_l_max,
       v_ISO1,
       v_crop_ISO_lc_rcl_agg,
       v_ISO_extent,
@@ -2272,7 +2272,7 @@ list(
   tar_target(
     r_droughtc_l_heatc_l_floodc_u_max_plot,
     r_droughtc_l_heatc_l_floodc_u_max_plot_f(
-      r_droughtc_l_heatc_l_max,
+      r_droughtc_l_heatc_l_floodc_u_max,
       v_ISO1,
       v_crop_ISO_lc_rcl_agg,
       v_ISO_extent,
@@ -2285,7 +2285,7 @@ list(
   tar_target(
     r_droughtc_l_heatc_u_floodc_l_max_plot,
     r_droughtc_l_heatc_u_floodc_l_max_plot_f(
-      r_droughtc_l_heatc_l_max,
+      r_droughtc_l_heatc_u_floodc_l_max,
       v_ISO1,
       v_crop_ISO_lc_rcl_agg,
       v_ISO_extent,
@@ -2298,7 +2298,7 @@ list(
   tar_target(
     r_droughtc_u_heatc_l_floodc_l_max_plot,
     r_droughtc_u_heatc_l_floodc_l_max_plot_f(
-      r_droughtc_l_heatc_l_max,
+      r_droughtc_u_heatc_l_floodc_l_max,
       v_ISO1,
       v_crop_ISO_lc_rcl_agg,
       v_ISO_extent,
@@ -2311,7 +2311,7 @@ list(
   tar_target(
     r_droughtc_l_heatc_u_floodc_u_max_plot,
     r_droughtc_l_heatc_u_floodc_u_max_plot_f(
-      r_droughtc_l_heatc_l_max,
+      r_droughtc_l_heatc_u_floodc_u_max,
       v_ISO1,
       v_crop_ISO_lc_rcl_agg,
       v_ISO_extent,
@@ -2324,7 +2324,7 @@ list(
   tar_target(
     r_droughtc_u_heatc_l_floodc_u_max_plot,
     r_droughtc_u_heatc_l_floodc_u_max_plot_f(
-      r_droughtc_l_heatc_l_max,
+      r_droughtc_u_heatc_l_floodc_u_max,
       v_ISO1,
       v_crop_ISO_lc_rcl_agg,
       v_ISO_extent,
@@ -2337,7 +2337,7 @@ list(
   tar_target(
     r_droughtc_u_heatc_u_floodc_l_max_plot,
     r_droughtc_u_heatc_u_floodc_l_max_plot_f(
-      r_droughtc_l_heatc_l_max,
+      r_droughtc_u_heatc_u_floodc_l_max,
       v_ISO1,
       v_crop_ISO_lc_rcl_agg,
       v_ISO_extent,
@@ -2358,7 +2358,7 @@ list(
   tar_target(
     r_droughtf_l_heatf_l_max_plot,
     r_droughtf_l_heatf_l_max_plot_f(
-      r_droughtc_l_heatc_l_max,
+      r_droughtf_l_heatf_l_max,
       v_ISO1,
       v_crop_ISO_lc_rcl_agg,
       v_ISO_extent,
@@ -2371,7 +2371,7 @@ list(
   tar_target(
     r_droughtf_l_floodf_l_max_plot,
     r_droughtf_l_floodf_l_max_plot_f(
-      r_droughtc_l_heatc_l_max,
+      r_droughtf_l_floodf_l_max,
       v_ISO1,
       v_crop_ISO_lc_rcl_agg,
       v_ISO_extent,
@@ -2384,7 +2384,7 @@ list(
   tar_target(
     r_heatf_l_floodf_l_max_plot,
     r_heatf_l_floodf_l_max_plot_f(
-      r_droughtc_l_heatc_l_max,
+      r_heatf_l_floodf_l_max,
       v_ISO1,
       v_crop_ISO_lc_rcl_agg,
       v_ISO_extent,
@@ -2397,7 +2397,7 @@ list(
   tar_target(
     r_droughtf_l_heatf_l_floodf_l_max_plot,
     r_droughtf_l_heatf_l_floodf_l_max_plot_f(
-      r_droughtc_l_heatc_l_max,
+      r_droughtf_l_heatf_l_floodf_l_max,
       v_ISO1,
       v_crop_ISO_lc_rcl_agg,
       v_ISO_extent,
@@ -2419,7 +2419,7 @@ list(
   tar_target(
     r_droughtf_u_heatf_u_max_plot,
     r_droughtf_u_heatf_u_max_plot_f(
-      r_droughtc_l_heatc_l_max,
+      r_droughtf_u_heatf_u_max,
       v_ISO1,
       v_crop_ISO_lc_rcl_agg,
       v_ISO_extent,
@@ -2432,7 +2432,7 @@ list(
   tar_target(
     r_droughtf_u_floodf_u_max_plot,
     r_droughtf_u_floodf_u_max_plot_f(
-      r_droughtc_l_heatc_l_max,
+      r_droughtf_u_floodf_u_max,
       v_ISO1,
       v_crop_ISO_lc_rcl_agg,
       v_ISO_extent,
@@ -2445,7 +2445,7 @@ list(
   tar_target(
     r_heatf_u_floodf_u_max_plot,
     r_heatf_u_floodf_u_max_plot_f(
-      r_droughtc_l_heatc_l_max,
+      r_heatf_u_floodf_u_max,
       v_ISO1,
       v_crop_ISO_lc_rcl_agg,
       v_ISO_extent,
@@ -2458,7 +2458,7 @@ list(
   tar_target(
     r_droughtf_u_heatf_u_floodf_u_max_plot,
     r_droughtf_u_heatf_u_floodf_u_max_plot_f(
-      r_droughtc_l_heatc_l_max,
+      r_droughtf_u_heatf_u_floodf_u_max,
       v_ISO1,
       v_crop_ISO_lc_rcl_agg,
       v_ISO_extent,
@@ -2479,7 +2479,7 @@ list(
   tar_target(
     r_droughtf_l_heatf_u_max_plot,
     r_droughtf_l_heatf_u_max_plot_f(
-      r_droughtc_l_heatc_l_max,
+      r_droughtf_l_heatf_u_max,
       v_ISO1,
       v_crop_ISO_lc_rcl_agg,
       v_ISO_extent,
@@ -2492,7 +2492,7 @@ list(
   tar_target(
     r_droughtf_u_heatf_l_max_plot,
     r_droughtf_u_heatf_l_max_plot_f(
-      r_droughtc_l_heatc_l_max,
+      r_droughtf_u_heatf_l_max,
       v_ISO1,
       v_crop_ISO_lc_rcl_agg,
       v_ISO_extent,
@@ -2505,7 +2505,7 @@ list(
   tar_target(
     r_droughtf_l_floodf_u_max_plot,
     r_droughtf_l_floodf_u_max_plot_f(
-      r_droughtc_l_heatc_l_max,
+      r_droughtf_l_floodf_u_max,
       v_ISO1,
       v_crop_ISO_lc_rcl_agg,
       v_ISO_extent,
@@ -2518,7 +2518,7 @@ list(
   tar_target(
     r_droughtf_u_floodf_l_max_plot,
     r_droughtf_u_floodf_l_max_plot_f(
-      r_droughtc_l_heatc_l_max,
+      r_droughtf_u_floodf_l_max,
       v_ISO1,
       v_crop_ISO_lc_rcl_agg,
       v_ISO_extent,
@@ -2531,7 +2531,7 @@ list(
   tar_target(
     r_heatf_l_floodf_u_max_plot,
     r_heatf_l_floodf_u_max_plot_f(
-      r_droughtc_l_heatc_l_max,
+      r_heatf_l_floodf_u_max,
       v_ISO1,
       v_crop_ISO_lc_rcl_agg,
       v_ISO_extent,
@@ -2544,7 +2544,7 @@ list(
   tar_target(
     r_heatf_u_floodf_l_max_plot,
     r_heatf_u_floodf_l_max_plot_f(
-      r_droughtc_l_heatc_l_max,
+      r_heatf_u_floodf_l_max,
       v_ISO1,
       v_crop_ISO_lc_rcl_agg,
       v_ISO_extent,
@@ -2557,7 +2557,7 @@ list(
   tar_target(
     r_droughtf_l_heatf_l_floodf_u_max_plot,
     r_droughtf_l_heatf_l_floodf_u_max_plot_f(
-      r_droughtc_l_heatc_l_max,
+      r_droughtf_l_heatf_l_floodf_u_max,
       v_ISO1,
       v_crop_ISO_lc_rcl_agg,
       v_ISO_extent,
@@ -2570,7 +2570,7 @@ list(
   tar_target(
     r_droughtf_l_heatf_u_floodf_l_max_plot,
     r_droughtf_l_heatf_u_floodf_l_max_plot_f(
-      r_droughtc_l_heatc_l_max,
+      r_droughtf_l_heatf_u_floodf_l_max,
       v_ISO1,
       v_crop_ISO_lc_rcl_agg,
       v_ISO_extent,
@@ -2583,7 +2583,7 @@ list(
   tar_target(
     r_droughtf_u_heatf_l_floodf_l_max_plot,
     r_droughtf_u_heatf_l_floodf_l_max_plot_f(
-      r_droughtc_l_heatc_l_max,
+      r_droughtf_u_heatf_l_floodf_l_max,
       v_ISO1,
       v_crop_ISO_lc_rcl_agg,
       v_ISO_extent,
@@ -2596,7 +2596,7 @@ list(
   tar_target(
     r_droughtf_l_heatf_u_floodf_u_max_plot,
     r_droughtf_l_heatf_u_floodf_u_max_plot_f(
-      r_droughtc_l_heatc_l_max,
+      r_droughtf_l_heatf_u_floodf_u_max,
       v_ISO1,
       v_crop_ISO_lc_rcl_agg,
       v_ISO_extent,
@@ -2609,7 +2609,7 @@ list(
   tar_target(
     r_droughtf_u_heatf_l_floodf_u_max_plot,
     r_droughtf_u_heatf_l_floodf_u_max_plot_f(
-      r_droughtc_l_heatc_l_max,
+      r_droughtf_u_heatf_l_floodf_u_max,
       v_ISO1,
       v_crop_ISO_lc_rcl_agg,
       v_ISO_extent,
@@ -2622,7 +2622,7 @@ list(
   tar_target(
     r_droughtf_u_heatf_u_floodf_l_max_plot,
     r_droughtf_u_heatf_u_floodf_l_max_plot_f(
-      r_droughtc_l_heatc_l_max,
+      r_droughtf_u_heatf_u_floodf_l_max,
       v_ISO1,
       v_crop_ISO_lc_rcl_agg,
       v_ISO_extent,
@@ -2873,10 +2873,6 @@ list(
   tar_target(
     dB_profilec_d_l_h_l_plot,
     dB_profilec_d_l_h_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
-  ),
-  tar_target(
-    rB_profilec_d_l_h_l_plot,
-    rB_profilec_d_l_h_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
   tar_target(
     dB_profilec_d_l_f_l_plot,
