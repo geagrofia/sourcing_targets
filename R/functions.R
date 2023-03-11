@@ -603,6 +603,8 @@ r_crop_ISO_lc_rcl_agg_values_get_f <-
 #   }
 
 # results in v_crop_ISO_lc_rcl_agg_file1
+## added layer = "layer" to function on 11/03/2023
+
 v_crop_ISO_lc_rcl_agg1_make_write_f <-
   function(r_crop_ISO_lc_rcl_agg,  ISO, crop) {
     as.polygons(
@@ -612,12 +614,12 @@ v_crop_ISO_lc_rcl_agg1_make_write_f <-
       values = TRUE,
       na.rm = TRUE,
       extent = FALSE
-    ) %>%
+    ) %>% `names<-`(c("layer")) %>%
       writeVector(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp"),
-                  overwrite = TRUE)
+                 overwrite = TRUE)
   }
 
-
+##
 
 
 # results in v_crop_ISO_lc_rcl_agg
