@@ -7118,12 +7118,15 @@ rB_impact_make_f <-
 
 # results in rB_impact_file
 rB_impact_file_make_f <- function(rB_impact, ISO, crop) {
-  rB_impact %>%
+  filenames <- file.path(paste0("data/", ISO, "/", crop, "/rB_impact_", names(rB_impact), ".tif"))
+  rast(rB_impact) %>%
     writeRaster(
-      paste0("data/", ISO, "/", crop, "/rB_impact.tif"),
-      bylayer = TRUE, 
-      format="GTiff",
-      suffix = 'names',
+      filenames,
+      #paste0("data/", ISO, "/", crop, "/rB_impact.tif"),
+      #bylayer = TRUE, 
+      filetype ="GTiff",
+      #suffix = 'names',
+      names = TRUE,
       overwrite = TRUE
     )
 }
