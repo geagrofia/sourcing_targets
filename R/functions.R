@@ -125,13 +125,14 @@ v_crop_get_f <- function(cc_data, cc_row) {
   
 }
 
-# results in v_crop_extent
-v_crop_extent_f <- function(v_crop) {
-  extent(v_crop)
+
+# results in vect_crop_wrap
+vect_crop_wrap_f <- function(v_crop) {
+  vect(v_crop) %>% wrap()
 }
 
 # results in v_crop_plot
-v_crop_plot_f <- function(v_crop, v_crop_extent, ISO, crop, world) {
+v_crop_plot_f <- function(v_crop, vect_crop_wrap, ISO, crop, world) {
   ggplot() +
     geom_sf(
       data = world,
@@ -147,8 +148,8 @@ v_crop_plot_f <- function(v_crop, v_crop_extent, ISO, crop, world) {
       alpha = 0.5,
       inherit.aes = FALSE
     ) +
-    xlim ((v_crop_extent@xmin - 3), (v_crop_extent@xmax) + 3) +
-    ylim ((v_crop_extent@ymin - 3), (v_crop_extent@ymax) + 3) +
+    xlim ((xmin(unwrap(vect_crop_wrap )) - 3), (xmax(unwrap(vect_crop_wrap )) + 3)) +
+    ylim ((ymin(unwrap(vect_crop_wrap )) - 3), (ymax(unwrap(vect_crop_wrap )) + 3)) +
     labs(
       fill = paste0(
         "--------------------\nv_crop\n",
@@ -163,7 +164,7 @@ v_crop_plot_f <- function(v_crop, v_crop_extent, ISO, crop, world) {
 
 # results in v_ISO
 v_ISO_get_f <- function(ISO) {
-  getData('GADM', country = paste(ISO), level = 0) %>% st_as_sf() %>% mutate(New_ID = 1)
+  gadm( country = paste(ISO), level = 0 , version="latest", path = "D:/repos/sourcing_targets" ) %>% st_as_sf() %>% mutate(New_ID = 1)
 }
 
 
@@ -194,7 +195,7 @@ v_ISO1_get_f <- function(cc_data, cc_row, ISO) {
 
 # results in v_ISO_extent
 v_ISO_extent_f <- function(v_ISO) {
-  extent(v_ISO)
+  ext(v_ISO)
 }
 
 # results in v_ISO_plot
@@ -216,46 +217,46 @@ v_ISO_plot_f <- function(v_ISO1, ISO) {
     )
 }
 
-# results in r_clim_mask
-r_clim_mask_get_f <- function(ISO) {
-  paste0("data/", ISO, "/clim_mask.tif") %>% raster()
+# results in rast_clim_mask
+rast_clim_mask_get_f <- function(ISO) {
+  paste0("data/", ISO, "/clim_mask.tif") %>% rast() %>% wrap()
 }
 
-# results in r_lc_global
+# results in rast_lc_global
 # this is the original function - now (19/12/2022) replaced with local potential crop areas
-#r_lc_global_get_f <- function(r_clim_mask) {
-#  raster(
-#    "D:/repos/climate-smart-agri-sourcing/spatial_data/output/r_crop_mask_COP_rcl.tif"
+#rast_lc_global_get_f <- function(rast_clim_mask) {
+#  rast(
+#    "D:/repos/climate-smart-agri-sourcing/spatial_data/output/rast_crop_mask_COP_rcl.tif"
 #  )
 #}
 
-# results in r_lc_global
+# results in rast_lc_global
 # this is the new function - now (19/12/2022) to replace the global potential crop areas
-r_lc_global_get_f <- function(r_clim_mask, cc_data, cc_row) {
-  raster(paste0("data/", paste(cc_data[cc_row, 22])))
+rast_lc_global_get_f <- function(rast_clim_mask, cc_data, cc_row) {
+  rast(paste0("data/", paste(cc_data[cc_row, 22]))) %>% wrap()
 }
 
-# results in r_lc_file
-#r_lc_make_write_f <- function(r_lc_global, r_clim_mask, ISO) {
-#  r_lc_global %>% crop(r_clim_mask) %>%  writeRaster(paste0("data/", ISO, "/r_lc.tif"), overwrite = TRUE)
+# results in rast_lc_file
+#rast_lc_make_write_f <- function(rast_lc_global, rast_clim_mask, ISO) {
+#  rast_lc_global %>% crop(rast_clim_mask) %>%  writeRaster(paste0("data/", ISO, "/rast_lc.tif"), overwrite = TRUE)
 #}
 
-# results in r_lc_file - alternative
-r_lc_make_write_f <- function(r_lc_global, aggregation_value, r_clim_mask, ISO) {
-  r_lc_global %>% aggregate(aggregation_value, fun = "modal") %>% crop(r_clim_mask, filename = paste0("data/", ISO, "/r_lc.tif"), overwrite = TRUE)
+# results in rast_lc_file - alternative
+rast_lc_make_write_f <- function(rast_lc_global, aggregation_value, rast_clim_mask, ISO) {
+  rast_lc_global %>% unwrap() %>% aggregate(aggregation_value, fun = "modal") %>% crop(unwrap(rast_clim_mask), filename = paste0("data/", ISO, "/rast_lc.tif"), overwrite = TRUE)
 }
 
 
-# results in r_lc
-r_lc_get_f <- function(r_lc_file, ISO) {
-  raster(paste0("data/", ISO, "/r_lc.tif"))
+# results in rast_lc
+rast_lc_get_f <- function(rast_lc_file, ISO) {
+  rast(paste0("data/", ISO, "/rast_lc.tif")) %>% wrap()
 }
 
 
 
-# results in r_lc_plot
-r_lc_plot_f <- function(r_lc, world) {
-  gplot(r_lc, maxpixels = 50000) + #this uses gplot from the rastervis package
+# results in rast_lc_plot
+rast_lc_plot_f <- function(rast_lc, world) {
+  gplot(unwrap(rast_lc), maxpixels = 50000) + #this uses gplot from the rastervis package
     geom_tile(aes(fill = value), alpha = 1) +
     geom_sf(
       data = world,
@@ -282,69 +283,69 @@ r_lc_plot_f <- function(r_lc, world) {
 ### ----- Spatial data preparation ----- ###
 
 
-# # results in r_ISO_file
-# r_ISO_make_write_f  <- function(v_ISO, r_lc, v_ISO_extent, ISO) {
-#  rasterize(vect(v_ISO), rast(r_lc), field = "New_ID")  %>% crop(v_ISO_extent) %>% raster() %>%
-#  writeRaster(paste0("data/", ISO, "/r_ISO.tif"), overwrite = TRUE)
+# # results in rast_ISO_file
+# rast_ISO_make_write_f  <- function(v_ISO, rast_lc, v_ISO_extent, ISO) {
+#  rasterize(vect(v_ISO), rast(rast_lc), field = "New_ID")  %>% crop(v_ISO_extent) %>% rast() %>%
+#  writeRaster(paste0("data/", ISO, "/rast_ISO.tif"), overwrite = TRUE)
 # }
 
-# results in r_ISO_a_file
-r_ISO_a_make_write_f  <- function(v_ISO, r_lc, ISO) {
+# results in rast_ISO_a_file
+rast_ISO_a_make_write_f  <- function(v_ISO, rast_lc, ISO) {
   rasterize(
     v_ISO,
-    r_lc,
+    unwrap(rast_lc),
     field = "New_ID",
-    filename = paste0("data/", ISO, "/r_ISO_a.tif"),
+    filename = paste0("data/", ISO, "/rast_ISO_a.tif"),
     overwrite = TRUE
-  )
+  ) 
 }
 
-# results in r_ISO_a
-r_ISO_a_get_f <- function(ISO, r_ISO_a_file) {
-  raster(paste0("data/", ISO, "/r_ISO_a.tif"))
+# results in rast_ISO_a
+rast_ISO_a_get_f <- function(ISO, rast_ISO_a_file) {
+  rast(paste0("data/", ISO, "/rast_ISO_a.tif")) %>% wrap()
 }
 
-# results in r_ISO_file
-r_ISO_make_write_f  <- function(r_ISO_a, v_ISO_extent, ISO) {
-  raster::crop(
-    r_ISO_a,
+# results in rast_ISO_file
+rast_ISO_make_write_f  <- function(rast_ISO_a, v_ISO_extent, ISO) {
+  crop(
+    unwrap(rast_ISO_a),
     v_ISO_extent,
-    filename = paste0("data/", ISO, "/r_ISO.tif"),
+    filename = paste0("data/", ISO, "/rast_ISO.tif"),
     overwrite = TRUE
   )
 }
 
-# # results in r_ISO_b
-# r_ISO_b_get_f <- function(ISO, r_ISO_b_file) {
-#   raster(paste0("data/", ISO, "/r_ISO_b.tif"))
+# # results in rast_ISO_b
+# rast_ISO_b_get_f <- function(ISO, rast_ISO_b_file) {
+#   rast(paste0("data/", ISO, "/rast_ISO_b.tif"))
 # }
 
-# # results in r_ISO_file
-# r_ISO_make_write_f  <- function(r_ISO_b, ISO) {
-# r_ISO_b %>% raster() %>%
-#  writeRaster(paste0("data/", ISO, "/r_ISO.tif"), overwrite = TRUE)
+# # results in rast_ISO_file
+# rast_ISO_make_write_f  <- function(rast_ISO_b, ISO) {
+# rast_ISO_b %>% rast() %>%
+#  writeRaster(paste0("data/", ISO, "/rast_ISO.tif"), overwrite = TRUE)
 # }
 
-# results in r_ISO
-r_ISO_get_f <- function(ISO, r_ISO_file) {
-  raster(paste0("data/", ISO, "/r_ISO.tif"))
+# results in rast_ISO
+rast_ISO_get_f <- function(ISO, rast_ISO_file) {
+  rast(paste0("data/", ISO, "/rast_ISO.tif")) %>% wrap()
 }
 
 
-# results in r_lc_ISO_file
-r_lc_ISO_make_write_f  <- function(r_lc, r_ISO,  ISO) {
-  (r_lc * r_ISO) %>% writeRaster(paste0("data/", ISO, "/r_lc_ISO.tif"), overwrite = TRUE)
+# results in rast_lc_ISO_file
+rast_lc_ISO_make_write_f  <- function(rast_lc, rast_ISO,  ISO) {
+  (unwrap(rast_lc) * unwrap(rast_ISO)) %>% writeRaster(paste0("data/", ISO, "/rast_lc_ISO.tif"), overwrite = TRUE)
 }
  
 
-# results in r_lc_ISO
-r_lc_ISO_get_f <- function(ISO, r_lc_ISO_file) {
-  raster(paste0("data/", ISO, "/r_lc_ISO.tif"))
+# results in rast_lc_ISO
+rast_lc_ISO_get_f <- function(ISO, rast_lc_ISO_file) {
+  rast(paste0("data/", ISO, "/rast_lc_ISO.tif")) %>% wrap()
 }
 
-# results in r_lc_ISO_plot
-r_lc_ISO_plot_f <- function(r_lc_ISO, world, v_ISO_extent, ISO) {
-  gplot(r_lc_ISO, maxpixels = 500000) + #this uses gplot from the rastervis package
+# results in rast_lc_ISO_plot
+rast_lc_ISO_plot_f <- function(rast_lc_ISO, world, v_ISO_extent, ISO) {
+  gplot(unwrap(rast_lc_ISO), maxpixels = 500000) + #this uses gplot from the rastervis package
     geom_tile(aes(fill = value), alpha = 1) +
     geom_sf(
       data = world,
@@ -359,7 +360,7 @@ r_lc_ISO_plot_f <- function(r_lc_ISO, world, v_ISO_extent, ISO) {
     xlim((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax + 1)) +
     ylim((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax + 1)) +
     labs(fill = paste0(
-      "-------------------\nr_lc_ISO\n",
+      "-------------------\nrast_lc_ISO\n",
       ISO ,
       "\n
         \n\n\n--------------------"
@@ -372,33 +373,33 @@ r_lc_ISO_plot_f <- function(r_lc_ISO, world, v_ISO_extent, ISO) {
     )
 }
 
-# results in r_crop_file
-r_crop_make_write_f  <- function(v_crop, r_lc_ISO, ISO, crop) {
+# results in rast_crop_file
+rast_crop_make_write_f  <- function(v_crop, rast_lc_ISO, ISO, crop) {
   rasterize(vect(v_crop),
-            rast(r_lc_ISO),
+            unwrap(rast_lc_ISO),
             field = 1,
-            background = 0) %>% raster() %>% writeRaster(paste0("data/", ISO, "/", crop, "/r_crop.tif"), overwrite = TRUE)
+            background = 0) %>% rast() %>% writeRaster(paste0("data/", ISO, "/", crop, "/rast_crop.tif"), overwrite = TRUE)
 }
 
-# results in r_crop
-r_crop_get_f <- function(r_crop_file, ISO, crop) {
-  raster(paste0("data/", ISO, "/", crop, "/r_crop.tif"))
+# results in rast_crop
+rast_crop_get_f <- function(rast_crop_file, ISO, crop) {
+  rast(paste0("data/", ISO, "/", crop, "/rast_crop.tif")) %>% wrap()
 }
 
-# results in r_crop_ISO_file
-r_crop_ISO_make_write_f <- function(r_crop, r_ISO, ISO, crop) {
-  (r_crop * r_ISO) %>% writeRaster(paste0("data/", ISO, "/", crop, "/r_crop_ISO.tif"),
+# results in rast_crop_ISO_file
+rast_crop_ISO_make_write_f <- function(rast_crop, rast_ISO, ISO, crop) {
+  (unwrap(rast_crop) * unwrap(rast_ISO)) %>% writeRaster(paste0("data/", ISO, "/", crop, "/rast_crop_ISO.tif"),
                                    overwrite = TRUE)
 }
 
-# results in r_crop_ISO
-r_crop_ISO_get_f <- function(r_crop_ISO_file, ISO, crop) {
-  raster(paste0("data/", ISO, "/", crop, "/r_crop_ISO.tif"))
+# results in rast_crop_ISO
+rast_crop_ISO_get_f <- function(rast_crop_ISO_file, ISO, crop) {
+  rast(paste0("data/", ISO, "/", crop, "/rast_crop_ISO.tif")) %>% wrap()
 }
 
-# results in r_crop_ISO_plot
-r_crop_ISO_plot_f <- function(r_crop_ISO, v_ISO1, ISO, crop) {
-  gplot(r_crop_ISO, maxpixels = 50000) + #this uses gplot from the rastervis package
+# results in rast_crop_ISO_plot
+rast_crop_ISO_plot_f <- function(rast_crop_ISO, v_ISO1, ISO, crop) {
+  gplot(unwrap(rast_crop_ISO), maxpixels = 50000) + #this uses gplot from the rastervis package
     geom_tile(aes(fill = value), alpha = 1) +
     geom_sf(
       data = v_ISO1,
@@ -412,7 +413,7 @@ r_crop_ISO_plot_f <- function(r_crop_ISO, v_ISO1, ISO, crop) {
                         na.value = NA) +
     labs(
       fill = paste0(
-        "--------------------\nr_crop_ISO\n",
+        "--------------------\nrast_crop_ISO\n",
         ISO,
         " ",
         crop,
@@ -428,21 +429,21 @@ r_crop_ISO_plot_f <- function(r_crop_ISO, v_ISO1, ISO, crop) {
     coord_sf(expand = FALSE)
 }
 
-# results in r_crop_ISO_lc_file
-r_crop_ISO_lc_file_make_write_f <-
-  function(r_lc_ISO, r_crop_ISO, ISO, crop) {
-    (r_lc_ISO + (r_crop_ISO  * 10)) %>% writeRaster(paste0("data/", ISO, "/", crop, "/r_crop_ISO_lc.tif"),
+# results in rast_crop_ISO_lc_file
+rast_crop_ISO_lc_file_make_write_f <-
+  function(rast_lc_ISO, rast_crop_ISO, ISO, crop) {
+    (unwrap(rast_lc_ISO) + (unwrap(rast_crop_ISO)  * 10)) %>% writeRaster(paste0("data/", ISO, "/", crop, "/rast_crop_ISO_lc.tif"),
                                                     overwrite = TRUE)
   }
 
-# results in r_crop_ISO_lc
-r_crop_ISO_lc_get_f <- function(r_crop_ISO_lc_file, ISO, crop) {
-  raster(paste0("data/", ISO, "/", crop, "/r_crop_ISO_lc.tif"))
+# results in rast_crop_ISO_lc
+rast_crop_ISO_lc_get_f <- function(rast_crop_ISO_lc_file, ISO, crop) {
+  rast(paste0("data/", ISO, "/", crop, "/rast_crop_ISO_lc.tif")) %>% wrap()
 }
 
-# results in r_crop_ISO_lc_plot
-r_crop_ISO_lc_plot_f <- function(r_crop_ISO_lc, v_ISO1, ISO, crop) {
-  gplot(r_crop_ISO_lc, maxpixels = 50000) + #this uses gplot from the rastervis package
+# results in rast_crop_ISO_lc_plot
+rast_crop_ISO_lc_plot_f <- function(rast_crop_ISO_lc, v_ISO1, ISO, crop) {
+  gplot(unwrap(rast_crop_ISO_lc), maxpixels = 50000) + #this uses gplot from the rastervis package
     geom_tile(aes(fill = value), alpha = 1) +
     geom_sf(
       data = v_ISO1,
@@ -456,7 +457,7 @@ r_crop_ISO_lc_plot_f <- function(r_crop_ISO_lc, v_ISO1, ISO, crop) {
                         na.value = NA) +
     labs(
       fill = paste0(
-        "--------------------\nr_crop_ISO_lc\n",
+        "--------------------\nrast_crop_ISO_lc\n",
         ISO,
         " ",
         crop,
@@ -473,11 +474,11 @@ r_crop_ISO_lc_plot_f <- function(r_crop_ISO_lc, v_ISO1, ISO, crop) {
 }
 
 
-# results in r_crop_ISO_lc_rcl_file
-r_crop_ISO_lc_rcl_make_write_f <-
-  function(r_crop_ISO_lc, ISO, crop) {
+# results in rast_crop_ISO_lc_rcl_file
+rast_crop_ISO_lc_rcl_make_write_f <-
+  function(rast_crop_ISO_lc, ISO, crop) {
     reclassify(
-      r_crop_ISO_lc,
+      unwrap(rast_crop_ISO_lc),
       matrix(
         c(
           -0.5,
@@ -508,21 +509,21 @@ r_crop_ISO_lc_rcl_make_write_f <-
         ncol = 3,
         byrow = TRUE
       ),
-      filename = paste0("data/", ISO, "/", crop, "/r_crop_ISO_lc_rcl.tif"),
+      filename = paste0("data/", ISO, "/", crop, "/rast_crop_ISO_lc_rcl.tif"),
       overwrite = TRUE
     )
   }
 
-# results in r_crop_ISO_lc_rcl
-r_crop_ISO_lc_rcl_get_f <-
-  function(r_crop_ISO_lc_rcl_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/r_crop_ISO_lc_rcl.tif"))
+# results in rast_crop_ISO_lc_rcl
+rast_crop_ISO_lc_rcl_get_f <-
+  function(rast_crop_ISO_lc_rcl_file, ISO, crop) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_crop_ISO_lc_rcl.tif")) %>% wrap()
   }
 
-# results in r_crop_ISO_lc_rcl_plot
-r_crop_ISO_lc_rcl_plot_f <-
-  function(r_crop_ISO_lc_rcl, v_ISO1, ISO, crop) {
-    gplot(r_crop_ISO_lc_rcl, maxpixels = 50000) + #this uses gplot from the rastervis package
+# results in rast_crop_ISO_lc_rcl_plot
+rast_crop_ISO_lc_rcl_plot_f <-
+  function(rast_crop_ISO_lc_rcl, v_ISO1, ISO, crop) {
+    gplot(unwrap(rast_crop_ISO_lc_rcl), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = value), alpha = 1) +
       geom_sf(
         data = v_ISO1,
@@ -536,7 +537,7 @@ r_crop_ISO_lc_rcl_plot_f <-
                           na.value = NA) +
       labs(
         fill = paste0(
-          "--------------------\nr_crop_ISO_lc_rcl\n",
+          "--------------------\nrast_crop_ISO_lc_rcl\n",
           ISO,
           " ",
           crop,
@@ -556,42 +557,42 @@ r_crop_ISO_lc_rcl_plot_f <-
 ### ----- Aggregate the crop/landuse raster and convert to vector----- ###
 
 ### old version before aggregating earlier
-# results in r_crop_ISO_lc_rcl_agg_file
-#r_crop_ISO_lc_rcl_agg_make_write_f <-
-#  function(r_crop_ISO_lc_rcl, aggregation_value, ISO, crop) {
-#    aggregate(r_crop_ISO_lc_rcl, aggregation_value, fun = "modal") %>% writeRaster(paste0("data/", ISO, "/", crop, "/r_crop_ISO_lc_rcl_agg.tif"),
+# results in rast_crop_ISO_lc_rcl_agg_file
+#rast_crop_ISO_lc_rcl_agg_make_write_f <-
+#  function(rast_crop_ISO_lc_rcl, aggregation_value, ISO, crop) {
+#    aggregate(rast_crop_ISO_lc_rcl, aggregation_value, fun = "modal") %>% writeRaster(paste0("data/", ISO, "/", crop, "/rast_crop_ISO_lc_rcl_agg.tif"),
 #                                                                    overwrite = TRUE)
 #  }
 
-# results in r_crop_ISO_lc_rcl_agg_file
-r_crop_ISO_lc_rcl_agg_make_write_f <-
-  function(r_crop_ISO_lc_rcl, ISO, crop) {
-    r_crop_ISO_lc_rcl %>% writeRaster(paste0("data/", ISO, "/", crop, "/r_crop_ISO_lc_rcl_agg.tif"),
+# results in rast_crop_ISO_lc_rcl_agg_file
+rast_crop_ISO_lc_rcl_agg_make_write_f <-
+  function(rast_crop_ISO_lc_rcl, ISO, crop) {
+    rast_crop_ISO_lc_rcl %>% writeRaster(paste0("data/", ISO, "/", crop, "/rast_crop_ISO_lc_rcl_agg.tif"),
                                                                     overwrite = TRUE)
   }
 
-# results in r_crop_ISO_lc_rcl_agg
-r_crop_ISO_lc_rcl_agg_get_f <-
-  function(r_crop_ISO_lc_rcl_agg_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/r_crop_ISO_lc_rcl_agg.tif"))
+# results in rast_crop_ISO_lc_rcl_agg
+rast_crop_ISO_lc_rcl_agg_get_f <-
+  function(rast_crop_ISO_lc_rcl_agg_file, ISO, crop) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_crop_ISO_lc_rcl_agg.tif")) %>% wrap()
   }
  
 
-# results in r_crop_ISO_lc_rcl_agg_values
-r_crop_ISO_lc_rcl_agg_values_get_f <-
-  function(r_crop_ISO_lc_rcl_agg) {
-    #values(r_crop_ISO_lc_rcl_agg) %>% unique() %>% as.numeric(na.omit())
+# results in rast_crop_ISO_lc_rcl_agg_values
+rast_crop_ISO_lc_rcl_agg_values_get_f <-
+  function(rast_crop_ISO_lc_rcl_agg) {
+    #values(rast_crop_ISO_lc_rcl_agg) %>% unique() %>% as.numeric(na.omit())
     as.numeric(na.omit(unique(values(
-      r_crop_ISO_lc_rcl_agg
+      unwrap(rast_crop_ISO_lc_rcl_agg)
     ))))
   }
 
 
 # # results in v_crop_ISO_lc_rcl_agg_file1
 # v_crop_ISO_lc_rcl_agg1_make_write_f <-
-#   function(r_crop_ISO_lc_rcl_agg,  ISO, crop) {
+#   function(rast_crop_ISO_lc_rcl_agg,  ISO, crop) {
 #     rasterToPolygons(
-#       r_crop_ISO_lc_rcl_agg,
+#       rast_crop_ISO_lc_rcl_agg,
 #       fun = NULL,
 #       n = 4,
 #       na.rm = TRUE,
@@ -606,9 +607,9 @@ r_crop_ISO_lc_rcl_agg_values_get_f <-
 ## added layer = "layer" to function on 11/03/2023
 
 v_crop_ISO_lc_rcl_agg1_make_write_f <-
-  function(r_crop_ISO_lc_rcl_agg,  ISO, crop) {
+  function(rast_crop_ISO_lc_rcl_agg,  ISO, crop) {
     as.polygons(
-      rast(r_crop_ISO_lc_rcl_agg),
+      unwrap(rast_crop_ISO_lc_rcl_agg),
       trunc = TRUE,
       dissolve = TRUE,
       values = TRUE,
@@ -625,25 +626,25 @@ v_crop_ISO_lc_rcl_agg1_make_write_f <-
 # results in v_crop_ISO_lc_rcl_agg
 v_crop_ISO_lc_rcl_agg_get_f <-
   function(v_crop_ISO_lc_rcl_agg_file1,
-           r_crop_ISO_lc_rcl_agg_values,
-           r_crop_ISO_lc_rcl_agg_values_vec0,
-           r_crop_ISO_lc_rcl_agg_values_vec1,
-           r_crop_ISO_lc_rcl_agg_values_vec2,
-           r_crop_ISO_lc_rcl_agg_values_vec01,
-           r_crop_ISO_lc_rcl_agg_values_vec02,
-           r_crop_ISO_lc_rcl_agg_values_vec12,
+           rast_crop_ISO_lc_rcl_agg_values,
+           rast_crop_ISO_lc_rcl_agg_values_vec0,
+           rast_crop_ISO_lc_rcl_agg_values_vec1,
+           rast_crop_ISO_lc_rcl_agg_values_vec2,
+           rast_crop_ISO_lc_rcl_agg_values_vec01,
+           rast_crop_ISO_lc_rcl_agg_values_vec02,
+           rast_crop_ISO_lc_rcl_agg_values_vec12,
            ISO,
            crop,
            v_ISO1) {
     # compare vector of raster values with possibilities    
     # 23/09/2022 Problem while computing `LC = factor(...)`.Caused by error in `unique.default()`:! unique() applies only to vectors
     
-    ## try changing r_crop_ISO to r_crop_ISO_lc_rcl_agg - this does not work
-    ## try the r_crop_ISO_lc_rcl_agg_values - this does work but r_crop_ISO is meant to be a field
-    ## try changing r_crop_ISO to layer
+    ## try changing rast_crop_ISO to rast_crop_ISO_lc_rcl_agg - this does not work
+    ## try the rast_crop_ISO_lc_rcl_agg_values - this does work but rast_crop_ISO is meant to be a field
+    ## try changing rast_crop_ISO to layer
     
     
-    if (length(r_crop_ISO_lc_rcl_agg_values) == 3) {
+    if (length(rast_crop_ISO_lc_rcl_agg_values) == 3) {
       st_read(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp")) %>%
         st_make_valid() %>%
         mutate(LC = factor(layer,
@@ -654,8 +655,8 @@ v_crop_ISO_lc_rcl_agg_get_f <-
         st_intersection(v_ISO1) %>%
         mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
       
-    } else if (identical(r_crop_ISO_lc_rcl_agg_values,
-                         r_crop_ISO_lc_rcl_agg_values_vec0)) {
+    } else if (identical(rast_crop_ISO_lc_rcl_agg_values,
+                         rast_crop_ISO_lc_rcl_agg_values_vec0)) {
       st_read(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp")) %>%
         st_make_valid() %>%
         mutate(LC = factor(layer,
@@ -664,8 +665,8 @@ v_crop_ISO_lc_rcl_agg_get_f <-
         st_intersection(v_ISO1) %>%
         mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
       
-    } else if (identical(r_crop_ISO_lc_rcl_agg_values,
-                         r_crop_ISO_lc_rcl_agg_values_vec1)) {
+    } else if (identical(rast_crop_ISO_lc_rcl_agg_values,
+                         rast_crop_ISO_lc_rcl_agg_values_vec1)) {
       st_read(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp")) %>%
         st_make_valid() %>%
         mutate(LC = factor(layer,
@@ -674,8 +675,8 @@ v_crop_ISO_lc_rcl_agg_get_f <-
         st_intersection(v_ISO1) %>%
         mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
       
-    } else if (identical(r_crop_ISO_lc_rcl_agg_values,
-                         r_crop_ISO_lc_rcl_agg_values_vec2)) {
+    } else if (identical(rast_crop_ISO_lc_rcl_agg_values,
+                         rast_crop_ISO_lc_rcl_agg_values_vec2)) {
       st_read(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp")) %>%
         st_make_valid() %>%
         mutate(LC = factor(layer,
@@ -684,8 +685,8 @@ v_crop_ISO_lc_rcl_agg_get_f <-
         st_intersection(v_ISO1) %>%
         mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
       
-    } else if (identical(r_crop_ISO_lc_rcl_agg_values,
-                         r_crop_ISO_lc_rcl_agg_values_vec01)) {
+    } else if (identical(rast_crop_ISO_lc_rcl_agg_values,
+                         rast_crop_ISO_lc_rcl_agg_values_vec01)) {
       st_read(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp")) %>%
         st_make_valid() %>%
         mutate(LC = factor(layer,
@@ -695,18 +696,18 @@ v_crop_ISO_lc_rcl_agg_get_f <-
         mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
       
       # vect(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp")) %>%
-      # mutate(LC = factor(r_crop_ISO,
+      # mutate(LC = factor(rast_crop_ISO,
       # labels = c("Not Cropland","Cropland")
       # )) %>%
-      # dplyr::filter(r_crop_ISO > 0) %>%
+      # dplyr::filter(rast_crop_ISO > 0) %>%
       # intersect(vect(v_ISO1)) %>%
       # mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
       
       
       
       
-    } else if (identical(r_crop_ISO_lc_rcl_agg_values,
-                         r_crop_ISO_lc_rcl_agg_values_vec02)) {
+    } else if (identical(rast_crop_ISO_lc_rcl_agg_values,
+                         rast_crop_ISO_lc_rcl_agg_values_vec02)) {
       st_read(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp")) %>%
         st_make_valid() %>%
         mutate(LC = factor(layer,
@@ -897,26 +898,26 @@ dB_crop_ISO_lc_rcl_agg_proj_plot_f <-
 
 ### ----- Trimmed Climate Mask ----- ###
 
-# results in r_clim_mask_trim_file
-r_clim_mask_trim_file_make_write_f <-
-  function(v_ISO, r_clim_mask, ISO) {
-    #aggregate((r_lc_ISO / r_lc_ISO), (res(r_clim_mask)/res(r_lc_ISO)), fun=modal) %>%
-    #resample(r_clim_mask, method="ngb",
-    #  filename = paste0("data/", ISO, "/r_clim_mask_trim.tif"), overwrite = TRUE)
-    #resample(r_ISO, r_clim_mask, method="ngb", filename = paste0("data/", ISO, "/r_clim_mask_trim.tif"), overwrite = TRUE)
+# results in rast_clim_mask_trim_file
+rast_clim_mask_trim_file_make_write_f <-
+  function(v_ISO, rast_clim_mask, ISO) {
+    #aggregate((rast_lc_ISO / rast_lc_ISO), (res(rast_clim_mask)/res(rast_lc_ISO)), fun=modal) %>%
+    #resample(rast_clim_mask, method="ngb",
+    #  filename = paste0("data/", ISO, "/rast_clim_mask_trim.tif"), overwrite = TRUE)
+    #resample(rast_ISO, rast_clim_mask, method="ngb", filename = paste0("data/", ISO, "/rast_clim_mask_trim.tif"), overwrite = TRUE)
     terra::rasterize(
       vect(v_ISO),
-      rast(r_clim_mask),
+      unwrap(rast_clim_mask),
       field = 1,
       background = NA,
       touches
       = TRUE
-    ) %>% raster() %>% writeRaster(paste0("data/", ISO, "/r_clim_mask_trim.tif"), overwrite = TRUE)
+    ) %>% writeRaster(paste0("data/", ISO, "/rast_clim_mask_trim.tif"), overwrite = TRUE)
   }
 
-# results in r_clim_mask_trim
-r_clim_mask_trim_get_f <- function(ISO, r_clim_mask_trim_file) {
-  raster(paste0("data/", ISO, "/r_clim_mask_trim.tif"))
+# results in rast_clim_mask_trim
+rast_clim_mask_trim_get_f <- function(ISO, rast_clim_mask_trim_file) {
+  rast(paste0("data/", ISO, "/rast_clim_mask_trim.tif")) %>% wrap()
 }
 
 
@@ -926,231 +927,231 @@ r_clim_mask_trim_get_f <- function(ISO, r_clim_mask_trim_file) {
 
 ### Load original data trim and save and get
 
-# results in r_rainfallc_file
-r_rainfallc_make_write_f <-
+# results in rast_rainfallc_file
+rast_rainfallc_make_write_f <-
   function(ISO,
            crop,
            cc_data,
            cc_row,
-           r_clim_mask_trim) {
-    (raster(paste0(
+           rast_clim_mask_trim) {
+    (rast(paste0(
       "data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 14])
-    )) * r_clim_mask_trim) %>%
-      writeRaster(paste0("data/", ISO, "/", crop, "/r_rainfallc.tif"),
+    )) * unwrap(rast_clim_mask_trim)) %>%
+      writeRaster(paste0("data/", ISO, "/", crop, "/rast_rainfallc.tif"),
                   overwrite = TRUE)
   }
 
-# results in r_rainfallc
-r_rainfallc_get_f <- function(ISO, crop, r_rainfallc_file) {
-  raster(paste0("data/", ISO, "/", crop, "/r_rainfallc.tif"))
+# results in rast_rainfallc
+rast_rainfallc_get_f <- function(ISO, crop, rast_rainfallc_file) {
+  rast(paste0("data/", ISO, "/", crop, "/rast_rainfallc.tif")) %>% wrap()
 }
 
-# results in r_rainfallf_file
-r_rainfallf_make_write_f <-
+# results in rast_rainfallf_file
+rast_rainfallf_make_write_f <-
   function(ISO,
            crop,
            cc_data,
            cc_row,
-           r_clim_mask_trim) {
-    (raster(paste0(
+           rast_clim_mask_trim) {
+    (rast(paste0(
       "data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 15])
-    )) * r_clim_mask_trim) %>%
-      writeRaster(paste0("data/", ISO, "/", crop, "/r_rainfallf.tif"),
+    )) * unwrap(rast_clim_mask_trim)) %>%
+      writeRaster(paste0("data/", ISO, "/", crop, "/rast_rainfallf.tif"),
                   overwrite = TRUE)
   }
 
-# results in r_rainfallf
-r_rainfallf_get_f <- function(ISO, crop, r_rainfallf_file) {
-  raster(paste0("data/", ISO, "/", crop, "/r_rainfallf.tif"))
+# results in rast_rainfallf
+rast_rainfallf_get_f <- function(ISO, crop, rast_rainfallf_file) {
+  rast(paste0("data/", ISO, "/", crop, "/rast_rainfallf.tif")) %>% wrap()
 }
 
 ### --- Temperature ---
 
 ### Load original data trim and save and get
 
-# results in r_tempc_file
-r_tempc_make_write_f <-
+# results in rast_tempc_file
+rast_tempc_make_write_f <-
   function(ISO,
            crop,
            cc_data,
            cc_row,
-           r_clim_mask_trim) {
-    (raster(paste0(
+           rast_clim_mask_trim) {
+    (rast(paste0(
       "data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 16])
-    )) * r_clim_mask_trim) %>%
-      writeRaster(paste0("data/", ISO, "/", crop, "/r_tempc.tif"), overwrite = TRUE)
+    )) * unwrap(rast_clim_mask_trim)) %>%
+      writeRaster(paste0("data/", ISO, "/", crop, "/rast_tempc.tif"), overwrite = TRUE)
   }
 
-# results in r_tempc
-r_tempc_get_f <- function(ISO, crop, r_tempc_file) {
-  raster(paste0("data/", ISO, "/", crop, "/r_tempc.tif"))
+# results in rast_tempc
+rast_tempc_get_f <- function(ISO, crop, rast_tempc_file) {
+  rast(paste0("data/", ISO, "/", crop, "/rast_tempc.tif")) %>% wrap()
 }
 
-# results in r_tempf_file
-r_tempf_make_write_f <-
+# results in rast_tempf_file
+rast_tempf_make_write_f <-
   function(ISO,
            crop,
            cc_data,
            cc_row,
-           r_clim_mask_trim) {
-    (raster(paste0(
+           rast_clim_mask_trim) {
+    (rast(paste0(
       "data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 17])
-    )) * r_clim_mask_trim) %>%
-      writeRaster(paste0("data/", ISO, "/", crop, "/r_tempf.tif"), overwrite = TRUE)
+    )) * unwrap(rast_clim_mask_trim)) %>%
+      writeRaster(paste0("data/", ISO, "/", crop, "/rast_tempf.tif"), overwrite = TRUE)
   }
 
-# results in r_tempf
-r_tempf_get_f <- function(ISO, crop, r_tempf_file) {
-  raster(paste0("data/", ISO, "/", crop, "/r_tempf.tif"))
+# results in rast_tempf
+rast_tempf_get_f <- function(ISO, crop, rast_tempf_file) {
+  rast(paste0("data/", ISO, "/", crop, "/rast_tempf.tif")) %>% wrap()
 }
 
 ### --- Season Onset ---
 
-# results in r_onsetc_file
-r_onsetc_make_write_f <-
+# results in rast_onsetc_file
+rast_onsetc_make_write_f <-
   function(ISO,
            crop,
            cc_data,
            cc_row,
-           r_clim_mask_trim) {
-    (raster(paste0(
+           rast_clim_mask_trim) {
+    (rast(paste0(
       "data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 18])
-    )) * r_clim_mask_trim) %>%
-      writeRaster(paste0("data/", ISO, "/", crop, "/r_onsetc.tif"), overwrite = TRUE)
+    )) * unwrap(rast_clim_mask_trim)) %>%
+      writeRaster(paste0("data/", ISO, "/", crop, "/rast_onsetc.tif"), overwrite = TRUE)
   }
 
-# results in r_onsetc
-r_onsetc_get_f <- function(ISO, crop, r_onsetc_file) {
-  raster(paste0("data/", ISO, "/", crop, "/r_onsetc.tif"))
+# results in rast_onsetc
+rast_onsetc_get_f <- function(ISO, crop, rast_onsetc_file) {
+  rast(paste0("data/", ISO, "/", crop, "/rast_onsetc.tif")) %>% wrap()
 }
 
-# results in r_onsetf_file
-r_onsetf_make_write_f <-
+# results in rast_onsetf_file
+rast_onsetf_make_write_f <-
   function(ISO,
            crop,
            cc_data,
            cc_row,
-           r_clim_mask_trim) {
-    (raster(paste0(
+           rast_clim_mask_trim) {
+    (rast(paste0(
       "data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 19])
-    )) * r_clim_mask_trim) %>%
-      writeRaster(paste0("data/", ISO, "/", crop, "/r_onsetf.tif"), overwrite = TRUE)
+    )) * unwrap(rast_clim_mask_trim)) %>%
+      writeRaster(paste0("data/", ISO, "/", crop, "/rast_onsetf.tif"), overwrite = TRUE)
   }
 
-# results in r_onsetf
-r_onsetf_get_f <- function(ISO, crop, r_onsetf_file) {
-  raster(paste0("data/", ISO, "/", crop, "/r_onsetf.tif"))
+# results in rast_onsetf
+rast_onsetf_get_f <- function(ISO, crop, rast_onsetf_file) {
+  rast(paste0("data/", ISO, "/", crop, "/rast_onsetf.tif")) %>% wrap()
 }
 
 ### --- Season Duration ---
 
-# results in r_durationc_file
-r_durationc_make_write_f <-
+# results in rast_durationc_file
+rast_durationc_make_write_f <-
   function(ISO,
            crop,
            cc_data,
            cc_row,
-           r_clim_mask_trim) {
-    (raster(paste0(
+           rast_clim_mask_trim) {
+    (rast(paste0(
       "data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 20])
-    )) * r_clim_mask_trim) %>%
-      writeRaster(paste0("data/", ISO, "/", crop, "/r_durationc.tif"),
+    )) * unwrap(rast_clim_mask_trim)) %>%
+      writeRaster(paste0("data/", ISO, "/", crop, "/rast_durationc.tif"),
                   overwrite = TRUE)
   }
 
-# results in r_durationc
-r_durationc_get_f <- function(ISO, crop, r_durationc_file) {
-  raster(paste0("data/", ISO, "/", crop, "/r_durationc.tif"))
+# results in rast_durationc
+rast_durationc_get_f <- function(ISO, crop, rast_durationc_file) {
+  rast(paste0("data/", ISO, "/", crop, "/rast_durationc.tif")) %>% wrap()
 }
 
-# results in r_durationf_file
-r_durationf_make_write_f <-
+# results in rast_durationf_file
+rast_durationf_make_write_f <-
   function(ISO,
            crop,
            cc_data,
            cc_row,
-           r_clim_mask_trim) {
-    (raster(paste0(
+           rast_clim_mask_trim) {
+    (rast(paste0(
       "data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 21])
-    )) * r_clim_mask_trim) %>%
-      writeRaster(paste0("data/", ISO, "/", crop, "/r_durationf.tif"),
+    )) * unwrap(rast_clim_mask_trim)) %>%
+      writeRaster(paste0("data/", ISO, "/", crop, "/rast_durationf.tif"),
                   overwrite = TRUE)
   }
 
-# results in r_durationf
-r_durationf_get_f <- function(ISO, crop, r_durationf_file) {
-  raster(paste0("data/", ISO, "/", crop, "/r_durationf.tif"))
+# results in rast_durationf
+rast_durationf_get_f <- function(ISO, crop, rast_durationf_file) {
+  rast(paste0("data/", ISO, "/", crop, "/rast_durationf.tif")) %>% wrap()
 }
 
 ### Calculate changes and save
 
-# results in r_rainfall_change_file
-r_rainfall_change_make_write_f <-
-  function(r_rainfallc, r_rainfallf, ISO, crop) {
-    (r_rainfallf - r_rainfallc) %>% writeRaster(paste0("data/", ISO, "/", crop, "/r_rainfall_change.tif"),
+# results in rast_rainfall_change_file
+rast_rainfall_change_make_write_f <-
+  function(rast_rainfallc, rast_rainfallf, ISO, crop) {
+    (unwrap(rast_rainfallf) - unwrap(rast_rainfallc)) %>% writeRaster(paste0("data/", ISO, "/", crop, "/rast_rainfall_change.tif"),
                                                 overwrite = TRUE)
   }
 
-# results in r_rainfall_change
-r_rainfall_change_get_f <-
-  function(r_rainfall_change_file, ISO, crop) {
-    paste0("data/", ISO, "/", crop, "/r_rainfall_change.tif") %>% raster()
+# results in rast_rainfall_change
+rast_rainfall_change_get_f <-
+  function(rast_rainfall_change_file, ISO, crop) {
+    paste0("data/", ISO, "/", crop, "/rast_rainfall_change.tif") %>% rast() %>% wrap()
   }
 
 
-# results in r_temp_change_file
-r_temp_change_make_write_f <-
-  function(r_tempc, r_tempf, ISO, crop) {
-    (r_tempf - r_tempc) %>% writeRaster(paste0("data/", ISO, "/", crop, "/r_temp_change.tif"),
+# results in rast_temp_change_file
+rast_temp_change_make_write_f <-
+  function(rast_tempc, rast_tempf, ISO, crop) {
+    (unwrap(rast_tempf) - unwrap(rast_tempc)) %>% writeRaster(paste0("data/", ISO, "/", crop, "/rast_temp_change.tif"),
                                         overwrite = TRUE)
   }
 
-# results in r_temp_change
-r_temp_change_get_f <-
-  function(r_temp_change_file, ISO, crop) {
-    paste0("data/", ISO, "/", crop, "/r_temp_change.tif") %>% raster()
+# results in rast_temp_change
+rast_temp_change_get_f <-
+  function(rast_temp_change_file, ISO, crop) {
+    paste0("data/", ISO, "/", crop, "/rast_temp_change.tif") %>% rast() %>% wrap()
   }
 
-# results in r_onset_change_file
-r_onset_change_make_write_f <-
-  function(r_onsetc, r_onsetf, ISO, crop) {
-    (r_onsetf - r_onsetc) %>% writeRaster(paste0("data/", ISO, "/", crop, "/r_onset_change.tif"),
+# results in rast_onset_change_file
+rast_onset_change_make_write_f <-
+  function(rast_onsetc, rast_onsetf, ISO, crop) {
+    (unwrap(rast_onsetf) - unwrap(rast_onsetc)) %>% writeRaster(paste0("data/", ISO, "/", crop, "/rast_onset_change.tif"),
                                           overwrite = TRUE)
   }
 
-# results in r_onset_change
-r_onset_change_get_f <-
-  function(r_onset_change_file, ISO, crop) {
-    paste0("data/", ISO, "/", crop, "/r_onset_change.tif") %>% raster()
+# results in rast_onset_change
+rast_onset_change_get_f <-
+  function(rast_onset_change_file, ISO, crop) {
+    paste0("data/", ISO, "/", crop, "/rast_onset_change.tif") %>% rast() %>% wrap()
   }
 
 
-# results in r_duration_change_file
-r_duration_change_make_write_f <-
-  function(r_durationc, r_durationf, ISO, crop) {
-    (r_durationf - r_durationc) %>% writeRaster(paste0("data/", ISO, "/", crop, "/r_duration_change.tif"),
+# results in rast_duration_change_file
+rast_duration_change_make_write_f <-
+  function(rast_durationc, rast_durationf, ISO, crop) {
+    (unwrap(rast_durationf) - unwrap(rast_durationc)) %>% writeRaster(paste0("data/", ISO, "/", crop, "/rast_duration_change.tif"),
                                                 overwrite = TRUE)
   }
 
-# results in r_duration_change
-r_duration_change_get_f <-
-  function(r_duration_change_file, ISO, crop) {
-    paste0("data/", ISO, "/", crop, "/r_duration_change.tif") %>% raster()
+# results in rast_duration_change
+rast_duration_change_get_f <-
+  function(rast_duration_change_file, ISO, crop) {
+    paste0("data/", ISO, "/", crop, "/rast_duration_change.tif") %>% rast() %>% wrap()
   }
 
 
 ### plot climate base data
 
-# results in r_rainfallc_plot
-r_rainfallc_plot_f <-
-  function(r_rainfallc,
+# results in rast_rainfallc_plot
+rast_rainfallc_plot_f <-
+  function(rast_rainfallc,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
            ISO,
            crop) {
-    gplot(r_rainfallc, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_rainfallc), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = value), alpha = 1) +
       geom_sf(
         data = world,
@@ -1187,7 +1188,7 @@ r_rainfallc_plot_f <-
       ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
       labs(
         fill = paste0(
-          "--------------------\nPast\nRainfall\nr_rainfallc\n",
+          "--------------------\nPast\nRainfall\nrast_rainfallc\n",
           ISO,
           "\n",
           crop,
@@ -1203,16 +1204,16 @@ r_rainfallc_plot_f <-
       coord_sf(expand = FALSE)
   }
 
-# results in r_rainfallf_plot
-r_rainfallf_plot_f <-
-  function(r_rainfallf,
+# results in rast_rainfallf_plot
+rast_rainfallf_plot_f <-
+  function(rast_rainfallf,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
            ISO,
            crop) {
-    gplot(r_rainfallf, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_rainfallf), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = value), alpha = 1) +
       geom_sf(
         data = world,
@@ -1249,7 +1250,7 @@ r_rainfallf_plot_f <-
       ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
       labs(
         fill = paste0(
-          "--------------------\nFuture\nRainfall\nr_rainfallf\n",
+          "--------------------\nFuture\nRainfall\nrast_rainfallf\n",
           ISO,
           "\n",
           crop,
@@ -1265,16 +1266,16 @@ r_rainfallf_plot_f <-
       coord_sf(expand = FALSE)
   }
 
-# results in r_tempc_plot
-r_tempc_plot_f <-
-  function(r_tempc,
+# results in rast_tempc_plot
+rast_tempc_plot_f <-
+  function(rast_tempc,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
            ISO,
            crop) {
-    gplot(r_tempc, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_tempc), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = value), alpha = 1) +
       geom_sf(
         data = world,
@@ -1311,7 +1312,7 @@ r_tempc_plot_f <-
       ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
       labs(
         fill = paste0(
-          "--------------------\nPast\nMean\nTemperature\nr_tempc\n",
+          "--------------------\nPast\nMean\nTemperature\nrast_tempc\n",
           ISO,
           "\n",
           crop,
@@ -1327,16 +1328,16 @@ r_tempc_plot_f <-
       coord_sf(expand = FALSE)
   }
 
-# results in r_tempf_plot
-r_tempf_plot_f <-
-  function(r_tempf,
+# results in rast_tempf_plot
+rast_tempf_plot_f <-
+  function(rast_tempf,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
            ISO,
            crop) {
-    gplot(r_tempf, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_tempf), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = value), alpha = 1) +
       geom_sf(
         data = world,
@@ -1373,7 +1374,7 @@ r_tempf_plot_f <-
       ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
       labs(
         fill = paste0(
-          "--------------------\nFuture\nMean\nTemperature\nr_tempf\n",
+          "--------------------\nFuture\nMean\nTemperature\nrast_tempf\n",
           ISO,
           "\n",
           crop,
@@ -1389,16 +1390,16 @@ r_tempf_plot_f <-
       coord_sf(expand = FALSE)
   }
 
-# results in r_onsetc_plot
-r_onsetc_plot_f <-
-  function(r_onsetc,
+# results in rast_onsetc_plot
+rast_onsetc_plot_f <-
+  function(rast_onsetc,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
            ISO,
            crop) {
-    gplot(r_onsetc, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_onsetc), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = value), alpha = 1) +
       geom_sf(
         data = world,
@@ -1435,7 +1436,7 @@ r_onsetc_plot_f <-
       ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
       labs(
         fill = paste0(
-          "--------------------\nPast\nSeason\nOnset\nr_onsetc\n",
+          "--------------------\nPast\nSeason\nOnset\nrast_onsetc\n",
           ISO,
           "\n",
           crop,
@@ -1451,16 +1452,16 @@ r_onsetc_plot_f <-
       coord_sf(expand = FALSE)
   }
 
-# results in r_onsetf_plot
-r_onsetf_plot_f <-
-  function(r_onsetf,
+# results in rast_onsetf_plot
+rast_onsetf_plot_f <-
+  function(rast_onsetf,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
            ISO,
            crop) {
-    gplot(r_onsetf, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_onsetf), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = value), alpha = 1) +
       geom_sf(
         data = world,
@@ -1497,7 +1498,7 @@ r_onsetf_plot_f <-
       ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
       labs(
         fill = paste0(
-          "--------------------\nFuture\nSeason\nOnset\nr_onsetf\n",
+          "--------------------\nFuture\nSeason\nOnset\nrast_onsetf\n",
           ISO,
           "\n",
           crop,
@@ -1513,16 +1514,16 @@ r_onsetf_plot_f <-
       coord_sf(expand = FALSE)
   }
 
-# results in r_durationc_plot
-r_durationc_plot_f <-
-  function(r_durationc,
+# results in rast_durationc_plot
+rast_durationc_plot_f <-
+  function(rast_durationc,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
            ISO,
            crop) {
-    gplot(r_durationc, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_durationc), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = value), alpha = 1) +
       geom_sf(
         data = world,
@@ -1559,7 +1560,7 @@ r_durationc_plot_f <-
       ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
       labs(
         fill = paste0(
-          "--------------------\nPast\nSeason\nDuration\nr_durationc\n",
+          "--------------------\nPast\nSeason\nDuration\nrast_durationc\n",
           ISO,
           "\n",
           crop,
@@ -1575,16 +1576,16 @@ r_durationc_plot_f <-
       coord_sf(expand = FALSE)
   }
 
-# results in r_durationf_plot
-r_durationf_plot_f <-
-  function(r_durationf,
+# results in rast_durationf_plot
+rast_durationf_plot_f <-
+  function(rast_durationf,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
            ISO,
            crop) {
-    gplot(r_durationf, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_durationf), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = value), alpha = 1) +
       geom_sf(
         data = world,
@@ -1621,7 +1622,7 @@ r_durationf_plot_f <-
       ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
       labs(
         fill = paste0(
-          "--------------------\nFuture\nSeason\nDuration\nr_durationf\n",
+          "--------------------\nFuture\nSeason\nDuration\nrast_durationf\n",
           ISO,
           "\n",
           crop,
@@ -1639,16 +1640,16 @@ r_durationf_plot_f <-
 
 ## climate base data change plots
 
-# results in r_rainfall_change_plot
-r_rainfall_change_plot_f <-
-  function(r_rainfall_change,
+# results in rast_rainfall_change_plot
+rast_rainfall_change_plot_f <-
+  function(rast_rainfall_change,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
            ISO,
            crop) {
-    gplot(r_rainfall_change, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_rainfall_change), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = value), alpha = 1) +
       geom_sf(
         data = world,
@@ -1685,7 +1686,7 @@ r_rainfall_change_plot_f <-
       ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
       labs(
         fill = paste0(
-          "--------------------\nChange\nRainfall\nr_rainfall_change\n",
+          "--------------------\nChange\nRainfall\nrast_rainfall_change\n",
           ISO,
           "\n",
           crop,
@@ -1701,16 +1702,16 @@ r_rainfall_change_plot_f <-
       coord_sf(expand = FALSE)
   }
 
-# results in r_temp_change_plot
-r_temp_change_plot_f <-
-  function(r_temp_change,
+# results in rast_temp_change_plot
+rast_temp_change_plot_f <-
+  function(rast_temp_change,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
            ISO,
            crop) {
-    gplot(r_temp_change, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_temp_change), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = value), alpha = 1) +
       geom_sf(
         data = world,
@@ -1747,7 +1748,7 @@ r_temp_change_plot_f <-
       ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
       labs(
         fill = paste0(
-          "--------------------\nChange\nMean\nTemperature\nr_temp_change\n",
+          "--------------------\nChange\nMean\nTemperature\nrast_temp_change\n",
           ISO,
           "\n",
           crop,
@@ -1763,16 +1764,16 @@ r_temp_change_plot_f <-
       coord_sf(expand = FALSE)
   }
 
-# results in r_onset_change_plot
-r_onset_change_plot_f <-
-  function(r_onset_change,
+# results in rast_onset_change_plot
+rast_onset_change_plot_f <-
+  function(rast_onset_change,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
            ISO,
            crop) {
-    gplot(r_onset_change, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_onset_change), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = value), alpha = 1) +
       geom_sf(
         data = world,
@@ -1809,7 +1810,7 @@ r_onset_change_plot_f <-
       ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
       labs(
         fill = paste0(
-          "--------------------\nChange\nSeason\nOnset\nr_onset_change\n",
+          "--------------------\nChange\nSeason\nOnset\nrast_onset_change\n",
           ISO,
           "\n",
           crop,
@@ -1825,16 +1826,16 @@ r_onset_change_plot_f <-
       coord_sf(expand = FALSE)
   }
 
-# results in r_duration_change_plot
-r_duration_change_plot_f <-
-  function(r_duration_change,
+# results in rast_duration_change_plot
+rast_duration_change_plot_f <-
+  function(rast_duration_change,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
            ISO,
            crop) {
-    gplot(r_duration_change, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_duration_change), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = value), alpha = 1) +
       geom_sf(
         data = world,
@@ -1871,7 +1872,7 @@ r_duration_change_plot_f <-
       ylim ((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax) + 1) +
       labs(
         fill = paste0(
-          "--------------------\nChange\nSeason\nDuration\nr_duration_change\n",
+          "--------------------\nChange\nSeason\nDuration\nrast_duration_change\n",
           ISO,
           "\n",
           crop,
@@ -1890,162 +1891,162 @@ r_duration_change_plot_f <-
 ### ----- Climate Hazard Indicator Data ----- ###
 ### Load original data trim and save
 
-# results in r_droughtc_file
-r_droughtc_make_write_f <-
+# results in rast_droughtc_file
+rast_droughtc_make_write_f <-
   function(ISO,
            crop,
            cc_data,
            cc_row,
-           r_clim_mask_trim) {
-    (raster(paste0(
+           rast_clim_mask_trim) {
+    (rast(paste0(
       "data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 6])
-    )) * r_clim_mask_trim) %>%
-      writeRaster(paste0("data/", ISO, "/", crop, "/r_droughtc.tif"),
+    )) * unwrap(rast_clim_mask_trim)) %>%
+      writeRaster(paste0("data/", ISO, "/", crop, "/rast_droughtc.tif"),
                   overwrite = TRUE)
   }
 
-# results in r_droughtc
-r_droughtc_get_f <- function(ISO, crop, r_droughtc_file) {
-  paste0("data/", ISO, "/", crop, "/r_droughtc.tif") %>% raster()
+# results in rast_droughtc
+rast_droughtc_get_f <- function(ISO, crop, rast_droughtc_file) {
+  paste0("data/", ISO, "/", crop, "/rast_droughtc.tif") %>% rast() %>% wrap()
 }
 
-# results in r_droughtf_file
-r_droughtf_make_write_f <-
+# results in rast_droughtf_file
+rast_droughtf_make_write_f <-
   function(ISO,
            crop,
            cc_data,
            cc_row,
-           r_clim_mask_trim) {
-    (raster(paste0(
+           rast_clim_mask_trim) {
+    (rast(paste0(
       "data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 7])
-    )) * r_clim_mask_trim) %>%
-      writeRaster(paste0("data/", ISO, "/", crop, "/r_droughtf.tif"),
+    )) * unwrap(rast_clim_mask_trim)) %>%
+      writeRaster(paste0("data/", ISO, "/", crop, "/rast_droughtf.tif"),
                   overwrite = TRUE)
   }
 
-# results in r_droughtf
-r_droughtf_get_f <- function(ISO, crop, r_droughtf_file) {
-  paste0("data/", ISO, "/", crop, "/r_droughtf.tif") %>% raster()
+# results in rast_droughtf
+rast_droughtf_get_f <- function(ISO, crop, rast_droughtf_file) {
+  paste0("data/", ISO, "/", crop, "/rast_droughtf.tif") %>% rast() %>% wrap()
 }
 
-# results in r_heatc_file
-r_heatc_make_write_f <-
+# results in rast_heatc_file
+rast_heatc_make_write_f <-
   function(ISO,
            crop,
            cc_data,
            cc_row,
-           r_clim_mask_trim) {
-    (raster(paste0(
+           rast_clim_mask_trim) {
+    (rast(paste0(
       "data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 9])
-    )) * r_clim_mask_trim) %>%
-      writeRaster(paste0("data/", ISO, "/", crop, "/r_heatc.tif"), overwrite = TRUE)
+    )) * unwrap(rast_clim_mask_trim)) %>%
+      writeRaster(paste0("data/", ISO, "/", crop, "/rast_heatc.tif"), overwrite = TRUE)
   }
 
-# results in r_heatc
-r_heatc_get_f <- function(ISO, crop, r_heatc_file) {
-  paste0("data/", ISO, "/", crop, "/r_heatc.tif") %>% raster()
+# results in rast_heatc
+rast_heatc_get_f <- function(ISO, crop, rast_heatc_file) {
+  paste0("data/", ISO, "/", crop, "/rast_heatc.tif") %>% rast() %>% wrap()
 }
 
-# results in r_heatf_file
-r_heatf_make_write_f <-
+# results in rast_heatf_file
+rast_heatf_make_write_f <-
   function(ISO,
            crop,
            cc_data,
            cc_row,
-           r_clim_mask_trim) {
-    (raster(paste0(
+           rast_clim_mask_trim) {
+    (rast(paste0(
       "data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 10])
-    )) * r_clim_mask_trim) %>%
-      writeRaster(paste0("data/", ISO, "/", crop, "/r_heatf.tif"), overwrite = TRUE)
+    )) * unwrap(rast_clim_mask_trim)) %>%
+      writeRaster(paste0("data/", ISO, "/", crop, "/rast_heatf.tif"), overwrite = TRUE)
   }
 
-# results in r_heatf
-r_heatf_get_f <- function(ISO, crop, r_heatf_file) {
-  paste0("data/", ISO, "/", crop, "/r_heatf.tif") %>% raster()
+# results in rast_heatf
+rast_heatf_get_f <- function(ISO, crop, rast_heatf_file) {
+  paste0("data/", ISO, "/", crop, "/rast_heatf.tif") %>% rast() %>% wrap()
 }
 
-# results in r_floodc_file
-r_floodc_make_write_f <-
+# results in rast_floodc_file
+rast_floodc_make_write_f <-
   function(ISO,
            crop,
            cc_data,
            cc_row,
-           r_clim_mask_trim) {
-    (raster(paste0(
+           rast_clim_mask_trim) {
+    (rast(paste0(
       "data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 12])
-    )) * r_clim_mask_trim) %>%
-      writeRaster(paste0("data/", ISO, "/", crop, "/r_floodc.tif"), overwrite = TRUE)
+    )) * unwrap(rast_clim_mask_trim)) %>%
+      writeRaster(paste0("data/", ISO, "/", crop, "/rast_floodc.tif"), overwrite = TRUE)
   }
 
-# results in r_floodc
-r_floodc_get_f <- function(ISO, crop, r_floodc_file) {
-  paste0("data/", ISO, "/", crop, "/r_floodc.tif") %>% raster()
+# results in rast_floodc
+rast_floodc_get_f <- function(ISO, crop, rast_floodc_file) {
+  paste0("data/", ISO, "/", crop, "/rast_floodc.tif") %>% rast() %>% wrap()
 }
 
-# results in r_floodf_file
-r_floodf_make_write_f <-
+# results in rast_floodf_file
+rast_floodf_make_write_f <-
   function(ISO,
            crop,
            cc_data,
            cc_row,
-           r_clim_mask_trim) {
-    (raster(paste0(
+           rast_clim_mask_trim) {
+    (rast(paste0(
       "data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 13])
-    )) * r_clim_mask_trim) %>%
-      writeRaster(paste0("data/", ISO, "/", crop, "/r_floodf.tif"), overwrite = TRUE)
+    )) * unwrap(rast_clim_mask_trim)) %>%
+      writeRaster(paste0("data/", ISO, "/", crop, "/rast_floodf.tif"), overwrite = TRUE)
   }
 
-# results in r_floodf
-r_floodf_get_f <- function(ISO, crop, r_floodf_file) {
-  paste0("data/", ISO, "/", crop, "/r_floodf.tif") %>% raster()
+# results in rast_floodf
+rast_floodf_get_f <- function(ISO, crop, rast_floodf_file) {
+  paste0("data/", ISO, "/", crop, "/rast_floodf.tif") %>% rast() %>% wrap()
 }
 
 ### Calculate changes and save
 
-# results in r_drought_change_file
-r_drought_change_make_write_f <-
-  function(r_droughtc, r_droughtf, ISO, crop) {
-    (r_droughtf - r_droughtc) %>% writeRaster(paste0("data/", ISO, "/", crop, "/r_drought_change.tif"),
+# results in rast_drought_change_file
+rast_drought_change_make_write_f <-
+  function(rast_droughtc, rast_droughtf, ISO, crop) {
+    (unwrap(rast_droughtf) - unwrap(rast_droughtc)) %>% writeRaster(paste0("data/", ISO, "/", crop, "/rast_drought_change.tif"),
                                               overwrite = TRUE)
   }
 
-# results in r_drought_change
-r_drought_change_get_f <-
-  function(r_drought_change_file, ISO, crop) {
-    paste0("data/", ISO, "/", crop, "/r_drought_change.tif") %>% raster()
+# results in rast_drought_change
+rast_drought_change_get_f <-
+  function(rast_drought_change_file, ISO, crop) {
+    paste0("data/", ISO, "/", crop, "/rast_drought_change.tif") %>% rast() %>% wrap()
   }
 
-# results in r_heat_change_file
-r_heat_change_make_write_f <-
-  function(r_heatc, r_heatf, ISO, crop) {
-    (r_heatf - r_heatc) %>% writeRaster(paste0("data/", ISO, "/", crop, "/r_heat_change.tif"),
+# results in rast_heat_change_file
+rast_heat_change_make_write_f <-
+  function(rast_heatc, rast_heatf, ISO, crop) {
+    (unwrap(rast_heatf) - unwrap(rast_heatc)) %>% writeRaster(paste0("data/", ISO, "/", crop, "/rast_heat_change.tif"),
                                         overwrite = TRUE)
   }
 
-# results in r_heat_change
-r_heat_change_get_f <-
-  function(r_heat_change_file, ISO, crop) {
-    paste0("data/", ISO, "/", crop, "/r_heat_change.tif") %>% raster()
+# results in rast_heat_change
+rast_heat_change_get_f <-
+  function(rast_heat_change_file, ISO, crop) {
+    paste0("data/", ISO, "/", crop, "/rast_heat_change.tif") %>% rast() %>% wrap()
   }
 
-# results in r_flood_change_file
-r_flood_change_make_write_f <-
-  function(r_floodc, r_floodf, ISO, crop) {
-    (r_floodf - r_floodc) %>% writeRaster(paste0("data/", ISO, "/", crop, "/r_flood_change.tif"),
+# results in rast_flood_change_file
+rast_flood_change_make_write_f <-
+  function(rast_floodc, rast_floodf, ISO, crop) {
+    (unwrap(rast_floodf) - unwrap(rast_floodc)) %>% writeRaster(paste0("data/", ISO, "/", crop, "/rast_flood_change.tif"),
                                           overwrite = TRUE)
   }
 
-# results in r_flood_change
-r_flood_change_get_f <-
-  function(r_flood_change_file, ISO, crop) {
-    paste0("data/", ISO, "/", crop, "/r_flood_change.tif") %>% raster()
+# results in rast_flood_change
+rast_flood_change_get_f <-
+  function(rast_flood_change_file, ISO, crop) {
+    paste0("data/", ISO, "/", crop, "/rast_flood_change.tif") %>% rast() %>% wrap()
   }
 
 ### plot climate hazard data
 
-# results in r_droughtc_plot
-r_droughtc_plot_f <-
-  function(r_droughtc,
+# results in rast_droughtc_plot
+rast_droughtc_plot_f <-
+  function(rast_droughtc,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -2053,7 +2054,7 @@ r_droughtc_plot_f <-
            ISO,
            crop,
            drought) {
-    gplot(r_droughtc, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_droughtc), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = value), alpha = 1) +
       geom_sf(
         data = world,
@@ -2092,7 +2093,7 @@ r_droughtc_plot_f <-
         fill = paste0(
           "--------------------\nPast\n",
           drought,
-          "\nr_droughtc\n",
+          "\nrast_droughtc\n",
           ISO,
           "\n",
           crop,
@@ -2108,9 +2109,9 @@ r_droughtc_plot_f <-
       coord_sf(expand = FALSE)
   }
 
-# results in r_droughtf_plot
-r_droughtf_plot_f <-
-  function(r_droughtf,
+# results in rast_droughtf_plot
+rast_droughtf_plot_f <-
+  function(rast_droughtf,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -2118,7 +2119,7 @@ r_droughtf_plot_f <-
            ISO,
            crop,
            drought) {
-    gplot(r_droughtf, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_droughtf), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = value), alpha = 1) +
       geom_sf(
         data = world,
@@ -2157,7 +2158,7 @@ r_droughtf_plot_f <-
         fill = paste0(
           "--------------------\nFuture\n",
           drought,
-          "\nr_droughtf\n",
+          "\nrast_droughtf\n",
           ISO,
           "\n",
           crop,
@@ -2173,9 +2174,9 @@ r_droughtf_plot_f <-
       coord_sf(expand = FALSE)
   }
 
-# results in r_drought_change_plot
-r_drought_change_plot_f <-
-  function(r_drought_change,
+# results in rast_drought_change_plot
+rast_drought_change_plot_f <-
+  function(rast_drought_change,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -2183,7 +2184,7 @@ r_drought_change_plot_f <-
            ISO,
            crop,
            drought) {
-    gplot(r_drought_change, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_drought_change), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = value), alpha = 1) +
       geom_sf(
         data = world,
@@ -2222,7 +2223,7 @@ r_drought_change_plot_f <-
         fill = paste0(
           "--------------------\nChange\n",
           drought,
-          "\nr_drought_change\n",
+          "\nrast_drought_change\n",
           ISO,
           "\n",
           crop,
@@ -2238,9 +2239,9 @@ r_drought_change_plot_f <-
       coord_sf(expand = FALSE)
   }
 
-# results in r_heatc_plot
-r_heatc_plot_f <-
-  function(r_heatc,
+# results in rast_heatc_plot
+rast_heatc_plot_f <-
+  function(rast_heatc,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -2248,7 +2249,7 @@ r_heatc_plot_f <-
            ISO,
            crop,
            heat) {
-    gplot(r_heatc, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_heatc), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = value), alpha = 1) +
       geom_sf(
         data = world,
@@ -2287,7 +2288,7 @@ r_heatc_plot_f <-
         fill = paste0(
           "--------------------\nPast\n",
           heat,
-          "\nr_heatc\n",
+          "\nrast_heatc\n",
           ISO,
           "\n",
           crop,
@@ -2303,9 +2304,9 @@ r_heatc_plot_f <-
       coord_sf(expand = FALSE)
   }
 
-# results in r_heatf_plot
-r_heatf_plot_f <-
-  function(r_heatf,
+# results in rast_heatf_plot
+rast_heatf_plot_f <-
+  function(rast_heatf,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -2313,7 +2314,7 @@ r_heatf_plot_f <-
            ISO,
            crop,
            heat) {
-    gplot(r_heatf, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_heatf), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = value), alpha = 1) +
       geom_sf(
         data = world,
@@ -2352,7 +2353,7 @@ r_heatf_plot_f <-
         fill = paste0(
           "--------------------\nFuture\n",
           heat,
-          "\nr_heatf\n",
+          "\nrast_heatf\n",
           ISO,
           "\n",
           crop,
@@ -2368,9 +2369,9 @@ r_heatf_plot_f <-
       coord_sf(expand = FALSE)
   }
 
-# results in r_heat_change_plot
-r_heat_change_plot_f <-
-  function(r_heat_change,
+# results in rast_heat_change_plot
+rast_heat_change_plot_f <-
+  function(rast_heat_change,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -2378,7 +2379,7 @@ r_heat_change_plot_f <-
            ISO,
            crop,
            heat) {
-    gplot(r_heat_change, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_heat_change), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = value), alpha = 1) +
       geom_sf(
         data = world,
@@ -2417,7 +2418,7 @@ r_heat_change_plot_f <-
         fill = paste0(
           "--------------------\nChange\n",
           heat,
-          "\nr_heat_change\n",
+          "\nrast_heat_change\n",
           ISO,
           "\n",
           crop,
@@ -2434,9 +2435,9 @@ r_heat_change_plot_f <-
   }
 
 
-# results in r_floodc_plot
-r_floodc_plot_f <-
-  function(r_floodc,
+# results in rast_floodc_plot
+rast_floodc_plot_f <-
+  function(rast_floodc,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -2444,7 +2445,7 @@ r_floodc_plot_f <-
            ISO,
            crop,
            flood) {
-    gplot(r_floodc, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_floodc), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = value), alpha = 1) +
       geom_sf(
         data = world,
@@ -2483,7 +2484,7 @@ r_floodc_plot_f <-
         fill = paste0(
           "--------------------\nPast\n",
           flood,
-          "\nr_floodc\n",
+          "\nrast_floodc\n",
           ISO,
           "\n",
           crop,
@@ -2499,9 +2500,9 @@ r_floodc_plot_f <-
       coord_sf(expand = FALSE)
   }
 
-# results in r_floodf_plot
-r_floodf_plot_f <-
-  function(r_floodf,
+# results in rast_floodf_plot
+rast_floodf_plot_f <-
+  function(rast_floodf,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -2509,7 +2510,7 @@ r_floodf_plot_f <-
            ISO,
            crop,
            flood) {
-    gplot(r_floodf, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_floodf), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = value), alpha = 1) +
       geom_sf(
         data = world,
@@ -2548,7 +2549,7 @@ r_floodf_plot_f <-
         fill = paste0(
           "--------------------\nFuture\n",
           flood,
-          "\nr_floodf\n",
+          "\nrast_floodf\n",
           ISO,
           "\n",
           crop,
@@ -2564,9 +2565,9 @@ r_floodf_plot_f <-
       coord_sf(expand = FALSE)
   }
 
-# results in r_flood_change_plot
-r_flood_change_plot_f <-
-  function(r_flood_change,
+# results in rast_flood_change_plot
+rast_flood_change_plot_f <-
+  function(rast_flood_change,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -2574,7 +2575,7 @@ r_flood_change_plot_f <-
            ISO,
            crop,
            flood) {
-    gplot(r_flood_change, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_flood_change), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = value), alpha = 1) +
       geom_sf(
         data = world,
@@ -2613,7 +2614,7 @@ r_flood_change_plot_f <-
         fill = paste0(
           "--------------------\nChange\n",
           flood,
-          "\nr_flood_change\n",
+          "\nrast_flood_change\n",
           ISO,
           "\n",
           crop,
@@ -2635,9 +2636,9 @@ r_flood_change_plot_f <-
 
 # results in dB_rainfallc_summary
 dB_rainfallc_summary_make_f <-
-  function(r_rainfallc, v_crop_ISO_lc_rcl_agg) {
+  function(rast_rainfallc, v_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      r_rainfallc,
+      unwrap(rast_rainfallc),
       v_crop_ISO_lc_rcl_agg,
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
@@ -2652,9 +2653,9 @@ dB_rainfallc_summary_make_f <-
 
 # results in dB_rainfallf_summary
 dB_rainfallf_summary_make_f <-
-  function(r_rainfallf, v_crop_ISO_lc_rcl_agg) {
+  function(rast_rainfallf, v_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      r_rainfallf,
+      unwrap(rast_rainfallf),
       v_crop_ISO_lc_rcl_agg,
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
@@ -2669,10 +2670,10 @@ dB_rainfallf_summary_make_f <-
 
 # results in dB_rainfall_change_summary
 dB_rainfall_change_summary_make_f <-
-  function(r_rainfall_change,
+  function(rast_rainfall_change,
            v_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      r_rainfall_change,
+      unwrap(rast_rainfall_change),
       v_crop_ISO_lc_rcl_agg,
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
@@ -2689,9 +2690,9 @@ dB_rainfall_change_summary_make_f <-
 
 # results in dB_tempc_summary
 dB_tempc_summary_make_f <-
-  function(r_tempc, v_crop_ISO_lc_rcl_agg) {
+  function(rast_tempc, v_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      r_tempc,
+      unwrap(rast_tempc),
       v_crop_ISO_lc_rcl_agg,
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
@@ -2706,9 +2707,9 @@ dB_tempc_summary_make_f <-
 
 # results in dB_tempf_summary
 dB_tempf_summary_make_f <-
-  function(r_tempf, v_crop_ISO_lc_rcl_agg) {
+  function(rast_tempf, v_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      r_tempf,
+      unwrap(rast_tempf),
       v_crop_ISO_lc_rcl_agg,
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
@@ -2723,9 +2724,9 @@ dB_tempf_summary_make_f <-
 
 # results in dB_temp_change_summary
 dB_temp_change_summary_make_f <-
-  function(r_temp_change, v_crop_ISO_lc_rcl_agg) {
+  function(rast_temp_change, v_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      r_temp_change,
+      unwrap(rast_temp_change),
       v_crop_ISO_lc_rcl_agg,
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
@@ -2742,9 +2743,9 @@ dB_temp_change_summary_make_f <-
 
 # results in dB_onsetc_summary
 dB_onsetc_summary_make_f <-
-  function(r_onsetc, v_crop_ISO_lc_rcl_agg) {
+  function(rast_onsetc, v_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      r_onsetc,
+      unwrap(rast_onsetc),
       v_crop_ISO_lc_rcl_agg,
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
@@ -2759,9 +2760,9 @@ dB_onsetc_summary_make_f <-
 
 # results in dB_onsetf_summary
 dB_onsetf_summary_make_f <-
-  function(r_onsetf, v_crop_ISO_lc_rcl_agg) {
+  function(rast_onsetf, v_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      r_onsetf,
+      unwrap(rast_onsetf),
       v_crop_ISO_lc_rcl_agg,
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
@@ -2776,9 +2777,9 @@ dB_onsetf_summary_make_f <-
 
 # results in dB_onset_change_summary
 dB_onset_change_summary_make_f <-
-  function(r_onset_change, v_crop_ISO_lc_rcl_agg) {
+  function(rast_onset_change, v_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      r_onset_change,
+      unwrap(rast_onset_change),
       v_crop_ISO_lc_rcl_agg,
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
@@ -2795,9 +2796,9 @@ dB_onset_change_summary_make_f <-
 
 # results in dB_durationc_summary
 dB_durationc_summary_make_f <-
-  function(r_durationc, v_crop_ISO_lc_rcl_agg) {
+  function(rast_durationc, v_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      r_durationc,
+      unwrap(rast_durationc),
       v_crop_ISO_lc_rcl_agg,
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
@@ -2812,9 +2813,9 @@ dB_durationc_summary_make_f <-
 
 # results in dB_durationf_summary
 dB_durationf_summary_make_f <-
-  function(r_durationf, v_crop_ISO_lc_rcl_agg) {
+  function(rast_durationf, v_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      r_durationf,
+      unwrap(rast_durationf),
       v_crop_ISO_lc_rcl_agg,
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
@@ -2829,10 +2830,10 @@ dB_durationf_summary_make_f <-
 
 # results in dB_duration_change_summary
 dB_duration_change_summary_make_f <-
-  function(r_duration_change,
+  function(rast_duration_change,
            v_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      r_duration_change,
+      unwrap(rast_duration_change),
       v_crop_ISO_lc_rcl_agg,
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
@@ -2849,9 +2850,9 @@ dB_duration_change_summary_make_f <-
 
 # results in dB_droughtc_summary
 dB_droughtc_summary_make_f <-
-  function(r_droughtc, v_crop_ISO_lc_rcl_agg) {
+  function(rast_droughtc, v_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      r_droughtc,
+      unwrap(rast_droughtc),
       v_crop_ISO_lc_rcl_agg,
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
@@ -2866,9 +2867,9 @@ dB_droughtc_summary_make_f <-
 
 # results in dB_droughtf_summary
 dB_droughtf_summary_make_f <-
-  function(r_droughtf, v_crop_ISO_lc_rcl_agg) {
+  function(rast_droughtf, v_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      r_droughtf,
+      unwrap(rast_droughtf),
       v_crop_ISO_lc_rcl_agg,
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
@@ -2883,9 +2884,9 @@ dB_droughtf_summary_make_f <-
 
 # results in dB_drought_change_summary
 dB_drought_change_summary_make_f <-
-  function(r_drought_change, v_crop_ISO_lc_rcl_agg) {
+  function(rast_drought_change, v_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      r_drought_change,
+      unwrap(rast_drought_change),
       v_crop_ISO_lc_rcl_agg,
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
@@ -2902,9 +2903,9 @@ dB_drought_change_summary_make_f <-
 
 # results in dB_heatc_summary
 dB_heatc_summary_make_f <-
-  function(r_heatc, v_crop_ISO_lc_rcl_agg) {
+  function(rast_heatc, v_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      r_heatc,
+      unwrap(rast_heatc),
       v_crop_ISO_lc_rcl_agg,
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
@@ -2919,9 +2920,9 @@ dB_heatc_summary_make_f <-
 
 # results in dB_heatf_summary
 dB_heatf_summary_make_f <-
-  function(r_heatf, v_crop_ISO_lc_rcl_agg) {
+  function(rast_heatf, v_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      r_heatf,
+      unwrap(rast_heatf),
       v_crop_ISO_lc_rcl_agg,
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
@@ -2936,9 +2937,9 @@ dB_heatf_summary_make_f <-
 
 # results in dB_heat_change_summary
 dB_heat_change_summary_make_f <-
-  function(r_heat_change, v_crop_ISO_lc_rcl_agg) {
+  function(rast_heat_change, v_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      r_heat_change,
+      unwrap(rast_heat_change),
       v_crop_ISO_lc_rcl_agg,
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
@@ -2955,9 +2956,9 @@ dB_heat_change_summary_make_f <-
 
 # results in dB_floodc_summary
 dB_floodc_summary_make_f <-
-  function(r_floodc, v_crop_ISO_lc_rcl_agg) {
+  function(rast_floodc, v_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      r_floodc,
+      unwrap(rast_floodc),
       v_crop_ISO_lc_rcl_agg,
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
@@ -2972,9 +2973,9 @@ dB_floodc_summary_make_f <-
 
 # results in dB_floodf_summary
 dB_floodf_summary_make_f <-
-  function(r_floodf, v_crop_ISO_lc_rcl_agg) {
+  function(rast_floodf, v_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      r_floodf,
+      unwrap(rast_floodf),
       v_crop_ISO_lc_rcl_agg,
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
@@ -2989,9 +2990,9 @@ dB_floodf_summary_make_f <-
 
 # results in dB_flood_change_summary
 dB_flood_change_summary_make_f <-
-  function(r_flood_change, v_crop_ISO_lc_rcl_agg) {
+  function(rast_flood_change, v_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      r_flood_change,
+      unwrap(rast_flood_change),
       v_crop_ISO_lc_rcl_agg,
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
@@ -3981,8 +3982,8 @@ dB_flood_change_summary_plot_f <-
 ### Prepare Impact Data
 
 # results in dB_impact_prelim
-dB_impact_prelim_make_f <- function(r_droughtc) {
-  coordinates(rasterToPoints(r_droughtc)) %>% as_tibble() %>% dplyr::select(x, y)
+dB_impact_prelim_make_f <- function(rast_droughtc) {
+  crds(as.points(unwrap(rast_droughtc))) %>% as_tibble() %>% dplyr::select(x, y)
 }
 
 # results in xy_impact
@@ -3991,33 +3992,33 @@ xy_impact_make_f <- function(dB_impact_prelim) {
 }
 
 # results in newcol_droughtc
-newcol_droughtc_make_f <- function(xy_impact, r_droughtc) {
-  raster::extract(r_droughtc, xy_impact)
+newcol_droughtc_make_f <- function(xy_impact, rast_droughtc) {
+  extract(unwrap(rast_droughtc), xy_impact)
 }
 
 # results in newcol_droughtf
-newcol_droughtf_make_f <- function(xy_impact, r_droughtf) {
-  raster::extract(r_droughtf, xy_impact)
+newcol_droughtf_make_f <- function(xy_impact, rast_droughtf) {
+  extract(unwrap(rast_droughtf), xy_impact)
 }
 
 # results in newcol_heatc
-newcol_heatc_make_f <- function(xy_impact, r_heatc) {
-  raster::extract(r_heatc, xy_impact)
+newcol_heatc_make_f <- function(xy_impact, rast_heatc) {
+  extract(unwrap(rast_heatc), xy_impact)
 }
 
 # results in newcol_heatf
-newcol_heatf_make_f <- function(xy_impact, r_heatf) {
-  raster::extract(r_heatf, xy_impact)
+newcol_heatf_make_f <- function(xy_impact, rast_heatf) {
+  extract(unwrap(rast_heatf), xy_impact)
 }
 
 # results in newcol_floodc
-newcol_floodc_make_f <- function(xy_impact, r_floodc) {
-  raster::extract(r_floodc, xy_impact)
+newcol_floodc_make_f <- function(xy_impact, rast_floodc) {
+  extract(unwrap(rast_floodc), xy_impact)
 }
 
 # results in newcol_floodf
-newcol_floodf_make_f <- function(xy_impact, r_floodf) {
-  raster::extract(r_floodf, xy_impact)
+newcol_floodf_make_f <- function(xy_impact, rast_floodf) {
+  extract(unwrap(rast_floodf), xy_impact)
 }
 
 # results in dB_impact
@@ -6405,362 +6406,364 @@ v_impact_make_f <- function(dB_impact_full) {
   dB_impact_full %>% st_as_sf(coords = c("x", "y"), crs = st_crs(4326))
 }
 
-# results in rB_impact_prelim
-rB_impact_prelim_make_f <- function(v_impact, r_droughtc) {
-  rasterize(v_impact, r_droughtc, field = 'droughtc_l_o') %>% brick
+# results in rast_impact_prelim
+rast_impact_prelim_make_f <- function(v_impact, rast_droughtc) {
+  rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_o') %>% wrap()
 }
 
-# results in rB_impact
-rB_impact_make_f <-
-  function(v_impact, r_droughtc, rB_impact_prelim) {
-    rB_impact_prelim %>%
+# results in rast_impact
+rast_impact_make_f <-
+  function(v_impact, rast_droughtc, rast_impact_prelim) {
+    unwrap(rast_impact_prelim) %>%
       
       # lower thresholds
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_s')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_l_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_l_s')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'floodc_l_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'floodc_l_s')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_s')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_l_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_l_s')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'floodf_l_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'floodf_l_s'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtchange_l_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtchange_l_s')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatchange_l_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatchange_l_s')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'floodchange_l_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'floodchange_l_s'))  %>%
+      ###Farrow 14/03/2023 reached here
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_o'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_d'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_h'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_dh'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_max'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_s')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_s')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'floodc_l_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'floodc_l_s')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_s')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_s')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'floodf_l_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'floodf_l_s'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtchange_l_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtchange_l_s')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatchange_l_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatchange_l_s')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'floodchange_l_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'floodchange_l_s'))  %>%
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_floodc_l_o'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_floodc_l_d'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_floodc_l_f'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_floodc_l_df'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_floodc_l_max'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_o'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_d'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_h'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_dh'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_max'))  %>%
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_l_floodc_l_o'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_l_floodc_l_h'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_l_floodc_l_f'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_l_floodc_l_hf'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_l_floodc_l_max'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_l_o'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_l_d'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_l_f'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_l_df'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_l_max'))  %>%
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_floodc_l_o'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_floodc_l_d'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_floodc_l_h'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_floodc_l_f'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_floodc_l_dh'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_floodc_l_df'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_floodc_l_hf'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_floodc_l_dhf'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_floodc_l_max'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_l_o'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_l_h'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_l_f'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_l_hf'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_l_max'))  %>%
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_o'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_d'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_h'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_dh'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_max'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_o'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_d'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_h'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_f'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_dh'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_df'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_hf'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_dhf'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_max'))  %>%
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_floodf_l_o'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_floodf_l_d'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_floodf_l_f'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_floodf_l_df'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_floodf_l_max'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_o'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_d'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_h'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_dh'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_max'))  %>%
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_l_floodf_l_o'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_l_floodf_l_h'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_l_floodf_l_f'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_l_floodf_l_hf'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_l_floodf_l_max'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_l_o'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_l_d'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_l_f'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_l_df'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_l_max'))  %>%
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_floodf_l_o'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_floodf_l_d'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_floodf_l_h'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_floodf_l_f'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_floodf_l_dh'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_floodf_l_df'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_floodf_l_hf'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_floodf_l_dhf'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_floodf_l_max'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_l_o'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_l_h'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_l_f'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_l_hf'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_l_max'))  %>%
+      
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_o'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_d'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_h'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_f'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_dh'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_df'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_hf'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_dhf'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_max'))  %>%
       
       # upper thresholds
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_s')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_u_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_u_s')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'floodc_u_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'floodc_u_s')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_s')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_u_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_u_s')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'floodf_u_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'floodf_u_s'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtchange_u_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtchange_u_s')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatchange_u_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatchange_u_s')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'floodchange_u_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'floodchange_u_s'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_s')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_s')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'floodc_u_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'floodc_u_s')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_s')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_s')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'floodf_u_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'floodf_u_s'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtchange_u_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtchange_u_s')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatchange_u_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatchange_u_s')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'floodchange_u_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'floodchange_u_s'))  %>%
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_o'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_d'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_h'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_dh'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_max'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_o'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_d'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_h'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_dh'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_max'))  %>%
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_floodc_u_o'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_floodc_u_d'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_floodc_u_f'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_floodc_u_df'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_floodc_u_max'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_u_o'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_u_d'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_u_f'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_u_df'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_u_max'))  %>%
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_u_floodc_u_o'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_u_floodc_u_h'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_u_floodc_u_f'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_u_floodc_u_hf'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_u_floodc_u_max'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_u_o'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_u_h'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_u_f'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_u_hf'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_u_max'))  %>%
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_floodc_u_o'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_floodc_u_d'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_floodc_u_h'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_floodc_u_f'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_floodc_u_dh'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_floodc_u_df'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_floodc_u_hf'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_floodc_u_dhf'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_floodc_u_max'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_o'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_d'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_h'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_f'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_dh'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_df'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_hf'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_dhf'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_max'))  %>%
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_o'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_d'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_h'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_dh'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_max'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_o'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_d'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_h'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_dh'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_max'))  %>%
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_floodf_u_o'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_floodf_u_d'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_floodf_u_f'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_floodf_u_df'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_floodf_u_max'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_u_o'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_u_d'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_u_f'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_u_df'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_u_max'))  %>%
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_u_floodf_u_o'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_u_floodf_u_h'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_u_floodf_u_f'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_u_floodf_u_hf'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_u_floodf_u_max'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_u_o'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_u_h'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_u_f'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_u_hf'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_u_max'))  %>%
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_floodf_u_o'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_floodf_u_d'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_floodf_u_h'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_floodf_u_f'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_floodf_u_dh'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_floodf_u_df'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_floodf_u_hf'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_floodf_u_dhf'))  %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_floodf_u_max'))    %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_o'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_d'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_h'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_f'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_dh'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_df'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_hf'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_dhf'))  %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_max'))    %>%
       
       # mixed thresholds
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_d')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_h')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_dh')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_max')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_d')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_h')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_dh')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_max')) %>%
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_d')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_h')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_dh')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_max')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_d')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_h')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_dh')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_max')) %>%
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_floodc_u_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_floodc_u_d')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_floodc_u_f')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_floodc_u_df')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_floodc_u_max')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_u_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_u_d')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_u_f')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_u_df')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_u_max')) %>%
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_floodc_l_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_floodc_l_d')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_floodc_l_f')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_floodc_l_df')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_floodc_l_max')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_l_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_l_d')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_l_f')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_l_df')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_l_max')) %>%
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_l_floodc_u_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_l_floodc_u_h')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_l_floodc_u_f')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_l_floodc_u_hf')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_l_floodc_u_max')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_u_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_u_h')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_u_f')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_u_hf')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_u_max')) %>%
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_u_floodc_l_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_u_floodc_l_h')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_u_floodc_l_f')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_u_floodc_l_hf')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatc_u_floodc_l_max')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_l_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_l_h')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_l_f')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_l_hf')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_l_max')) %>%
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_floodc_u_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_floodc_u_d')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_floodc_u_h')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_floodc_u_f')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_floodc_u_dh')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_floodc_u_df')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_floodc_u_hf')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_floodc_u_dhf')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_l_floodc_u_max')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_d')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_h')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_f')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_dh')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_df')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_hf')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_dhf')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_max')) %>%
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_floodc_l_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_floodc_l_d')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_floodc_l_h')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_floodc_l_f')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_floodc_l_dh')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_floodc_l_df')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_floodc_l_hf')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_floodc_l_dhf')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_floodc_l_max')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_d')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_h')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_f')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_dh')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_df')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_hf')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_dhf')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_max')) %>%
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_floodc_u_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_floodc_u_d')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_floodc_u_h')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_floodc_u_f')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_floodc_u_dh')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_floodc_u_df')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_floodc_u_hf')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_floodc_u_dhf')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_floodc_u_max')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_d')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_h')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_f')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_dh')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_df')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_hf')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_dhf')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_max')) %>%
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_floodc_l_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_floodc_l_d')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_floodc_l_h')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_floodc_l_f')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_floodc_l_dh')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_floodc_l_df')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_floodc_l_hf')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_floodc_l_dhf')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_l_floodc_l_max')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_d')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_h')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_f')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_dh')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_df')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_hf')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_dhf')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_max')) %>%
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_floodc_l_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_floodc_l_d')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_floodc_l_h')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_floodc_l_f')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_floodc_l_dh')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_floodc_l_df')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_floodc_l_hf')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_floodc_l_dhf')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_u_heatc_u_floodc_l_max')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_d')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_h')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_f')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_dh')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_df')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_hf')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_dhf')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_max')) %>%
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_floodc_u_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_floodc_u_d')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_floodc_u_h')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_floodc_u_f')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_floodc_u_dh')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_floodc_u_df')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_floodc_u_hf')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_floodc_u_dhf')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtc_l_heatc_u_floodc_u_max')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_d')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_h')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_f')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_dh')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_df')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_hf')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_dhf')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_max')) %>%
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_d')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_h')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_dh')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_max')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_d')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_h')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_dh')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_max')) %>%
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_d')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_h')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_dh')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_max')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_d')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_h')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_dh')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_max')) %>%
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_floodf_u_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_floodf_u_d')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_floodf_u_f')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_floodf_u_df')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_floodf_u_max')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_u_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_u_d')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_u_f')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_u_df')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_u_max')) %>%
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_floodf_l_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_floodf_l_d')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_floodf_l_f')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_floodf_l_df')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_floodf_l_max')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_l_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_l_d')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_l_f')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_l_df')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_l_max')) %>%
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_l_floodf_u_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_l_floodf_u_h')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_l_floodf_u_f')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_l_floodf_u_hf')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_l_floodf_u_max')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_u_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_u_h')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_u_f')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_u_hf')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_u_max')) %>%
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_u_floodf_l_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_u_floodf_l_h')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_u_floodf_l_f')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_u_floodf_l_hf')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'heatf_u_floodf_l_max')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_l_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_l_h')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_l_f')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_l_hf')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_l_max')) %>%
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_floodf_u_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_floodf_u_d')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_floodf_u_h')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_floodf_u_f')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_floodf_u_dh')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_floodf_u_df')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_floodf_u_hf')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_floodf_u_dhf')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_l_floodf_u_max')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_d')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_h')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_f')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_dh')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_df')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_hf')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_dhf')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_max')) %>%
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_floodf_l_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_floodf_l_d')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_floodf_l_h')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_floodf_l_f')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_floodf_l_dh')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_floodf_l_df')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_floodf_l_hf')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_floodf_l_dhf')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_floodf_l_max')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_d')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_h')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_f')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_dh')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_df')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_hf')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_dhf')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_max')) %>%
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_floodf_u_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_floodf_u_d')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_floodf_u_h')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_floodf_u_f')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_floodf_u_dh')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_floodf_u_df')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_floodf_u_hf')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_floodf_u_dhf')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_floodf_u_max')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_d')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_h')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_f')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_dh')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_df')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_hf')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_dhf')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_max')) %>%
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_floodf_l_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_floodf_l_d')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_floodf_l_h')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_floodf_l_f')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_floodf_l_dh')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_floodf_l_df')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_floodf_l_hf')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_floodf_l_dhf')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_l_floodf_l_max')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_d')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_h')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_f')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_dh')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_df')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_hf')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_dhf')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_max')) %>%
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_floodf_l_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_floodf_l_d')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_floodf_l_h')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_floodf_l_f')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_floodf_l_dh')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_floodf_l_df')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_floodf_l_hf')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_floodf_l_dhf')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_u_heatf_u_floodf_l_max')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_d')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_h')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_f')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_dh')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_df')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_hf')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_dhf')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_max')) %>%
       
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_floodf_u_o')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_floodf_u_d')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_floodf_u_h')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_floodf_u_f')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_floodf_u_dh')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_floodf_u_df')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_floodf_u_hf')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_floodf_u_dhf')) %>%
-      addLayer(rasterize(v_impact, r_droughtc, field = 'droughtf_l_heatf_u_floodf_u_max')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_o')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_d')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_h')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_f')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_dh')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_df')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_hf')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_dhf')) %>%
+      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_max')) %>%
       
       
       # names
@@ -7135,256 +7138,256 @@ rB_impact_file_make_f <- function(rB_impact, ISO, crop) {
 
 ##### Past Lower threshold
 
-# results in r_droughtc_l_heatc_l_max
-r_droughtc_l_heatc_l_max_get_f <-
+# results in rast_droughtc_l_heatc_l_max
+rast_droughtc_l_heatc_l_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.l.heat.l.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.l.heat.l.max.tif")) %>% wrap()
 }
 
-# results in r_droughtc_l_floodc_l_max
-r_droughtc_l_floodc_l_max_get_f <-
+# results in rast_droughtc_l_floodc_l_max
+rast_droughtc_l_floodc_l_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.l.flood.l.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.l.flood.l.max.tif")) %>% wrap()
 }
 
-# results in r_heatc_l_floodc_l_max
-r_heatc_l_floodc_l_max_get_f <-
+# results in rast_heatc_l_floodc_l_max
+rast_heatc_l_floodc_l_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_hist.heat.l.flood.l.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.heat.l.flood.l.max.tif")) %>% wrap()
 }
  
-# results in r_droughtc_l_heatc_l_floodc_l_max
-r_droughtc_l_heatc_l_floodc_l_max_get_f <-
+# results in rast_droughtc_l_heatc_l_floodc_l_max
+rast_droughtc_l_heatc_l_floodc_l_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.l.heat.l.flood.l.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.l.heat.l.flood.l.max.tif")) %>% wrap()
   }
 
 ##### Past Upper threshold
 
-# results in r_droughtc_u_heatc_u_max
-r_droughtc_u_heatc_u_max_get_f <-
+# results in rast_droughtc_u_heatc_u_max
+rast_droughtc_u_heatc_u_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.u.heat.u.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.u.heat.u.max.tif")) %>% wrap()
   }
 
-# results in r_droughtc_u_floodc_u_max
-r_droughtc_u_floodc_u_max_get_f <-
+# results in rast_droughtc_u_floodc_u_max
+rast_droughtc_u_floodc_u_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.u.flood.u.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.u.flood.u.max.tif")) %>% wrap()
   }
 
-# results in r_heatc_u_floodc_u_max
-r_heatc_u_floodc_u_max_get_f <-
+# results in rast_heatc_u_floodc_u_max
+rast_heatc_u_floodc_u_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_hist.heat.u.flood.u.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.heat.u.flood.u.max.tif")) %>% wrap()
   }
 
-# results in r_droughtc_u_heatc_u_floodc_u_max
-r_droughtc_u_heatc_u_floodc_u_max_get_f <-
+# results in rast_droughtc_u_heatc_u_floodc_u_max
+rast_droughtc_u_heatc_u_floodc_u_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.u.heat.u.flood.u.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.u.heat.u.flood.u.max.tif")) %>% wrap()
   }   
 
 
 #### Past Mixed threshold
 
-# results in r_droughtc_l_heatc_u_max
-r_droughtc_l_heatc_u_max_get_f <-
+# results in rast_droughtc_l_heatc_u_max
+rast_droughtc_l_heatc_u_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.l.heat.u.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.l.heat.u.max.tif")) %>% wrap()
   }
 
-# results in r_droughtc_u_heatc_l_max
-r_droughtc_u_heatc_l_max_get_f <-
+# results in rast_droughtc_u_heatc_l_max
+rast_droughtc_u_heatc_l_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.u.heat.l.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.u.heat.l.max.tif")) %>% wrap()
   }
 
-# results in r_droughtc_l_floodc_u_max
-r_droughtc_l_floodc_u_max_get_f <-
+# results in rast_droughtc_l_floodc_u_max
+rast_droughtc_l_floodc_u_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.l.flood.u.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.l.flood.u.max.tif")) %>% wrap()
   }
 
-# results in r_droughtc_u_floodc_l_max
-r_droughtc_u_floodc_l_max_get_f <-
+# results in rast_droughtc_u_floodc_l_max
+rast_droughtc_u_floodc_l_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.u.flood.l.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.u.flood.l.max.tif")) %>% wrap()
   }
 
-# results in r_heatc_l_floodc_u_max
-r_heatc_l_floodc_u_max_get_f <-
+# results in rast_heatc_l_floodc_u_max
+rast_heatc_l_floodc_u_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_hist.heat.l.flood.u.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.heat.l.flood.u.max.tif")) %>% wrap()
   }
 
-# results in r_heatc_u_floodc_l_max
-r_heatc_u_floodc_l_max_get_f <-
+# results in rast_heatc_u_floodc_l_max
+rast_heatc_u_floodc_l_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_hist.heat.u.flood.l.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.heat.u.flood.l.max.tif")) %>% wrap()
   }
 
-# results in r_droughtc_l_heatc_l_floodc_u_max
-r_droughtc_l_heatc_l_floodc_u_max_get_f <-
+# results in rast_droughtc_l_heatc_l_floodc_u_max
+rast_droughtc_l_heatc_l_floodc_u_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.l.heat.l.flood.u.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.l.heat.l.flood.u.max.tif")) %>% wrap()
   }  
 
-# results in r_droughtc_l_heatc_u_floodc_l_max
-r_droughtc_l_heatc_u_floodc_l_max_get_f <-
+# results in rast_droughtc_l_heatc_u_floodc_l_max
+rast_droughtc_l_heatc_u_floodc_l_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.l.heat.u.flood.l.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.l.heat.u.flood.l.max.tif")) %>% wrap()
   }  
 
-# results in r_droughtc_u_heatc_l_floodc_l_max
-r_droughtc_u_heatc_l_floodc_l_max_get_f <-
+# results in rast_droughtc_u_heatc_l_floodc_l_max
+rast_droughtc_u_heatc_l_floodc_l_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.u.heat.l.flood.l.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.u.heat.l.flood.l.max.tif")) %>% wrap()
   }  
 
-# results in r_droughtc_l_heatc_u_floodc_u_max
-r_droughtc_l_heatc_u_floodc_u_max_get_f <-
+# results in rast_droughtc_l_heatc_u_floodc_u_max
+rast_droughtc_l_heatc_u_floodc_u_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.l.heat.u.flood.u.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.l.heat.u.flood.u.max.tif")) %>% wrap()
   }  
 
-# results in r_droughtc_u_heatc_l_floodc_u_max
-r_droughtc_u_heatc_l_floodc_u_max_get_f <-
+# results in rast_droughtc_u_heatc_l_floodc_u_max
+rast_droughtc_u_heatc_l_floodc_u_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.u.heat.l.flood.u.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.u.heat.l.flood.u.max.tif")) %>% wrap()
   }  
 
-# results in r_droughtc_u_heatc_u_floodc_l_max
-r_droughtc_u_heatc_u_floodc_l_max_get_f <-
+# results in rast_droughtc_u_heatc_u_floodc_l_max
+rast_droughtc_u_heatc_u_floodc_l_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.u.heat.u.flood.l.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.u.heat.u.flood.l.max.tif")) %>% wrap()
   }  
 
 ##### Future Lower threshold
 
-# results in r_droughtf_l_heatf_l_max
-r_droughtf_l_heatf_l_max_get_f <-
+# results in rast_droughtf_l_heatf_l_max
+rast_droughtf_l_heatf_l_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.l.heat.l.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.l.heat.l.max.tif")) %>% wrap()
   }
 
-# results in r_droughtf_l_floodf_l_max
-r_droughtf_l_floodf_l_max_get_f <-
+# results in rast_droughtf_l_floodf_l_max
+rast_droughtf_l_floodf_l_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.l.flood.l.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.l.flood.l.max.tif")) %>% wrap()
   }
 
-# results in r_heatf_l_floodf_l_max
-r_heatf_l_floodf_l_max_get_f <-
+# results in rast_heatf_l_floodf_l_max
+rast_heatf_l_floodf_l_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_future.heat.l.flood.l.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.heat.l.flood.l.max.tif")) %>% wrap()
   }
 
-# results in r_droughtf_l_heatf_l_floodf_l_max
-r_droughtf_l_heatf_l_floodf_l_max_get_f <-
+# results in rast_droughtf_l_heatf_l_floodf_l_max
+rast_droughtf_l_heatf_l_floodf_l_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.l.heat.l.flood.l.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.l.heat.l.flood.l.max.tif")) %>% wrap()
   }
 
 ##### Future Upper threshold
 
-# results in r_droughtf_u_heatf_u_max
-r_droughtf_u_heatf_u_max_get_f <-
+# results in rast_droughtf_u_heatf_u_max
+rast_droughtf_u_heatf_u_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.u.heat.u.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.u.heat.u.max.tif")) %>% wrap()
   }
 
-# results in r_droughtf_u_floodf_u_max
-r_droughtf_u_floodf_u_max_get_f <-
+# results in rast_droughtf_u_floodf_u_max
+rast_droughtf_u_floodf_u_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.u.flood.u.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.u.flood.u.max.tif")) %>% wrap()
   }
 
-# results in r_heatf_u_floodf_u_max
-r_heatf_u_floodf_u_max_get_f <-
+# results in rast_heatf_u_floodf_u_max
+rast_heatf_u_floodf_u_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_future.heat.u.flood.u.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.heat.u.flood.u.max.tif")) %>% wrap()
   }
 
-# results in r_droughtf_u_heatf_u_floodf_u_max
-r_droughtf_u_heatf_u_floodf_u_max_get_f <-
+# results in rast_droughtf_u_heatf_u_floodf_u_max
+rast_droughtf_u_heatf_u_floodf_u_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.u.heat.u.flood.u.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.u.heat.u.flood.u.max.tif")) %>% wrap()
   }   
 
 
 #### Future Mixed threshold
 
-# results in r_droughtf_l_heatf_u_max
-r_droughtf_l_heatf_u_max_get_f <-
+# results in rast_droughtf_l_heatf_u_max
+rast_droughtf_l_heatf_u_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.l.heat.u.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.l.heat.u.max.tif")) %>% wrap()
   }
 
-# results in r_droughtf_u_heatf_l_max
-r_droughtf_u_heatf_l_max_get_f <-
+# results in rast_droughtf_u_heatf_l_max
+rast_droughtf_u_heatf_l_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.u.heat.l.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.u.heat.l.max.tif")) %>% wrap()
   }
 
-# results in r_droughtf_l_floodf_u_max
-r_droughtf_l_floodf_u_max_get_f <-
+# results in rast_droughtf_l_floodf_u_max
+rast_droughtf_l_floodf_u_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.l.flood.u.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.l.flood.u.max.tif")) %>% wrap()
   }
 
-# results in r_droughtf_u_floodf_l_max
-r_droughtf_u_floodf_l_max_get_f <-
+# results in rast_droughtf_u_floodf_l_max
+rast_droughtf_u_floodf_l_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.u.flood.l.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.u.flood.l.max.tif")) %>% wrap()
   }
 
-# results in r_heatf_l_floodf_u_max
-r_heatf_l_floodf_u_max_get_f <-
+# results in rast_heatf_l_floodf_u_max
+rast_heatf_l_floodf_u_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_future.heat.l.flood.u.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.heat.l.flood.u.max.tif")) %>% wrap()
   }
 
-# results in r_heatf_u_floodf_l_max
-r_heatf_u_floodf_l_max_get_f <-
+# results in rast_heatf_u_floodf_l_max
+rast_heatf_u_floodf_l_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_future.heat.u.flood.l.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.heat.u.flood.l.max.tif")) %>% wrap()
   }
 
-# results in r_droughtf_l_heatf_l_floodf_u_max
-r_droughtf_l_heatf_l_floodf_u_max_get_f <-
+# results in rast_droughtf_l_heatf_l_floodf_u_max
+rast_droughtf_l_heatf_l_floodf_u_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.l.heat.l.flood.u.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.l.heat.l.flood.u.max.tif")) %>% wrap()
   }  
 
-# results in r_droughtf_l_heatf_u_floodf_l_max
-r_droughtf_l_heatf_u_floodf_l_max_get_f <-
+# results in rast_droughtf_l_heatf_u_floodf_l_max
+rast_droughtf_l_heatf_u_floodf_l_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.l.heat.u.flood.l.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.l.heat.u.flood.l.max.tif")) %>% wrap()
   }  
 
-# results in r_droughtf_u_heatf_l_floodf_l_max
-r_droughtf_u_heatf_l_floodf_l_max_get_f <-
+# results in rast_droughtf_u_heatf_l_floodf_l_max
+rast_droughtf_u_heatf_l_floodf_l_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.u.heat.l.flood.l.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.u.heat.l.flood.l.max.tif")) %>% wrap()
   }  
 
-# results in r_droughtf_l_heatf_u_floodf_u_max
-r_droughtf_l_heatf_u_floodf_u_max_get_f <-
+# results in rast_droughtf_l_heatf_u_floodf_u_max
+rast_droughtf_l_heatf_u_floodf_u_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.l.heat.u.flood.u.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.l.heat.u.flood.u.max.tif")) %>% wrap()
   }  
 
-# results in r_droughtf_u_heatf_l_floodf_u_max
-r_droughtf_u_heatf_l_floodf_u_max_get_f <-
+# results in rast_droughtf_u_heatf_l_floodf_u_max
+rast_droughtf_u_heatf_l_floodf_u_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.u.heat.l.flood.u.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.u.heat.l.flood.u.max.tif")) %>% wrap()
   }  
 
-# results in r_droughtf_u_heatf_u_floodf_l_max
-r_droughtf_u_heatf_u_floodf_l_max_get_f <-
+# results in rast_droughtf_u_heatf_u_floodf_l_max
+rast_droughtf_u_heatf_u_floodf_l_max_get_f <-
   function(rB_impact_file, ISO, crop) {
-    raster(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.u.heat.u.flood.l.max.tif"))
+    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.u.heat.u.flood.l.max.tif")) %>% wrap()
   } 
 
 
@@ -7393,9 +7396,9 @@ r_droughtf_u_heatf_u_floodf_l_max_get_f <-
 #### Past climate
 #### Lower thresholds
 
-# results in r_droughtc_l_heatc_l_max_plot
-r_droughtc_l_heatc_l_max_plot_f <-
-  function(r_droughtc_l_heatc_l_max,
+# results in rast_droughtc_l_heatc_l_max_plot
+rast_droughtc_l_heatc_l_max_plot_f <-
+  function(rast_droughtc_l_heatc_l_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -7404,7 +7407,7 @@ r_droughtc_l_heatc_l_max_plot_f <-
            crop,
            flood) {
 
-    gplot(r_droughtc_l_heatc_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_droughtc_l_heatc_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
@@ -7473,9 +7476,9 @@ r_droughtc_l_heatc_l_max_plot_f <-
       coord_sf(expand = FALSE)
   }
 
-# results in r_droughtc_l_floodc_l_max_plot
-r_droughtc_l_floodc_l_max_plot_f <-
-  function(r_droughtc_l_floodc_l_max,
+# results in rast_droughtc_l_floodc_l_max_plot
+rast_droughtc_l_floodc_l_max_plot_f <-
+  function(rast_droughtc_l_floodc_l_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -7483,7 +7486,7 @@ r_droughtc_l_floodc_l_max_plot_f <-
            ISO,
            crop,
            flood) {
-    gplot(r_droughtc_l_floodc_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_droughtc_l_floodc_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
@@ -7552,9 +7555,9 @@ r_droughtc_l_floodc_l_max_plot_f <-
       coord_sf(expand = FALSE)
   }
 
-# results in r_heatc_l_floodc_l_max_plot
-r_heatc_l_floodc_l_max_plot_f <-
-  function(r_heatc_l_floodc_l_max,
+# results in rast_heatc_l_floodc_l_max_plot
+rast_heatc_l_floodc_l_max_plot_f <-
+  function(rast_heatc_l_floodc_l_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -7562,7 +7565,7 @@ r_heatc_l_floodc_l_max_plot_f <-
            ISO,
            crop,
            flood) {
-    gplot(r_heatc_l_floodc_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_heatc_l_floodc_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
@@ -7632,9 +7635,9 @@ r_heatc_l_floodc_l_max_plot_f <-
   }
 
 
-# results in r_droughtc_l_heatc_l_floodc_l_max_plot
-r_droughtc_l_heatc_l_floodc_l_max_plot_f <-
-  function(r_droughtc_l_heatc_l_floodc_l_max,
+# results in rast_droughtc_l_heatc_l_floodc_l_max_plot
+rast_droughtc_l_heatc_l_floodc_l_max_plot_f <-
+  function(rast_droughtc_l_heatc_l_floodc_l_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -7642,7 +7645,7 @@ r_droughtc_l_heatc_l_floodc_l_max_plot_f <-
            ISO,
            crop,
            flood) {
-    gplot(r_droughtc_l_heatc_l_floodc_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_droughtc_l_heatc_l_floodc_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
@@ -7716,9 +7719,9 @@ r_droughtc_l_heatc_l_floodc_l_max_plot_f <-
 #### Upper thresholds
 
 
-# results in r_droughtc_u_heatc_u_max_plot
-r_droughtc_u_heatc_u_max_plot_f <-
-  function(r_droughtc_u_heatc_u_max,
+# results in rast_droughtc_u_heatc_u_max_plot
+rast_droughtc_u_heatc_u_max_plot_f <-
+  function(rast_droughtc_u_heatc_u_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -7726,7 +7729,7 @@ r_droughtc_u_heatc_u_max_plot_f <-
            ISO,
            crop,
            flood) {
-    gplot(r_droughtc_u_heatc_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_droughtc_u_heatc_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
@@ -7795,9 +7798,9 @@ r_droughtc_u_heatc_u_max_plot_f <-
       coord_sf(expand = FALSE)
   }
 
-# results in r_droughtc_u_floodc_u_max_plot
-r_droughtc_u_floodc_u_max_plot_f <-
-  function(r_droughtc_u_floodc_u_max,
+# results in rast_droughtc_u_floodc_u_max_plot
+rast_droughtc_u_floodc_u_max_plot_f <-
+  function(rast_droughtc_u_floodc_u_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -7805,7 +7808,7 @@ r_droughtc_u_floodc_u_max_plot_f <-
            ISO,
            crop,
            flood) {
-    gplot(r_droughtc_u_floodc_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_droughtc_u_floodc_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
@@ -7874,9 +7877,9 @@ r_droughtc_u_floodc_u_max_plot_f <-
       coord_sf(expand = FALSE)
   }
 
-# results in r_heatc_u_floodc_u_max_plot
-r_heatc_u_floodc_u_max_plot_f <-
-  function(r_heatc_u_floodc_u_max,
+# results in rast_heatc_u_floodc_u_max_plot
+rast_heatc_u_floodc_u_max_plot_f <-
+  function(rast_heatc_u_floodc_u_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -7884,7 +7887,7 @@ r_heatc_u_floodc_u_max_plot_f <-
            ISO,
            crop,
            flood) {
-    gplot(r_heatc_u_floodc_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_heatc_u_floodc_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
@@ -7954,9 +7957,9 @@ r_heatc_u_floodc_u_max_plot_f <-
   }
 
 
-# results in r_droughtc_u_heatc_u_floodc_u_max_plot
-r_droughtc_u_heatc_u_floodc_u_max_plot_f <-
-  function(r_droughtc_u_heatc_u_floodc_u_max,
+# results in rast_droughtc_u_heatc_u_floodc_u_max_plot
+rast_droughtc_u_heatc_u_floodc_u_max_plot_f <-
+  function(rast_droughtc_u_heatc_u_floodc_u_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -7964,7 +7967,7 @@ r_droughtc_u_heatc_u_floodc_u_max_plot_f <-
            ISO,
            crop,
            flood) {
-    gplot(r_droughtc_u_heatc_u_floodc_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_droughtc_u_heatc_u_floodc_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
@@ -8039,9 +8042,9 @@ r_droughtc_u_heatc_u_floodc_u_max_plot_f <-
 #### Mixed thresholds
 
 
-# results in r_droughtc_l_heatc_l_max_plot
-r_droughtc_l_heatc_u_max_plot_f <-
-  function(r_droughtc_l_heatc_u_max,
+# results in rast_droughtc_l_heatc_l_max_plot
+rast_droughtc_l_heatc_u_max_plot_f <-
+  function(rast_droughtc_l_heatc_u_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -8050,7 +8053,7 @@ r_droughtc_l_heatc_u_max_plot_f <-
            crop,
            flood) {
     
-    gplot(r_droughtc_l_heatc_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_droughtc_l_heatc_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
@@ -8122,9 +8125,9 @@ r_droughtc_l_heatc_u_max_plot_f <-
 
 
 
-# results in r_droughtc_u_heatc_l_max_plot
-r_droughtc_u_heatc_l_max_plot_f <-
-  function(r_droughtc_u_heatc_l_max,
+# results in rast_droughtc_u_heatc_l_max_plot
+rast_droughtc_u_heatc_l_max_plot_f <-
+  function(rast_droughtc_u_heatc_l_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -8133,7 +8136,7 @@ r_droughtc_u_heatc_l_max_plot_f <-
            crop,
            flood) {
     
-    gplot(r_droughtc_u_heatc_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_droughtc_u_heatc_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
@@ -8204,8 +8207,8 @@ r_droughtc_u_heatc_l_max_plot_f <-
 
 
 
-r_droughtc_l_floodc_u_max_plot_f <-
-  function(r_droughtc_l_floodc_u_max,
+rast_droughtc_l_floodc_u_max_plot_f <-
+  function(rast_droughtc_l_floodc_u_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -8214,7 +8217,7 @@ r_droughtc_l_floodc_u_max_plot_f <-
            crop,
            flood) {
     
-    gplot(r_droughtc_l_floodc_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_droughtc_l_floodc_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
@@ -8284,8 +8287,8 @@ r_droughtc_l_floodc_u_max_plot_f <-
   }
 
 
-r_droughtc_u_floodc_l_max_plot_f <-
-  function(r_droughtc_u_floodc_l_max,
+rast_droughtc_u_floodc_l_max_plot_f <-
+  function(rast_droughtc_u_floodc_l_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -8294,7 +8297,7 @@ r_droughtc_u_floodc_l_max_plot_f <-
            crop,
            flood) {
     
-    gplot(r_droughtc_u_floodc_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_droughtc_u_floodc_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
@@ -8365,8 +8368,8 @@ r_droughtc_u_floodc_l_max_plot_f <-
 
 
 
-r_heatc_l_floodc_u_max_plot_f <-
-  function(r_heatc_l_floodc_u_max,
+rast_heatc_l_floodc_u_max_plot_f <-
+  function(rast_heatc_l_floodc_u_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -8375,7 +8378,7 @@ r_heatc_l_floodc_u_max_plot_f <-
            crop,
            flood) {
     
-    gplot(r_heatc_l_floodc_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_heatc_l_floodc_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
@@ -8447,8 +8450,8 @@ r_heatc_l_floodc_u_max_plot_f <-
 
 
 
-r_heatc_u_floodc_l_max_plot_f <-
-  function(r_heatc_u_floodc_l_max,
+rast_heatc_u_floodc_l_max_plot_f <-
+  function(rast_heatc_u_floodc_l_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -8457,7 +8460,7 @@ r_heatc_u_floodc_l_max_plot_f <-
            crop,
            flood) {
     
-    gplot(r_heatc_u_floodc_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_heatc_u_floodc_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
@@ -8526,8 +8529,8 @@ r_heatc_u_floodc_l_max_plot_f <-
       coord_sf(expand = FALSE)
   }
 
-r_droughtc_l_heatc_l_floodc_u_max_plot_f <-
-  function(r_droughtc_l_heatc_l_floodc_u_max,
+rast_droughtc_l_heatc_l_floodc_u_max_plot_f <-
+  function(rast_droughtc_l_heatc_l_floodc_u_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -8536,7 +8539,7 @@ r_droughtc_l_heatc_l_floodc_u_max_plot_f <-
            crop,
            flood) {
     
-    gplot(r_droughtc_l_heatc_l_floodc_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_droughtc_l_heatc_l_floodc_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
@@ -8607,8 +8610,8 @@ r_droughtc_l_heatc_l_floodc_u_max_plot_f <-
   }
 
 
-r_droughtc_l_heatc_u_floodc_l_max_plot_f <-
-  function(r_droughtc_l_heatc_u_floodc_l_max,
+rast_droughtc_l_heatc_u_floodc_l_max_plot_f <-
+  function(rast_droughtc_l_heatc_u_floodc_l_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -8617,7 +8620,7 @@ r_droughtc_l_heatc_u_floodc_l_max_plot_f <-
            crop,
            flood) {
     
-    gplot(r_droughtc_l_heatc_u_floodc_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_droughtc_l_heatc_u_floodc_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
@@ -8688,8 +8691,8 @@ r_droughtc_l_heatc_u_floodc_l_max_plot_f <-
   }
 
 
-r_droughtc_u_heatc_l_floodc_l_max_plot_f <-
-  function(r_droughtc_u_heatc_l_floodc_l_max,
+rast_droughtc_u_heatc_l_floodc_l_max_plot_f <-
+  function(rast_droughtc_u_heatc_l_floodc_l_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -8698,7 +8701,7 @@ r_droughtc_u_heatc_l_floodc_l_max_plot_f <-
            crop,
            flood) {
     
-    gplot(r_droughtc_u_heatc_l_floodc_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_droughtc_u_heatc_l_floodc_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
@@ -8769,8 +8772,8 @@ r_droughtc_u_heatc_l_floodc_l_max_plot_f <-
   }
 
 
-r_droughtc_l_heatc_u_floodc_u_max_plot_f <-
-  function(r_droughtc_l_heatc_u_floodc_u_max,
+rast_droughtc_l_heatc_u_floodc_u_max_plot_f <-
+  function(rast_droughtc_l_heatc_u_floodc_u_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -8779,7 +8782,7 @@ r_droughtc_l_heatc_u_floodc_u_max_plot_f <-
            crop,
            flood) {
     
-    gplot(r_droughtc_l_heatc_u_floodc_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_droughtc_l_heatc_u_floodc_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
@@ -8850,8 +8853,8 @@ r_droughtc_l_heatc_u_floodc_u_max_plot_f <-
   }
 
 
-r_droughtc_u_heatc_l_floodc_u_max_plot_f <-
-  function(r_droughtc_u_heatc_l_floodc_u_max,
+rast_droughtc_u_heatc_l_floodc_u_max_plot_f <-
+  function(rast_droughtc_u_heatc_l_floodc_u_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -8860,7 +8863,7 @@ r_droughtc_u_heatc_l_floodc_u_max_plot_f <-
            crop,
            flood) {
     
-    gplot(r_droughtc_u_heatc_l_floodc_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_droughtc_u_heatc_l_floodc_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
@@ -8931,8 +8934,8 @@ r_droughtc_u_heatc_l_floodc_u_max_plot_f <-
   }
 
 
-r_droughtc_u_heatc_u_floodc_l_max_plot_f <-
-  function(r_droughtc_u_heatc_u_floodc_l_max,
+rast_droughtc_u_heatc_u_floodc_l_max_plot_f <-
+  function(rast_droughtc_u_heatc_u_floodc_l_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -8941,7 +8944,7 @@ r_droughtc_u_heatc_u_floodc_l_max_plot_f <-
            crop,
            flood) {
     
-    gplot(r_droughtc_u_heatc_u_floodc_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_droughtc_u_heatc_u_floodc_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
@@ -9014,9 +9017,9 @@ r_droughtc_u_heatc_u_floodc_l_max_plot_f <-
 #### Future climate
 #### Lower thresholds
 
-# results in r_droughtf_l_heatf_l_max_plot
-r_droughtf_l_heatf_l_max_plot_f <-
-  function(r_droughtf_l_heatf_l_max,
+# results in rast_droughtf_l_heatf_l_max_plot
+rast_droughtf_l_heatf_l_max_plot_f <-
+  function(rast_droughtf_l_heatf_l_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -9025,7 +9028,7 @@ r_droughtf_l_heatf_l_max_plot_f <-
            crop,
            flood) {
     
-    gplot(r_droughtf_l_heatf_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_droughtf_l_heatf_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
@@ -9094,9 +9097,9 @@ r_droughtf_l_heatf_l_max_plot_f <-
       coord_sf(expand = FALSE)
   }
 
-# results in r_droughtf_l_floodf_l_max_plot
-r_droughtf_l_floodf_l_max_plot_f <-
-  function(r_droughtf_l_floodf_l_max,
+# results in rast_droughtf_l_floodf_l_max_plot
+rast_droughtf_l_floodf_l_max_plot_f <-
+  function(rast_droughtf_l_floodf_l_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -9104,7 +9107,7 @@ r_droughtf_l_floodf_l_max_plot_f <-
            ISO,
            crop,
            flood) {
-    gplot(r_droughtf_l_floodf_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_droughtf_l_floodf_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
@@ -9173,9 +9176,9 @@ r_droughtf_l_floodf_l_max_plot_f <-
       coord_sf(expand = FALSE)
   }
 
-# results in r_heatf_l_floodf_l_max_plot
-r_heatf_l_floodf_l_max_plot_f <-
-  function(r_heatf_l_floodf_l_max,
+# results in rast_heatf_l_floodf_l_max_plot
+rast_heatf_l_floodf_l_max_plot_f <-
+  function(rast_heatf_l_floodf_l_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -9183,7 +9186,7 @@ r_heatf_l_floodf_l_max_plot_f <-
            ISO,
            crop,
            flood) {
-    gplot(r_heatf_l_floodf_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_heatf_l_floodf_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
@@ -9253,9 +9256,9 @@ r_heatf_l_floodf_l_max_plot_f <-
   }
 
 
-# results in r_droughtf_l_heatf_l_floodf_l_max_plot
-r_droughtf_l_heatf_l_floodf_l_max_plot_f <-
-  function(r_droughtf_l_heatf_l_floodf_l_max,
+# results in rast_droughtf_l_heatf_l_floodf_l_max_plot
+rast_droughtf_l_heatf_l_floodf_l_max_plot_f <-
+  function(rast_droughtf_l_heatf_l_floodf_l_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -9263,7 +9266,7 @@ r_droughtf_l_heatf_l_floodf_l_max_plot_f <-
            ISO,
            crop,
            flood) {
-    gplot(r_droughtf_l_heatf_l_floodf_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_droughtf_l_heatf_l_floodf_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
@@ -9337,9 +9340,9 @@ r_droughtf_l_heatf_l_floodf_l_max_plot_f <-
 #### Upper thresholds
 
 
-# results in r_droughtf_u_heatf_u_max_plot
-r_droughtf_u_heatf_u_max_plot_f <-
-  function(r_droughtf_u_heatf_u_max,
+# results in rast_droughtf_u_heatf_u_max_plot
+rast_droughtf_u_heatf_u_max_plot_f <-
+  function(rast_droughtf_u_heatf_u_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -9347,7 +9350,7 @@ r_droughtf_u_heatf_u_max_plot_f <-
            ISO,
            crop,
            flood) {
-    gplot(r_droughtf_u_heatf_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_droughtf_u_heatf_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
@@ -9416,9 +9419,9 @@ r_droughtf_u_heatf_u_max_plot_f <-
       coord_sf(expand = FALSE)
   }
 
-# results in r_droughtf_u_floodf_u_max_plot
-r_droughtf_u_floodf_u_max_plot_f <-
-  function(r_droughtf_u_floodf_u_max,
+# results in rast_droughtf_u_floodf_u_max_plot
+rast_droughtf_u_floodf_u_max_plot_f <-
+  function(rast_droughtf_u_floodf_u_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -9426,7 +9429,7 @@ r_droughtf_u_floodf_u_max_plot_f <-
            ISO,
            crop,
            flood) {
-    gplot(r_droughtf_u_floodf_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_droughtf_u_floodf_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
@@ -9495,9 +9498,9 @@ r_droughtf_u_floodf_u_max_plot_f <-
       coord_sf(expand = FALSE)
   }
 
-# results in r_heatf_u_floodf_u_max_plot
-r_heatf_u_floodf_u_max_plot_f <-
-  function(r_heatf_u_floodf_u_max,
+# results in rast_heatf_u_floodf_u_max_plot
+rast_heatf_u_floodf_u_max_plot_f <-
+  function(rast_heatf_u_floodf_u_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -9505,7 +9508,7 @@ r_heatf_u_floodf_u_max_plot_f <-
            ISO,
            crop,
            flood) {
-    gplot(r_heatf_u_floodf_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_heatf_u_floodf_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
@@ -9575,9 +9578,9 @@ r_heatf_u_floodf_u_max_plot_f <-
   }
 
 
-# results in r_droughtf_u_heatf_u_floodf_u_max_plot
-r_droughtf_u_heatf_u_floodf_u_max_plot_f <-
-  function(r_droughtf_u_heatf_u_floodf_u_max,
+# results in rast_droughtf_u_heatf_u_floodf_u_max_plot
+rast_droughtf_u_heatf_u_floodf_u_max_plot_f <-
+  function(rast_droughtf_u_heatf_u_floodf_u_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -9585,7 +9588,7 @@ r_droughtf_u_heatf_u_floodf_u_max_plot_f <-
            ISO,
            crop,
            flood) {
-    gplot(r_droughtf_u_heatf_u_floodf_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_droughtf_u_heatf_u_floodf_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
@@ -9660,9 +9663,9 @@ r_droughtf_u_heatf_u_floodf_u_max_plot_f <-
 #### Mixed thresholds
 
 
-# results in r_droughtf_l_heatf_l_max_plot
-r_droughtf_l_heatf_u_max_plot_f <-
-  function(r_droughtf_l_heatf_u_max,
+# results in rast_droughtf_l_heatf_l_max_plot
+rast_droughtf_l_heatf_u_max_plot_f <-
+  function(rast_droughtf_l_heatf_u_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -9671,7 +9674,7 @@ r_droughtf_l_heatf_u_max_plot_f <-
            crop,
            flood) {
     
-    gplot(r_droughtf_l_heatf_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_droughtf_l_heatf_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
@@ -9743,9 +9746,9 @@ r_droughtf_l_heatf_u_max_plot_f <-
 
 
 
-# results in r_droughtf_u_heatf_l_max_plot
-r_droughtf_u_heatf_l_max_plot_f <-
-  function(r_droughtf_u_heatf_l_max,
+# results in rast_droughtf_u_heatf_l_max_plot
+rast_droughtf_u_heatf_l_max_plot_f <-
+  function(rast_droughtf_u_heatf_l_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -9754,7 +9757,7 @@ r_droughtf_u_heatf_l_max_plot_f <-
            crop,
            flood) {
     
-    gplot(r_droughtf_u_heatf_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_droughtf_u_heatf_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
@@ -9825,8 +9828,8 @@ r_droughtf_u_heatf_l_max_plot_f <-
 
 
 
-r_droughtf_l_floodf_u_max_plot_f <-
-  function(r_droughtf_l_floodf_u_max,
+rast_droughtf_l_floodf_u_max_plot_f <-
+  function(rast_droughtf_l_floodf_u_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -9835,7 +9838,7 @@ r_droughtf_l_floodf_u_max_plot_f <-
            crop,
            flood) {
     
-    gplot(r_droughtf_l_floodf_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_droughtf_l_floodf_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
@@ -9905,8 +9908,8 @@ r_droughtf_l_floodf_u_max_plot_f <-
   }
 
 
-r_droughtf_u_floodf_l_max_plot_f <-
-  function(r_droughtf_u_floodf_l_max,
+rast_droughtf_u_floodf_l_max_plot_f <-
+  function(rast_droughtf_u_floodf_l_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -9915,7 +9918,7 @@ r_droughtf_u_floodf_l_max_plot_f <-
            crop,
            flood) {
     
-    gplot(r_droughtf_u_floodf_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_droughtf_u_floodf_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
@@ -9986,8 +9989,8 @@ r_droughtf_u_floodf_l_max_plot_f <-
 
 
 
-r_heatf_l_floodf_u_max_plot_f <-
-  function(r_heatf_l_floodf_u_max,
+rast_heatf_l_floodf_u_max_plot_f <-
+  function(rast_heatf_l_floodf_u_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -9996,7 +9999,7 @@ r_heatf_l_floodf_u_max_plot_f <-
            crop,
            flood) {
     
-    gplot(r_heatf_l_floodf_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_heatf_l_floodf_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
@@ -10068,8 +10071,8 @@ r_heatf_l_floodf_u_max_plot_f <-
 
 
 
-r_heatf_u_floodf_l_max_plot_f <-
-  function(r_heatf_u_floodf_l_max,
+rast_heatf_u_floodf_l_max_plot_f <-
+  function(rast_heatf_u_floodf_l_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -10078,7 +10081,7 @@ r_heatf_u_floodf_l_max_plot_f <-
            crop,
            flood) {
     
-    gplot(r_heatf_u_floodf_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_heatf_u_floodf_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
@@ -10147,8 +10150,8 @@ r_heatf_u_floodf_l_max_plot_f <-
       coord_sf(expand = FALSE)
   }
 
-r_droughtf_l_heatf_l_floodf_u_max_plot_f <-
-  function(r_droughtf_l_heatf_l_floodf_u_max,
+rast_droughtf_l_heatf_l_floodf_u_max_plot_f <-
+  function(rast_droughtf_l_heatf_l_floodf_u_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -10157,7 +10160,7 @@ r_droughtf_l_heatf_l_floodf_u_max_plot_f <-
            crop,
            flood) {
     
-    gplot(r_droughtf_l_heatf_l_floodf_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_droughtf_l_heatf_l_floodf_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
@@ -10228,8 +10231,8 @@ r_droughtf_l_heatf_l_floodf_u_max_plot_f <-
   }
 
 
-r_droughtf_l_heatf_u_floodf_l_max_plot_f <-
-  function(r_droughtf_l_heatf_u_floodf_l_max,
+rast_droughtf_l_heatf_u_floodf_l_max_plot_f <-
+  function(rast_droughtf_l_heatf_u_floodf_l_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -10238,7 +10241,7 @@ r_droughtf_l_heatf_u_floodf_l_max_plot_f <-
            crop,
            flood) {
     
-    gplot(r_droughtf_l_heatf_u_floodf_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_droughtf_l_heatf_u_floodf_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
@@ -10309,8 +10312,8 @@ r_droughtf_l_heatf_u_floodf_l_max_plot_f <-
   }
 
 
-r_droughtf_u_heatf_l_floodf_l_max_plot_f <-
-  function(r_droughtf_u_heatf_l_floodf_l_max,
+rast_droughtf_u_heatf_l_floodf_l_max_plot_f <-
+  function(rast_droughtf_u_heatf_l_floodf_l_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -10319,7 +10322,7 @@ r_droughtf_u_heatf_l_floodf_l_max_plot_f <-
            crop,
            flood) {
     
-    gplot(r_droughtf_u_heatf_l_floodf_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_droughtf_u_heatf_l_floodf_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
@@ -10390,8 +10393,8 @@ r_droughtf_u_heatf_l_floodf_l_max_plot_f <-
   }
 
 
-r_droughtf_l_heatf_u_floodf_u_max_plot_f <-
-  function(r_droughtf_l_heatf_u_floodf_u_max,
+rast_droughtf_l_heatf_u_floodf_u_max_plot_f <-
+  function(rast_droughtf_l_heatf_u_floodf_u_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -10400,7 +10403,7 @@ r_droughtf_l_heatf_u_floodf_u_max_plot_f <-
            crop,
            flood) {
     
-    gplot(r_droughtf_l_heatf_u_floodf_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_droughtf_l_heatf_u_floodf_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
@@ -10471,8 +10474,8 @@ r_droughtf_l_heatf_u_floodf_u_max_plot_f <-
   }
 
 
-r_droughtf_u_heatf_l_floodf_u_max_plot_f <-
-  function(r_droughtf_u_heatf_l_floodf_u_max,
+rast_droughtf_u_heatf_l_floodf_u_max_plot_f <-
+  function(rast_droughtf_u_heatf_l_floodf_u_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -10481,7 +10484,7 @@ r_droughtf_u_heatf_l_floodf_u_max_plot_f <-
            crop,
            flood) {
     
-    gplot(r_droughtf_u_heatf_l_floodf_u_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_droughtf_u_heatf_l_floodf_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
@@ -10552,8 +10555,8 @@ r_droughtf_u_heatf_l_floodf_u_max_plot_f <-
   }
 
 
-r_droughtf_u_heatf_u_floodf_l_max_plot_f <-
-  function(r_droughtf_u_heatf_u_floodf_l_max,
+rast_droughtf_u_heatf_u_floodf_l_max_plot_f <-
+  function(rast_droughtf_u_heatf_u_floodf_l_max,
            v_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
@@ -10562,7 +10565,7 @@ r_droughtf_u_heatf_u_floodf_l_max_plot_f <-
            crop,
            flood) {
     
-    gplot(r_droughtf_u_heatf_u_floodf_l_max, maxpixels = 50000) + #this uses gplot from the rastervis package
+    gplot(unwrap(rast_droughtf_u_heatf_u_floodf_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
                                   labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
       geom_sf(
