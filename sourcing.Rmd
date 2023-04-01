@@ -1,7 +1,7 @@
 ---
 title: "Republic of the Congo - Malt Barley"
 author: "A Farrow"
-date: "13/03/2023"
+date: "29/03/2023"
 header-includes:
    - \usepackage[default]{sourcesanspro}
    - \usepackage[T1]{fontenc}
@@ -42,6 +42,7 @@ options(tidyverse.quiet = TRUE)
 tar_option_set(
   packages = c(
     "tidyverse",
+    "tidyterra",
     "dplyr",
     "rnaturalearth",
     "sf",
@@ -158,51 +159,51 @@ list(
 
 ```{targets country_crop_data_a}
 list(
-  tar_target(v_crop, v_crop_get_f(cc_data, cc_row))
+  tar_target(vect_crop, vect_crop_get_f(cc_data, cc_row))
 )
 
 ```
 
 ```{targets country_crop_data_b}
-list(
-  tar_target(vect_crop_wrap, vect_crop_wrap_f(v_crop))
-)
-
+#list(
+#  tar_target(vect_crop, vect_crop_f(v_crop))
+#)
+#
 ```
 
 ```{targets country_crop_data_c}
 list(
   tar_target(
-    v_crop_plot,
-    v_crop_plot_f(v_crop, vect_crop_wrap, ISO, crop, world))
+    vect_crop_plot,
+    vect_crop_plot_f(vect_crop, ISO, crop, world))
 )
 
 ```
 
 ```{targets country_crop_data_d}
 list(
-  tar_target(v_ISO, v_ISO_get_f(ISO))
+  tar_target(vect_ISO, vect_ISO_get_f(ISO))
 )
 
 ```
 
 ```{targets country_crop_data_e}
 list(
-  tar_target(v_ISO1, v_ISO1_get_f(cc_data, cc_row, ISO))
+  tar_target(vect_ISO1, vect_ISO1_get_f(cc_data, cc_row, ISO))
 )
 
 ```
 
 ```{targets country_crop_data_f}
 list(
-  tar_target(v_ISO_extent, v_ISO_extent_f(v_ISO))
+  tar_target(vect_ISO_extent, vect_ISO_extent_f(vect_ISO))
 )
 
 ```
 
 ```{targets country_crop_data_g}
 list(
-  tar_target(v_ISO_plot, v_ISO_plot_f(v_ISO, ISO))
+  tar_target(vect_ISO_plot, vect_ISO_plot_f(vect_ISO, ISO))
 )
 
 ```

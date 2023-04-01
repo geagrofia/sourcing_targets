@@ -119,20 +119,21 @@ aggregation_value_get_f <- function(cc_data, cc_row) {
 
 ### ----- Country spatial data ----- ###
 
-# results in v_crop
-v_crop_get_f <- function(cc_data, cc_row) {
-  st_read(paste0("data/", paste(cc_data[cc_row, 4])))
+# results in vect_crop
+vect_crop_get_f <- function(cc_data, cc_row) {
+  #st_read(paste0("data/", paste(cc_data[cc_row, 4])))
+  vect(paste0("data/", paste(cc_data[cc_row, 4]))) %>% wrap()
   
 }
 
 
-# results in vect_crop_wrap
-vect_crop_wrap_f <- function(v_crop) {
-  vect(v_crop) %>% wrap()
-}
+# results in vect_crop
+#vect_crop_f <- function(v_crop) {
+#  vect(v_crop) %>% wrap()
+#}
 
-# results in v_crop_plot
-v_crop_plot_f <- function(v_crop, vect_crop_wrap, ISO, crop, world) {
+# results in vect_crop_plot
+vect_crop_plot_f <- function(vect_crop, ISO, crop, world) {
   ggplot() +
     geom_sf(
       data = world,
@@ -142,29 +143,34 @@ v_crop_plot_f <- function(v_crop, vect_crop_wrap, ISO, crop, world) {
       inherit.aes = FALSE
     )  +
     coord_sf(expand = FALSE) +
-    geom_sf(
-      data = v_crop,
+    geom_spatvector(
+      data = unwrap(vect_crop),
       aes(fill = crop_value),
       alpha = 0.5,
       inherit.aes = FALSE
     ) +
-    xlim ((xmin(unwrap(vect_crop_wrap )) - 3), (xmax(unwrap(vect_crop_wrap )) + 3)) +
-    ylim ((ymin(unwrap(vect_crop_wrap )) - 3), (ymax(unwrap(vect_crop_wrap )) + 3)) +
+    xlim ((xmin(unwrap(vect_crop )) - 3), (xmax(unwrap(vect_crop )) + 3)) +
+    ylim ((ymin(unwrap(vect_crop )) - 3), (ymax(unwrap(vect_crop )) + 3)) +
     labs(
       fill = paste0(
-        "--------------------\nv_crop\n",
+        "--------------------\nvect_crop\n",
         ISO,
         " ",
         crop,
-        "\n\n--------------------"
+        "\n",
+        "xlim",xmin(unwrap(vect_crop ))," - " ,xmax(unwrap(vect_crop )),
+        "\n",
+        "ylim",ymin(unwrap(vect_crop ))," - " ,ymax(unwrap(vect_crop )),
+        "\n--------------------"
       )
     )
 }
 
 
-# results in v_ISO
-v_ISO_get_f <- function(ISO) {
-  gadm( country = paste(ISO), level = 0 , version="latest", path = "D:/repos/sourcing_targets" ) %>% st_as_sf() %>% mutate(New_ID = 1)
+# results in vect_ISO
+vect_ISO_get_f <- function(ISO) {
+  #gadm( country = paste(ISO), level = 0 , version="latest", path = "D:/repos/sourcing_targets" ) %>% st_as_sf() %>% mutate(New_ID = 1)
+  gadm( country = paste(ISO), level = 0 , version="latest", path = "D:/repos/sourcing_targets" ) %>% tidyterra::mutate(New_ID = 1) %>% wrap()
 }
 
 
@@ -182,35 +188,44 @@ v_ISO_get_f <- function(ISO) {
 
 # alternative because getData is being deprecated
 
-# results in v_ISO1
-v_ISO1_get_f <- function(cc_data, cc_row, ISO) {
+# results in vect_ISO1
+vect_ISO1_get_f <- function(cc_data, cc_row, ISO) {
   
   if (cc_data[cc_row, 23] == 1)  {
-    gadm( country = paste(ISO), level = 1 , version="latest", path = "D:/repos/sourcing_targets" ) %>% st_as_sf() %>% mutate(New_ID = 1)
+    #gadm( country = paste(ISO), level = 1 , version="latest", path = "D:/repos/sourcing_targets" ) %>% st_as_sf() %>% mutate(New_ID = 1)
+    gadm( country = paste(ISO), level = 1 , version="latest", path = "D:/repos/sourcing_targets" ) %>% tidyterra::mutate(New_ID = 1) %>% wrap()
   } else {
-    st_read(paste0("data/", paste(cc_data[cc_row, 24]))) %>% mutate(New_ID = 1)
+    #st_read(paste0("data/", paste(cc_data[cc_row, 24]))) %>% mutate(New_ID = 1)
+    vect(paste0("data/", paste(cc_data[cc_row, 24]))) %>% tidyterra::mutate(New_ID = 1) %>% wrap()
   }
 }
 
 
-# results in v_ISO_extent
-v_ISO_extent_f <- function(v_ISO) {
-  ext(v_ISO)
+# results in vect_ISO_extent
+vect_ISO_extent_f <- function(vect_ISO) {
+  ext(unwrap(vect_ISO))
 }
 
-# results in v_ISO_plot
-v_ISO_plot_f <- function(v_ISO1, ISO) {
+# results in vect_ISO_plot
+vect_ISO_plot_f <- function(vect_ISO1, ISO) {
   ggplot() +
-    geom_sf(
-      data = v_ISO1,
-      fill = 'grey', # previously aes(fill = NAME_1),
+   # geom_sf(
+   #  data = v_ISO1,
+   # fill = 'grey', # previously aes(fill = NAME_1),
+   #   col = 'black',
+   #  na.rm = TRUE,
+   #  inherit.aes = FALSE
+   #)  +
+  geom_spatvector(
+      data = unwrap(vect_ISO1),
+      fill = 'grey',
       col = 'black',
       na.rm = TRUE,
       inherit.aes = FALSE
-    )  +
+    ) + 
     labs(
       fill = paste0(
-        "--------------------\nv_ISO1\n",
+        "--------------------\nvect_ISO1\n",
         ISO,
         "\nExtent\n\n\n\n--------------------"
       )
@@ -290,10 +305,11 @@ rast_lc_plot_f <- function(rast_lc, world) {
 # }
 
 # results in rast_ISO_a_file
-rast_ISO_a_make_write_f  <- function(v_ISO, rast_lc, ISO) {
+rast_ISO_a_make_write_f  <- function(vect_ISO, rast_lc, ISO) {
   rasterize(
-    v_ISO,
+    unwrap(vect_ISO),
     unwrap(rast_lc),
+    fun = min, 
     field = "New_ID",
     filename = paste0("data/", ISO, "/rast_ISO_a.tif"),
     overwrite = TRUE
@@ -306,10 +322,10 @@ rast_ISO_a_get_f <- function(ISO, rast_ISO_a_file) {
 }
 
 # results in rast_ISO_file
-rast_ISO_make_write_f  <- function(rast_ISO_a, v_ISO_extent, ISO) {
-  crop(
+rast_ISO_make_write_f  <- function(rast_ISO_a, vect_ISO_extent, ISO) {
+  terra::crop(
     unwrap(rast_ISO_a),
-    v_ISO_extent,
+    unwrap(vect_ISO),
     filename = paste0("data/", ISO, "/rast_ISO.tif"),
     overwrite = TRUE
   )
@@ -344,7 +360,7 @@ rast_lc_ISO_get_f <- function(ISO, rast_lc_ISO_file) {
 }
 
 # results in rast_lc_ISO_plot
-rast_lc_ISO_plot_f <- function(rast_lc_ISO, world, v_ISO_extent, ISO) {
+rast_lc_ISO_plot_f <- function(rast_lc_ISO, world, vect_ISO_extent, ISO) {
   gplot(unwrap(rast_lc_ISO), maxpixels = 500000) + #this uses gplot from the rastervis package
     geom_tile(aes(fill = value), alpha = 1) +
     geom_sf(
@@ -357,8 +373,8 @@ rast_lc_ISO_plot_f <- function(rast_lc_ISO, world, v_ISO_extent, ISO) {
     scale_fill_gradient(low = "white",
                         high = 'dark green',
                         na.value = NA) +
-    xlim((v_ISO_extent@xmin - 1), (v_ISO_extent@xmax + 1)) +
-    ylim((v_ISO_extent@ymin - 1), (v_ISO_extent@ymax + 1)) +
+    xlim((vect_ISO_extent@xmin - 1), (vect_ISO_extent@xmax + 1)) +
+    ylim((vect_ISO_extent@ymin - 1), (vect_ISO_extent@ymax + 1)) +
     labs(fill = paste0(
       "-------------------\nrast_lc_ISO\n",
       ISO ,
@@ -374,8 +390,8 @@ rast_lc_ISO_plot_f <- function(rast_lc_ISO, world, v_ISO_extent, ISO) {
 }
 
 # results in rast_crop_file
-rast_crop_make_write_f  <- function(v_crop, rast_lc_ISO, ISO, crop) {
-  rasterize(vect(v_crop),
+rast_crop_make_write_f  <- function(vect_crop, rast_lc_ISO, ISO, crop) {
+  rasterize(unwrap(vect_crop),
             unwrap(rast_lc_ISO),
             field = 1,
             background = 0) %>% rast() %>% writeRaster(paste0("data/", ISO, "/", crop, "/rast_crop.tif"), overwrite = TRUE)
@@ -398,11 +414,18 @@ rast_crop_ISO_get_f <- function(rast_crop_ISO_file, ISO, crop) {
 }
 
 # results in rast_crop_ISO_plot
-rast_crop_ISO_plot_f <- function(rast_crop_ISO, v_ISO1, ISO, crop) {
+rast_crop_ISO_plot_f <- function(rast_crop_ISO, vect_ISO1, ISO, crop) {
   gplot(unwrap(rast_crop_ISO), maxpixels = 50000) + #this uses gplot from the rastervis package
     geom_tile(aes(fill = value), alpha = 1) +
-    geom_sf(
-      data = v_ISO1,
+    #geom_sf(
+    #  data = v_ISO1,
+    #  fill = NA,
+    #  col = 'black',
+    #  na.rm = TRUE,
+    #  inherit.aes = FALSE
+    #)  +
+    geom_spatvector(
+      data = vect_ISO1,
       fill = NA,
       col = 'black',
       na.rm = TRUE,
@@ -442,11 +465,18 @@ rast_crop_ISO_lc_get_f <- function(rast_crop_ISO_lc_file, ISO, crop) {
 }
 
 # results in rast_crop_ISO_lc_plot
-rast_crop_ISO_lc_plot_f <- function(rast_crop_ISO_lc, v_ISO1, ISO, crop) {
+rast_crop_ISO_lc_plot_f <- function(rast_crop_ISO_lc, vect_ISO1, ISO, crop) {
   gplot(unwrap(rast_crop_ISO_lc), maxpixels = 50000) + #this uses gplot from the rastervis package
     geom_tile(aes(fill = value), alpha = 1) +
-    geom_sf(
-      data = v_ISO1,
+    #geom_sf(
+    #  data = v_ISO1,
+    #  fill = NA,
+    #  col = 'black',
+    #  na.rm = TRUE,
+    #  inherit.aes = FALSE
+    #)  +
+    geom_spatvector(
+      data = vect_ISO1,
       fill = NA,
       col = 'black',
       na.rm = TRUE,
@@ -522,11 +552,18 @@ rast_crop_ISO_lc_rcl_get_f <-
 
 # results in rast_crop_ISO_lc_rcl_plot
 rast_crop_ISO_lc_rcl_plot_f <-
-  function(rast_crop_ISO_lc_rcl, v_ISO1, ISO, crop) {
+  function(rast_crop_ISO_lc_rcl, vect_ISO1, ISO, crop) {
     gplot(unwrap(rast_crop_ISO_lc_rcl), maxpixels = 50000) + #this uses gplot from the rastervis package
       geom_tile(aes(fill = value), alpha = 1) +
-      geom_sf(
-        data = v_ISO1,
+      #geom_sf(
+      #  data = v_ISO1,
+      #  fill = NA,
+      #  col = 'black',
+      #  na.rm = TRUE,
+      #  inherit.aes = FALSE
+      #)  +
+      geom_spatvector(
+        data = vect_ISO1,
         fill = NA,
         col = 'black',
         na.rm = TRUE,
@@ -635,7 +672,7 @@ v_crop_ISO_lc_rcl_agg_get_f <-
            rast_crop_ISO_lc_rcl_agg_values_vec12,
            ISO,
            crop,
-           v_ISO1) {
+           vect_ISO1) {
     # compare vector of raster values with possibilities    
     # 23/09/2022 Problem while computing `LC = factor(...)`.Caused by error in `unique.default()`:! unique() applies only to vectors
     
@@ -645,65 +682,89 @@ v_crop_ISO_lc_rcl_agg_get_f <-
     
     
     if (length(rast_crop_ISO_lc_rcl_agg_values) == 3) {
-      st_read(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp")) %>%
-        st_make_valid() %>%
-        mutate(LC = factor(layer,
-                           labels = c(
-                             "Not Cropland", "Cropland", paste0("'", crop, "'")
-                           ))) %>%
+      # st_read(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp")) %>%
+      #  st_make_valid() %>%
+      # mutate(LC = factor(layer,
+      #                     labels = c(
+      #                       "Not Cropland", "Cropland", paste0("'", crop, "'")
+      #                     ))) %>%
+      #  dplyr::filter(layer > 0) %>%
+      #  st_intersection(v_ISO1) %>%
+      #  mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
+      
+      vect(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp")) %>%
+        tidyterra::mutate(LC = factor(layer, abels = c(
+                                 "Not Cropland", "Cropland", paste0("'", crop, "'")
+                              ))) %>%
         dplyr::filter(layer > 0) %>%
-        st_intersection(v_ISO1) %>%
-        mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
+        terra::intersect(unwrap(vect_ISO1)) %>%
+        tidyterra::mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_')
       
     } else if (identical(rast_crop_ISO_lc_rcl_agg_values,
                          rast_crop_ISO_lc_rcl_agg_values_vec0)) {
-      st_read(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp")) %>%
-        st_make_valid() %>%
-        mutate(LC = factor(layer,
-                           labels = c("Not Cropland"))) %>%
+    #  st_read(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp")) %>%
+    #    st_make_valid() %>%
+    #    mutate(LC = factor(layer,
+    #                       labels = c("Not Cropland"))) %>%
+    #    dplyr::filter(layer > 0) %>%
+    #    st_intersection(v_ISO1) %>%
+    #    mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
+      
+      vect(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp")) %>%
+        tidyterra::mutate(LC = factor(layer, labels = c("Not Cropland"))) %>%
         dplyr::filter(layer > 0) %>%
-        st_intersection(v_ISO1) %>%
-        mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
+        terra::intersect(unwrap(vect_ISO1)) %>%
+        tidyterra::mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
       
     } else if (identical(rast_crop_ISO_lc_rcl_agg_values,
                          rast_crop_ISO_lc_rcl_agg_values_vec1)) {
-      st_read(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp")) %>%
-        st_make_valid() %>%
-        mutate(LC = factor(layer,
-                           labels = c("Cropland"))) %>%
+    #  st_read(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp")) %>%
+    #    st_make_valid() %>%
+    #    mutate(LC = factor(layer,
+    #                       labels = c("Cropland"))) %>%
+    #    dplyr::filter(layer > 0) %>%
+    #    st_intersection(v_ISO1) %>%
+    #    mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
+      
+      vect(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp")) %>%
+        tidyterra::mutate(LC = factor(layer, labels = c("Cropland"))) %>%
         dplyr::filter(layer > 0) %>%
-        st_intersection(v_ISO1) %>%
-        mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
+        terra::intersect(unwrap(vect_ISO1)) %>%
+        tidyterra::mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
       
     } else if (identical(rast_crop_ISO_lc_rcl_agg_values,
                          rast_crop_ISO_lc_rcl_agg_values_vec2)) {
-      st_read(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp")) %>%
-        st_make_valid() %>%
-        mutate(LC = factor(layer,
-                           labels = c(paste0("'", crop, "'")))) %>%
+    #  st_read(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp")) %>%
+    #    st_make_valid() %>%
+    #    mutate(LC = factor(layer,
+    #                       labels = c(paste0("'", crop, "'")))) %>%
+    #    dplyr::filter(layer > 0) %>%
+    #    st_intersection(v_ISO1) %>%
+    #    mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
+      
+      vect(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp")) %>%
+        tidyterra::mutate(LC = factor(layer, labels = c(paste0("'", crop, "'")))) %>%
         dplyr::filter(layer > 0) %>%
-        st_intersection(v_ISO1) %>%
-        mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
+        terra::intersect(unwrap(vect_ISO1)) %>%
+        tidyterra::mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
       
     } else if (identical(rast_crop_ISO_lc_rcl_agg_values,
                          rast_crop_ISO_lc_rcl_agg_values_vec01)) {
-      st_read(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp")) %>%
-        st_make_valid() %>%
-        mutate(LC = factor(layer,
-                           labels = c("Not Cropland", "Cropland"))) %>%
-        dplyr::filter(layer > 0) %>%
-        st_intersection(v_ISO1) %>%
-        mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
+    #  st_read(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp")) %>%
+    #    st_make_valid() %>%
+    #    mutate(LC = factor(layer,
+    #                       labels = c("Not Cropland", "Cropland"))) %>%
+    #    dplyr::filter(layer > 0) %>%
+    #    st_intersection(v_ISO1) %>%
+    #    mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
       
-      # vect(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp")) %>%
-      # mutate(LC = factor(rast_crop_ISO,
-      # labels = c("Not Cropland","Cropland")
-      # )) %>%
-      # dplyr::filter(rast_crop_ISO > 0) %>%
-      # intersect(vect(v_ISO1)) %>%
-      # mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
+     vect(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp")) %>%
+     tidyterra::mutate(LC = factor(layer, labels = c("Not Cropland","Cropland"))) %>%
+     dplyr::filter(layer > 0) %>%
+     terra::intersect(unwrap(vect_ISO1)) %>%
+     tidyterra::mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
       
-      
+ ## A Farrow 31/03/2023 reached here     
       
       
     } else if (identical(rast_crop_ISO_lc_rcl_agg_values,
@@ -741,7 +802,7 @@ v_crop_ISO_lc_rcl_agg2_make_write_f <-
 
 # results in v_crop_ISO_lc_rcl_agg_plot
 v_crop_ISO_lc_rcl_agg_plot_f <-
-  function(v_crop_ISO_lc_rcl_agg,  v_ISO1, ISO, crop)  {
+  function(v_crop_ISO_lc_rcl_agg,  vect_ISO1, ISO, crop)  {
     ggplot() +
       geom_sf(
         data = v_crop_ISO_lc_rcl_agg,
@@ -828,7 +889,7 @@ v_crop_ISO_lc_rcl_agg_proj_get_f <-
 # results in dB_crop_ISO_lc_rcl_agg_proj
 dB_crop_ISO_lc_rcl_agg_proj_make_f <-
   function(v_crop_ISO_lc_rcl_agg_proj,
-           v_ISO1,
+           vect_ISO1,
            ISO,
            crop) {
     v_crop_ISO_lc_rcl_agg_proj %>%
@@ -1145,7 +1206,7 @@ rast_duration_change_get_f <-
 # results in rast_rainfallc_plot
 rast_rainfallc_plot_f <-
   function(rast_rainfallc,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -1207,7 +1268,7 @@ rast_rainfallc_plot_f <-
 # results in rast_rainfallf_plot
 rast_rainfallf_plot_f <-
   function(rast_rainfallf,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -1269,7 +1330,7 @@ rast_rainfallf_plot_f <-
 # results in rast_tempc_plot
 rast_tempc_plot_f <-
   function(rast_tempc,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -1331,7 +1392,7 @@ rast_tempc_plot_f <-
 # results in rast_tempf_plot
 rast_tempf_plot_f <-
   function(rast_tempf,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -1393,7 +1454,7 @@ rast_tempf_plot_f <-
 # results in rast_onsetc_plot
 rast_onsetc_plot_f <-
   function(rast_onsetc,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -1455,7 +1516,7 @@ rast_onsetc_plot_f <-
 # results in rast_onsetf_plot
 rast_onsetf_plot_f <-
   function(rast_onsetf,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -1517,7 +1578,7 @@ rast_onsetf_plot_f <-
 # results in rast_durationc_plot
 rast_durationc_plot_f <-
   function(rast_durationc,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -1579,7 +1640,7 @@ rast_durationc_plot_f <-
 # results in rast_durationf_plot
 rast_durationf_plot_f <-
   function(rast_durationf,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -1643,7 +1704,7 @@ rast_durationf_plot_f <-
 # results in rast_rainfall_change_plot
 rast_rainfall_change_plot_f <-
   function(rast_rainfall_change,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -1705,7 +1766,7 @@ rast_rainfall_change_plot_f <-
 # results in rast_temp_change_plot
 rast_temp_change_plot_f <-
   function(rast_temp_change,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -1767,7 +1828,7 @@ rast_temp_change_plot_f <-
 # results in rast_onset_change_plot
 rast_onset_change_plot_f <-
   function(rast_onset_change,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -1829,7 +1890,7 @@ rast_onset_change_plot_f <-
 # results in rast_duration_change_plot
 rast_duration_change_plot_f <-
   function(rast_duration_change,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -2047,7 +2108,7 @@ rast_flood_change_get_f <-
 # results in rast_droughtc_plot
 rast_droughtc_plot_f <-
   function(rast_droughtc,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -2112,7 +2173,7 @@ rast_droughtc_plot_f <-
 # results in rast_droughtf_plot
 rast_droughtf_plot_f <-
   function(rast_droughtf,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -2177,7 +2238,7 @@ rast_droughtf_plot_f <-
 # results in rast_drought_change_plot
 rast_drought_change_plot_f <-
   function(rast_drought_change,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -2242,7 +2303,7 @@ rast_drought_change_plot_f <-
 # results in rast_heatc_plot
 rast_heatc_plot_f <-
   function(rast_heatc,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -2307,7 +2368,7 @@ rast_heatc_plot_f <-
 # results in rast_heatf_plot
 rast_heatf_plot_f <-
   function(rast_heatf,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -2372,7 +2433,7 @@ rast_heatf_plot_f <-
 # results in rast_heat_change_plot
 rast_heat_change_plot_f <-
   function(rast_heat_change,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -2438,7 +2499,7 @@ rast_heat_change_plot_f <-
 # results in rast_floodc_plot
 rast_floodc_plot_f <-
   function(rast_floodc,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -2503,7 +2564,7 @@ rast_floodc_plot_f <-
 # results in rast_floodf_plot
 rast_floodf_plot_f <-
   function(rast_floodf,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -2568,7 +2629,7 @@ rast_floodf_plot_f <-
 # results in rast_flood_change_plot
 rast_flood_change_plot_f <-
   function(rast_flood_change,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -6421,349 +6482,349 @@ rast_impact_make_f <-
       ###Farrow 14/03/2023 reached here
       
       terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_s')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_s')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'floodc_l_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'floodc_l_s')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_s')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_s')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'floodf_l_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'floodf_l_s'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtchange_l_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtchange_l_s')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatchange_l_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatchange_l_s')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'floodchange_l_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'floodchange_l_s'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_s')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'floodc_l_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'floodc_l_s')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_s')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_s')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'floodf_l_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'floodf_l_s'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtchange_l_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtchange_l_s')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatchange_l_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatchange_l_s')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'floodchange_l_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'floodchange_l_s'))  %>%
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_o'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_d'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_h'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_dh'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_max'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_o'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_d'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_h'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_dh'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_max'))  %>%
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_l_o'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_l_d'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_l_f'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_l_df'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_l_max'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_l_o'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_l_d'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_l_f'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_l_df'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_l_max'))  %>%
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_l_o'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_l_h'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_l_f'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_l_hf'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_l_max'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_l_o'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_l_h'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_l_f'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_l_hf'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_l_max'))  %>%
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_o'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_d'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_h'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_f'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_dh'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_df'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_hf'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_dhf'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_max'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_o'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_d'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_h'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_f'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_dh'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_df'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_hf'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_dhf'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_max'))  %>%
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_o'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_d'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_h'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_dh'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_max'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_o'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_d'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_h'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_dh'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_max'))  %>%
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_l_o'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_l_d'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_l_f'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_l_df'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_l_max'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_l_o'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_l_d'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_l_f'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_l_df'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_l_max'))  %>%
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_l_o'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_l_h'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_l_f'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_l_hf'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_l_max'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_l_o'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_l_h'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_l_f'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_l_hf'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_l_max'))  %>%
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_o'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_d'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_h'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_f'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_dh'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_df'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_hf'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_dhf'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_max'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_o'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_d'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_h'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_f'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_dh'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_df'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_hf'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_dhf'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_max'))  %>%
       
       # upper thresholds
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_s')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_s')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'floodc_u_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'floodc_u_s')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_s')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_s')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'floodf_u_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'floodf_u_s'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtchange_u_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtchange_u_s')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatchange_u_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatchange_u_s')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'floodchange_u_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'floodchange_u_s'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_s')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_s')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'floodc_u_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'floodc_u_s')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_s')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_s')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'floodf_u_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'floodf_u_s'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtchange_u_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtchange_u_s')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatchange_u_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatchange_u_s')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'floodchange_u_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'floodchange_u_s'))  %>%
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_o'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_d'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_h'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_dh'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_max'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_o'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_d'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_h'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_dh'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_max'))  %>%
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_u_o'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_u_d'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_u_f'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_u_df'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_u_max'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_u_o'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_u_d'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_u_f'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_u_df'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_u_max'))  %>%
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_u_o'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_u_h'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_u_f'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_u_hf'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_u_max'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_u_o'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_u_h'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_u_f'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_u_hf'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_u_max'))  %>%
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_o'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_d'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_h'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_f'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_dh'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_df'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_hf'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_dhf'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_max'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_o'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_d'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_h'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_f'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_dh'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_df'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_hf'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_dhf'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_max'))  %>%
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_o'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_d'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_h'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_dh'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_max'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_o'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_d'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_h'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_dh'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_max'))  %>%
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_u_o'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_u_d'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_u_f'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_u_df'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_u_max'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_u_o'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_u_d'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_u_f'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_u_df'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_u_max'))  %>%
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_u_o'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_u_h'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_u_f'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_u_hf'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_u_max'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_u_o'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_u_h'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_u_f'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_u_hf'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_u_max'))  %>%
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_o'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_d'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_h'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_f'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_dh'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_df'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_hf'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_dhf'))  %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_max'))    %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_o'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_d'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_h'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_f'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_dh'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_df'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_hf'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_dhf'))  %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_max'))    %>%
       
       # mixed thresholds
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_d')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_h')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_dh')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_max')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_d')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_h')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_dh')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_max')) %>%
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_d')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_h')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_dh')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_max')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_d')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_h')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_dh')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_max')) %>%
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_u_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_u_d')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_u_f')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_u_df')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_u_max')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_u_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_u_d')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_u_f')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_u_df')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_u_max')) %>%
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_l_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_l_d')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_l_f')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_l_df')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_l_max')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_l_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_l_d')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_l_f')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_l_df')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_l_max')) %>%
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_u_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_u_h')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_u_f')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_u_hf')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_u_max')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_u_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_u_h')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_u_f')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_u_hf')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_u_max')) %>%
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_l_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_l_h')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_l_f')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_l_hf')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_l_max')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_l_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_l_h')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_l_f')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_l_hf')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_l_max')) %>%
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_d')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_h')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_f')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_dh')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_df')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_hf')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_dhf')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_max')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_d')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_h')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_f')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_dh')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_df')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_hf')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_dhf')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_max')) %>%
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_d')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_h')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_f')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_dh')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_df')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_hf')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_dhf')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_max')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_d')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_h')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_f')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_dh')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_df')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_hf')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_dhf')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_max')) %>%
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_d')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_h')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_f')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_dh')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_df')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_hf')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_dhf')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_max')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_d')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_h')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_f')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_dh')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_df')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_hf')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_dhf')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_max')) %>%
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_d')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_h')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_f')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_dh')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_df')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_hf')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_dhf')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_max')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_d')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_h')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_f')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_dh')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_df')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_hf')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_dhf')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_max')) %>%
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_d')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_h')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_f')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_dh')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_df')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_hf')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_dhf')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_max')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_d')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_h')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_f')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_dh')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_df')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_hf')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_dhf')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_max')) %>%
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_d')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_h')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_f')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_dh')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_df')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_hf')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_dhf')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_max')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_d')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_h')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_f')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_dh')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_df')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_hf')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_dhf')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_max')) %>%
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_d')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_h')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_dh')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_max')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_d')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_h')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_dh')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_max')) %>%
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_d')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_h')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_dh')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_max')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_d')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_h')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_dh')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_max')) %>%
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_u_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_u_d')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_u_f')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_u_df')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_u_max')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_u_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_u_d')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_u_f')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_u_df')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_u_max')) %>%
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_l_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_l_d')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_l_f')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_l_df')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_l_max')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_l_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_l_d')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_l_f')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_l_df')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_l_max')) %>%
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_u_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_u_h')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_u_f')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_u_hf')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_u_max')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_u_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_u_h')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_u_f')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_u_hf')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_u_max')) %>%
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_l_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_l_h')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_l_f')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_l_hf')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_l_max')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_l_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_l_h')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_l_f')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_l_hf')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_l_max')) %>%
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_d')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_h')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_f')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_dh')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_df')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_hf')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_dhf')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_max')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_d')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_h')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_f')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_dh')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_df')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_hf')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_dhf')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_max')) %>%
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_d')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_h')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_f')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_dh')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_df')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_hf')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_dhf')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_max')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_d')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_h')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_f')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_dh')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_df')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_hf')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_dhf')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_max')) %>%
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_d')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_h')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_f')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_dh')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_df')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_hf')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_dhf')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_max')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_d')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_h')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_f')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_dh')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_df')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_hf')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_dhf')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_max')) %>%
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_d')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_h')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_f')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_dh')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_df')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_hf')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_dhf')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_max')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_d')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_h')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_f')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_dh')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_df')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_hf')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_dhf')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_max')) %>%
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_d')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_h')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_f')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_dh')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_df')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_hf')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_dhf')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_max')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_d')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_h')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_f')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_dh')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_df')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_hf')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_dhf')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_max')) %>%
       
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_o')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_d')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_h')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_f')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_dh')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_df')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_hf')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_dhf')) %>%
-      addLayer(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_max')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_o')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_d')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_h')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_f')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_dh')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_df')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_hf')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_dhf')) %>%
+      terra::add(rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_max')) %>%
       
       
       # names
@@ -7399,7 +7460,7 @@ rast_droughtf_u_heatf_u_floodf_l_max_get_f <-
 # results in rast_droughtc_l_heatc_l_max_plot
 rast_droughtc_l_heatc_l_max_plot_f <-
   function(rast_droughtc_l_heatc_l_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -7479,7 +7540,7 @@ rast_droughtc_l_heatc_l_max_plot_f <-
 # results in rast_droughtc_l_floodc_l_max_plot
 rast_droughtc_l_floodc_l_max_plot_f <-
   function(rast_droughtc_l_floodc_l_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -7558,7 +7619,7 @@ rast_droughtc_l_floodc_l_max_plot_f <-
 # results in rast_heatc_l_floodc_l_max_plot
 rast_heatc_l_floodc_l_max_plot_f <-
   function(rast_heatc_l_floodc_l_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -7638,7 +7699,7 @@ rast_heatc_l_floodc_l_max_plot_f <-
 # results in rast_droughtc_l_heatc_l_floodc_l_max_plot
 rast_droughtc_l_heatc_l_floodc_l_max_plot_f <-
   function(rast_droughtc_l_heatc_l_floodc_l_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -7722,7 +7783,7 @@ rast_droughtc_l_heatc_l_floodc_l_max_plot_f <-
 # results in rast_droughtc_u_heatc_u_max_plot
 rast_droughtc_u_heatc_u_max_plot_f <-
   function(rast_droughtc_u_heatc_u_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -7801,7 +7862,7 @@ rast_droughtc_u_heatc_u_max_plot_f <-
 # results in rast_droughtc_u_floodc_u_max_plot
 rast_droughtc_u_floodc_u_max_plot_f <-
   function(rast_droughtc_u_floodc_u_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -7880,7 +7941,7 @@ rast_droughtc_u_floodc_u_max_plot_f <-
 # results in rast_heatc_u_floodc_u_max_plot
 rast_heatc_u_floodc_u_max_plot_f <-
   function(rast_heatc_u_floodc_u_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -7960,7 +8021,7 @@ rast_heatc_u_floodc_u_max_plot_f <-
 # results in rast_droughtc_u_heatc_u_floodc_u_max_plot
 rast_droughtc_u_heatc_u_floodc_u_max_plot_f <-
   function(rast_droughtc_u_heatc_u_floodc_u_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -8045,7 +8106,7 @@ rast_droughtc_u_heatc_u_floodc_u_max_plot_f <-
 # results in rast_droughtc_l_heatc_l_max_plot
 rast_droughtc_l_heatc_u_max_plot_f <-
   function(rast_droughtc_l_heatc_u_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -8128,7 +8189,7 @@ rast_droughtc_l_heatc_u_max_plot_f <-
 # results in rast_droughtc_u_heatc_l_max_plot
 rast_droughtc_u_heatc_l_max_plot_f <-
   function(rast_droughtc_u_heatc_l_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -8209,7 +8270,7 @@ rast_droughtc_u_heatc_l_max_plot_f <-
 
 rast_droughtc_l_floodc_u_max_plot_f <-
   function(rast_droughtc_l_floodc_u_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -8289,7 +8350,7 @@ rast_droughtc_l_floodc_u_max_plot_f <-
 
 rast_droughtc_u_floodc_l_max_plot_f <-
   function(rast_droughtc_u_floodc_l_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -8370,7 +8431,7 @@ rast_droughtc_u_floodc_l_max_plot_f <-
 
 rast_heatc_l_floodc_u_max_plot_f <-
   function(rast_heatc_l_floodc_u_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -8452,7 +8513,7 @@ rast_heatc_l_floodc_u_max_plot_f <-
 
 rast_heatc_u_floodc_l_max_plot_f <-
   function(rast_heatc_u_floodc_l_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -8531,7 +8592,7 @@ rast_heatc_u_floodc_l_max_plot_f <-
 
 rast_droughtc_l_heatc_l_floodc_u_max_plot_f <-
   function(rast_droughtc_l_heatc_l_floodc_u_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -8612,7 +8673,7 @@ rast_droughtc_l_heatc_l_floodc_u_max_plot_f <-
 
 rast_droughtc_l_heatc_u_floodc_l_max_plot_f <-
   function(rast_droughtc_l_heatc_u_floodc_l_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -8693,7 +8754,7 @@ rast_droughtc_l_heatc_u_floodc_l_max_plot_f <-
 
 rast_droughtc_u_heatc_l_floodc_l_max_plot_f <-
   function(rast_droughtc_u_heatc_l_floodc_l_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -8774,7 +8835,7 @@ rast_droughtc_u_heatc_l_floodc_l_max_plot_f <-
 
 rast_droughtc_l_heatc_u_floodc_u_max_plot_f <-
   function(rast_droughtc_l_heatc_u_floodc_u_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -8855,7 +8916,7 @@ rast_droughtc_l_heatc_u_floodc_u_max_plot_f <-
 
 rast_droughtc_u_heatc_l_floodc_u_max_plot_f <-
   function(rast_droughtc_u_heatc_l_floodc_u_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -8936,7 +8997,7 @@ rast_droughtc_u_heatc_l_floodc_u_max_plot_f <-
 
 rast_droughtc_u_heatc_u_floodc_l_max_plot_f <-
   function(rast_droughtc_u_heatc_u_floodc_l_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -9020,7 +9081,7 @@ rast_droughtc_u_heatc_u_floodc_l_max_plot_f <-
 # results in rast_droughtf_l_heatf_l_max_plot
 rast_droughtf_l_heatf_l_max_plot_f <-
   function(rast_droughtf_l_heatf_l_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -9100,7 +9161,7 @@ rast_droughtf_l_heatf_l_max_plot_f <-
 # results in rast_droughtf_l_floodf_l_max_plot
 rast_droughtf_l_floodf_l_max_plot_f <-
   function(rast_droughtf_l_floodf_l_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -9179,7 +9240,7 @@ rast_droughtf_l_floodf_l_max_plot_f <-
 # results in rast_heatf_l_floodf_l_max_plot
 rast_heatf_l_floodf_l_max_plot_f <-
   function(rast_heatf_l_floodf_l_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -9259,7 +9320,7 @@ rast_heatf_l_floodf_l_max_plot_f <-
 # results in rast_droughtf_l_heatf_l_floodf_l_max_plot
 rast_droughtf_l_heatf_l_floodf_l_max_plot_f <-
   function(rast_droughtf_l_heatf_l_floodf_l_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -9343,7 +9404,7 @@ rast_droughtf_l_heatf_l_floodf_l_max_plot_f <-
 # results in rast_droughtf_u_heatf_u_max_plot
 rast_droughtf_u_heatf_u_max_plot_f <-
   function(rast_droughtf_u_heatf_u_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -9422,7 +9483,7 @@ rast_droughtf_u_heatf_u_max_plot_f <-
 # results in rast_droughtf_u_floodf_u_max_plot
 rast_droughtf_u_floodf_u_max_plot_f <-
   function(rast_droughtf_u_floodf_u_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -9501,7 +9562,7 @@ rast_droughtf_u_floodf_u_max_plot_f <-
 # results in rast_heatf_u_floodf_u_max_plot
 rast_heatf_u_floodf_u_max_plot_f <-
   function(rast_heatf_u_floodf_u_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -9581,7 +9642,7 @@ rast_heatf_u_floodf_u_max_plot_f <-
 # results in rast_droughtf_u_heatf_u_floodf_u_max_plot
 rast_droughtf_u_heatf_u_floodf_u_max_plot_f <-
   function(rast_droughtf_u_heatf_u_floodf_u_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -9666,7 +9727,7 @@ rast_droughtf_u_heatf_u_floodf_u_max_plot_f <-
 # results in rast_droughtf_l_heatf_l_max_plot
 rast_droughtf_l_heatf_u_max_plot_f <-
   function(rast_droughtf_l_heatf_u_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -9749,7 +9810,7 @@ rast_droughtf_l_heatf_u_max_plot_f <-
 # results in rast_droughtf_u_heatf_l_max_plot
 rast_droughtf_u_heatf_l_max_plot_f <-
   function(rast_droughtf_u_heatf_l_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -9830,7 +9891,7 @@ rast_droughtf_u_heatf_l_max_plot_f <-
 
 rast_droughtf_l_floodf_u_max_plot_f <-
   function(rast_droughtf_l_floodf_u_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -9910,7 +9971,7 @@ rast_droughtf_l_floodf_u_max_plot_f <-
 
 rast_droughtf_u_floodf_l_max_plot_f <-
   function(rast_droughtf_u_floodf_l_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -9991,7 +10052,7 @@ rast_droughtf_u_floodf_l_max_plot_f <-
 
 rast_heatf_l_floodf_u_max_plot_f <-
   function(rast_heatf_l_floodf_u_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -10073,7 +10134,7 @@ rast_heatf_l_floodf_u_max_plot_f <-
 
 rast_heatf_u_floodf_l_max_plot_f <-
   function(rast_heatf_u_floodf_l_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -10152,7 +10213,7 @@ rast_heatf_u_floodf_l_max_plot_f <-
 
 rast_droughtf_l_heatf_l_floodf_u_max_plot_f <-
   function(rast_droughtf_l_heatf_l_floodf_u_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -10233,7 +10294,7 @@ rast_droughtf_l_heatf_l_floodf_u_max_plot_f <-
 
 rast_droughtf_l_heatf_u_floodf_l_max_plot_f <-
   function(rast_droughtf_l_heatf_u_floodf_l_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -10314,7 +10375,7 @@ rast_droughtf_l_heatf_u_floodf_l_max_plot_f <-
 
 rast_droughtf_u_heatf_l_floodf_l_max_plot_f <-
   function(rast_droughtf_u_heatf_l_floodf_l_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -10395,7 +10456,7 @@ rast_droughtf_u_heatf_l_floodf_l_max_plot_f <-
 
 rast_droughtf_l_heatf_u_floodf_u_max_plot_f <-
   function(rast_droughtf_l_heatf_u_floodf_u_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -10476,7 +10537,7 @@ rast_droughtf_l_heatf_u_floodf_u_max_plot_f <-
 
 rast_droughtf_u_heatf_l_floodf_u_max_plot_f <-
   function(rast_droughtf_u_heatf_l_floodf_u_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
@@ -10557,7 +10618,7 @@ rast_droughtf_u_heatf_l_floodf_u_max_plot_f <-
 
 rast_droughtf_u_heatf_u_floodf_l_max_plot_f <-
   function(rast_droughtf_u_heatf_u_floodf_l_max,
-           v_ISO1,
+           vect_ISO1,
            v_crop_ISO_lc_rcl_agg,
            v_ISO_extent,
            world,
