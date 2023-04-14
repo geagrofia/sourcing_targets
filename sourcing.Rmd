@@ -224,7 +224,7 @@ list(
 
 ```{targets country_crop_data_j}
 list(
-  tar_target(rast_lc_file,  rast_lc_make_write_f(rast_lc_global, aggregation_value, rast_clim_mask, ISO))
+  tar_target(rast_lc_file,  rast_lc_make_write_f(rast_lc_global, aggregation_value, vect_ISO, ISO))
 )
 
 ```
@@ -249,7 +249,7 @@ list(
 
 ```{targets spatial_data_prep_processing_1ai}
 list(
-    tar_target(rast_ISO_a_file, rast_ISO_a_make_write_f(v_ISO, rast_lc, ISO)),
+    tar_target(rast_ISO_a_file, rast_ISO_a_make_write_f(vect_ISO, rast_lc, ISO)),
     tar_target(rast_ISO_a, rast_ISO_a_get_f(ISO, rast_ISO_a_file))
 )
 ```
@@ -264,7 +264,7 @@ list(
 
 ```{targets spatial_data_prep_processing_1aiii}   
 list(
-    tar_target(rast_ISO_file, rast_ISO_make_write_f(rast_ISO_a, v_ISO_extent, ISO))
+    tar_target(rast_ISO_file, rast_ISO_make_write_f(rast_ISO_a, vect_ISO_extent, ISO))
 )
 
 ```
@@ -293,7 +293,7 @@ list(
 ```{targets spatial_data_prep_processing_2a}
 
 list(
-  tar_target(rast_crop_file, rast_crop_make_write_f(v_crop, rast_lc_ISO, ISO, crop))
+  tar_target(rast_crop_file, rast_crop_make_write_f(vect_crop, rast_lc_ISO, ISO, crop))
 )
   
 ```
@@ -407,8 +407,8 @@ list(
 
 list(
 tar_target(
-  v_crop_ISO_lc_rcl_agg_file1,
-  v_crop_ISO_lc_rcl_agg1_make_write_f(rast_crop_ISO_lc_rcl_agg,  ISO, crop)
+  vect_crop_ISO_lc_rcl_agg_file1,
+  vect_crop_ISO_lc_rcl_agg1_make_write_f(rast_crop_ISO_lc_rcl_agg,  ISO, crop)
 )
 )
 
@@ -418,9 +418,9 @@ tar_target(
 ```{targets spatial_data_prep_processing_5a}
 
 list(tar_target(
-  v_crop_ISO_lc_rcl_agg,
-  v_crop_ISO_lc_rcl_agg_get_f(
-    v_crop_ISO_lc_rcl_agg_file1,
+  vect_crop_ISO_lc_rcl_agg,
+  vect_crop_ISO_lc_rcl_agg_get_f(
+    vect_crop_ISO_lc_rcl_agg_file1,
     rast_crop_ISO_lc_rcl_agg_values,
     rast_crop_ISO_lc_rcl_agg_values_vec0,
     rast_crop_ISO_lc_rcl_agg_values_vec1,
@@ -430,7 +430,7 @@ list(tar_target(
     rast_crop_ISO_lc_rcl_agg_values_vec12,
     ISO,
     crop,
-    v_ISO1
+    vect_ISO1
   )
 ))
 ```
@@ -438,9 +438,9 @@ list(tar_target(
 ```{targets spatial_data_prep_processing_5b}
 
 list(tar_target(
-  v_crop_ISO_lc_rcl_agg_file2,
-  v_crop_ISO_lc_rcl_agg2_make_write_f
-  (v_crop_ISO_lc_rcl_agg,  ISO, crop)
+  vect_crop_ISO_lc_rcl_agg_file2,
+  vect_crop_ISO_lc_rcl_agg2_make_write_f
+  (vect_crop_ISO_lc_rcl_agg,  ISO, crop)
 ))
 
 ```
@@ -450,19 +450,19 @@ list(tar_target(
 ```{targets spatial_data_prep_processing_6}
 
 list(
-  tar_target(wkt_lam, wkt_lam_make_f(v_ISO_extent)),
+  tar_target(wkt_lam, wkt_lam_make_f(vect_ISO)),
   tar_target(crs_lam, crs_lam_make_f(wkt_lam)),
   tar_target(
-    v_crop_ISO_lc_rcl_agg_proj_file,
-    v_crop_ISO_lc_rcl_agg_proj_file_make_write_f(v_crop_ISO_lc_rcl_agg, crs_lam, ISO, crop)
+    vect_crop_ISO_lc_rcl_agg_proj_file,
+    vect_crop_ISO_lc_rcl_agg_proj_file_make_write_f(vect_crop_ISO_lc_rcl_agg, crs_lam, ISO, crop)
   ),
   tar_target(
-    v_crop_ISO_lc_rcl_agg_proj,
-    v_crop_ISO_lc_rcl_agg_proj_get_f(v_crop_ISO_lc_rcl_agg_proj_file, ISO, crop)
+    vect_crop_ISO_lc_rcl_agg_proj,
+    vect_crop_ISO_lc_rcl_agg_proj_get_f(vect_crop_ISO_lc_rcl_agg_proj_file, ISO, crop)
   ),
   tar_target(
     dB_crop_ISO_lc_rcl_agg_proj,
-    dB_crop_ISO_lc_rcl_agg_proj_make_f(v_crop_ISO_lc_rcl_agg_proj, v_ISO1, ISO, crop)
+    dB_crop_ISO_lc_rcl_agg_proj_make_f(vect_crop_ISO_lc_rcl_agg_proj, vect_ISO1, ISO, crop)
   ),
   tar_target(
     dB_crop_ISO_lc_rcl_agg_proj_plot,
