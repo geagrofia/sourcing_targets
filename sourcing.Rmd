@@ -133,18 +133,18 @@ list(
 
 
 #list(
-#  tar_target(v_crop, v_crop_get_f(cc_data, cc_row)),
+#  tar_target(vect_crop, vect_crop_get_f(cc_data, cc_row)),
   
-#  tar_target(v_crop_extent, v_crop_extent_f(v_crop)),
+#  tar_target(vect_crop_extent, vect_crop_extent_f(vect_crop)),
 #  tar_target(
-#    v_crop_plot,
-#    v_crop_plot_f(v_crop, v_crop_extent, ISO, crop, world)
+#    vect_crop_plot,
+#    vect_crop_plot_f(vect_crop, vect_crop_extent, ISO, crop, world)
 #  ),
   
-#  tar_target(v_ISO, v_ISO_get_f(ISO)),
-#  tar_target(v_ISO1, v_ISO1_get_f(ISO)),
-#  tar_target(v_ISO_extent, v_ISO_extent_f(v_ISO)),
-#  tar_target(v_ISO_plot, v_ISO_plot_f(v_ISO, ISO)),
+#  tar_target(vect_ISO, vect_ISO_get_f(ISO)),
+#  tar_target(vect_ISO1, vect_ISO1_get_f(ISO)),
+#  tar_target(vect_ISO_extent, vect_ISO_extent_f(vect_ISO)),
+#  tar_target(vect_ISO_plot, vect_ISO_plot_f(vect_ISO, ISO)),
   
 #  tar_target(rast_clim_mask, rast_clim_mask_get_f(ISO)),
   
@@ -166,7 +166,7 @@ list(
 
 ```{targets country_crop_data_b}
 #list(
-#  tar_target(vect_crop, vect_crop_f(v_crop))
+#  tar_target(vect_crop, vect_crop_f(vect_crop))
 #)
 #
 ```
@@ -257,14 +257,14 @@ list(
 
 ```{targets spatial_data_prep_processing_1aii}    
 #list(
-#    tar_target(rast_ISO_b_file, rast_ISO_b_make_write_f(rast_ISO_a, v_ISO_extent, ISO)),
+#    tar_target(rast_ISO_b_file, rast_ISO_b_make_write_f(rast_ISO_a, vect_ISO_extent, ISO)),
 #    tar_target(rast_ISO_b, rast_ISO_b_get_f(ISO, rast_ISO_b_file))
 #)
 ```
 
 ```{targets spatial_data_prep_processing_1aiii}   
 list(
-    tar_target(rast_ISO_file, rast_ISO_make_write_f(rast_ISO_a, vect_ISO_extent, ISO))
+    tar_target(rast_ISO_file, rast_ISO_make_write_f(rast_ISO_a, vect_ISO, ISO))
 )
 
 ```
@@ -480,25 +480,25 @@ list(
 list(
   tar_target(
     rast_lc_ISO_plot,
-    rast_lc_ISO_plot_f(rast_lc_ISO, world, v_ISO_extent, ISO)
+    rast_lc_ISO_plot_f(rast_lc_ISO, world, vect_ISO, ISO)
   ),
   tar_target(
     rast_crop_ISO_plot,
-    rast_crop_ISO_plot_f(rast_crop_ISO, v_ISO1, ISO, crop)
+    rast_crop_ISO_plot_f(rast_crop_ISO, vect_ISO1, ISO, crop)
   ),
   tar_target(
     rast_crop_ISO_lc_plot,
-    rast_crop_ISO_lc_plot_f(rast_crop_ISO_lc, v_ISO1, ISO, crop)
+    rast_crop_ISO_lc_plot_f(rast_crop_ISO_lc, vect_ISO1, ISO, crop)
   ),
   tar_target(
     rast_crop_ISO_lc_rcl_plot,
-    rast_crop_ISO_lc_rcl_plot_f(rast_crop_ISO_lc_rcl, v_ISO1, ISO, crop)
+    rast_crop_ISO_lc_rcl_plot_f(rast_crop_ISO_lc_rcl, vect_ISO1, ISO, crop)
   )
   ,
   tar_target(
-    v_crop_ISO_lc_rcl_agg_plot,
-    v_crop_ISO_lc_rcl_agg_plot_f
-    (v_crop_ISO_lc_rcl_agg, v_ISO1, ISO, crop)
+    vect_crop_ISO_lc_rcl_agg_plot,
+    vect_crop_ISO_lc_rcl_agg_plot_f
+    (vect_crop_ISO_lc_rcl_agg, vect_ISO1, ISO, crop)
   )
 )
 
@@ -508,7 +508,7 @@ list(
 
 ```{targets trimmed_climate_mask}
 list(
-  tar_target(rast_clim_mask_trim_file, rast_clim_mask_trim_file_make_write_f(v_ISO, rast_clim_mask, ISO)),
+  tar_target(rast_clim_mask_trim_file, rast_clim_mask_trim_file_make_write_f(vect_ISO, rast_clim_mask, ISO)),
   tar_target(rast_clim_mask_trim, rast_clim_mask_trim_get_f(ISO, rast_clim_mask_trim_file))  
 )
 
@@ -583,30 +583,30 @@ list(
 ```{targets climate_base_data_plot_1}
 list(
   tar_target(rast_rainfallc_plot, rast_rainfallc_plot_f(rast_rainfallc,
-           v_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_ISO1,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop)),
   tar_target(rast_rainfallf_plot, rast_rainfallf_plot_f(rast_rainfallf,
-           v_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_ISO1,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop)),
   tar_target(rast_tempc_plot, rast_tempc_plot_f(rast_tempc,
-           v_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_ISO1,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop)),
   tar_target(rast_tempf_plot, rast_tempf_plot_f(rast_tempf,
-           v_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_ISO1,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop))
@@ -616,30 +616,30 @@ list(
 ```{targets climate_base_data_plot_2}
 list(
   tar_target(rast_onsetc_plot, rast_onsetc_plot_f(rast_onsetc,
-           v_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_ISO1,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop)),
   tar_target(rast_onsetf_plot, rast_onsetf_plot_f(rast_onsetf,
-           v_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_ISO1,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop)),
   tar_target(rast_durationc_plot, rast_durationc_plot_f(rast_durationc,
-           v_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_ISO1,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop)),
   tar_target(rast_durationf_plot, rast_durationf_plot_f(rast_durationf,
-           v_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_ISO1,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop))
@@ -650,30 +650,30 @@ list(
 ```{targets climate_base_data_plot_3}
 list(
   tar_target(rast_rainfall_change_plot, rast_rainfall_change_plot_f(rast_rainfall_change,
-           v_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_ISO1,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop)),
   tar_target(rast_temp_change_plot, rast_temp_change_plot_f(rast_temp_change,
-           v_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_ISO1,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop)),
     tar_target(rast_onset_change_plot, rast_onset_change_plot_f(rast_onset_change,
-           v_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_ISO1,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop)),
   tar_target(rast_duration_change_plot, rast_duration_change_plot_f(rast_duration_change,
-           v_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_ISO1,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop))
@@ -757,9 +757,9 @@ list(
     rast_droughtc_plot,
     rast_droughtc_plot_f(
       rast_droughtc,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -770,9 +770,9 @@ list(
     rast_droughtf_plot,
     rast_droughtf_plot_f(
       rast_droughtf,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -783,9 +783,9 @@ list(
     rast_drought_change_plot,
     rast_drought_change_plot_f(
       rast_drought_change,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -796,9 +796,9 @@ list(
     rast_heatc_plot,
     rast_heatc_plot_f(
       rast_heatc,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -809,9 +809,9 @@ list(
     rast_heatf_plot,
     rast_heatf_plot_f(
       rast_heatf,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -822,9 +822,9 @@ list(
     rast_heat_change_plot,
     rast_heat_change_plot_f(
       rast_heat_change,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -836,9 +836,9 @@ list(
     rast_floodc_plot,
     rast_floodc_plot_f(
       rast_floodc,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -849,9 +849,9 @@ list(
     rast_floodf_plot,
     rast_floodf_plot_f(
       rast_floodf,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -862,9 +862,9 @@ list(
     rast_flood_change_plot,
     rast_flood_change_plot_f(
       rast_flood_change,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -884,15 +884,15 @@ list(
 list(
   tar_target(
     dB_rainfallc_summary,
-    dB_rainfallc_summary_make_f(rast_rainfallc, v_crop_ISO_lc_rcl_agg)
+    dB_rainfallc_summary_make_f(rast_rainfallc, vect_crop_ISO_lc_rcl_agg)
   ),
   tar_target(
     dB_rainfallf_summary,
-    dB_rainfallf_summary_make_f(rast_rainfallf, v_crop_ISO_lc_rcl_agg)
+    dB_rainfallf_summary_make_f(rast_rainfallf, vect_crop_ISO_lc_rcl_agg)
   ),
   tar_target(
     dB_rainfall_change_summary,
-    dB_rainfall_change_summary_make_f(rast_rainfall_change, v_crop_ISO_lc_rcl_agg)
+    dB_rainfall_change_summary_make_f(rast_rainfall_change, vect_crop_ISO_lc_rcl_agg)
   )
 )
 
@@ -936,15 +936,15 @@ list(
 list(
   tar_target(
     dB_tempc_summary,
-    dB_tempc_summary_make_f(rast_tempc, v_crop_ISO_lc_rcl_agg)
+    dB_tempc_summary_make_f(rast_tempc, vect_crop_ISO_lc_rcl_agg)
   ),
   tar_target(
     dB_tempf_summary,
-    dB_tempf_summary_make_f(rast_tempf, v_crop_ISO_lc_rcl_agg)
+    dB_tempf_summary_make_f(rast_tempf, vect_crop_ISO_lc_rcl_agg)
   ),
   tar_target(
     dB_temp_change_summary,
-    dB_temp_change_summary_make_f(rast_temp_change, v_crop_ISO_lc_rcl_agg)
+    dB_temp_change_summary_make_f(rast_temp_change, vect_crop_ISO_lc_rcl_agg)
   )
 )
 
@@ -989,15 +989,15 @@ list(
 list(
   tar_target(
     dB_onsetc_summary,
-    dB_onsetc_summary_make_f(rast_onsetc, v_crop_ISO_lc_rcl_agg)
+    dB_onsetc_summary_make_f(rast_onsetc, vect_crop_ISO_lc_rcl_agg)
   ),
   tar_target(
     dB_onsetf_summary,
-    dB_onsetf_summary_make_f(rast_onsetf, v_crop_ISO_lc_rcl_agg)
+    dB_onsetf_summary_make_f(rast_onsetf, vect_crop_ISO_lc_rcl_agg)
   ),
   tar_target(
     dB_onset_change_summary,
-    dB_onset_change_summary_make_f(rast_onset_change, v_crop_ISO_lc_rcl_agg)
+    dB_onset_change_summary_make_f(rast_onset_change, vect_crop_ISO_lc_rcl_agg)
   )
 )
 
@@ -1042,15 +1042,15 @@ list(
 list(
   tar_target(
     dB_durationc_summary,
-    dB_durationc_summary_make_f(rast_durationc, v_crop_ISO_lc_rcl_agg)
+    dB_durationc_summary_make_f(rast_durationc, vect_crop_ISO_lc_rcl_agg)
   ),
   tar_target(
     dB_durationf_summary,
-    dB_durationf_summary_make_f(rast_durationf, v_crop_ISO_lc_rcl_agg)
+    dB_durationf_summary_make_f(rast_durationf, vect_crop_ISO_lc_rcl_agg)
   ),
   tar_target(
     dB_duration_change_summary,
-    dB_duration_change_summary_make_f(rast_duration_change, v_crop_ISO_lc_rcl_agg)
+    dB_duration_change_summary_make_f(rast_duration_change, vect_crop_ISO_lc_rcl_agg)
   )
 )
 
@@ -1095,15 +1095,15 @@ list(
 list(
   tar_target(
     dB_droughtc_summary,
-    dB_droughtc_summary_make_f(rast_droughtc, v_crop_ISO_lc_rcl_agg)
+    dB_droughtc_summary_make_f(rast_droughtc, vect_crop_ISO_lc_rcl_agg)
   ),
   tar_target(
     dB_droughtf_summary,
-    dB_droughtf_summary_make_f(rast_droughtf, v_crop_ISO_lc_rcl_agg)
+    dB_droughtf_summary_make_f(rast_droughtf, vect_crop_ISO_lc_rcl_agg)
   ),
   tar_target(
     dB_drought_change_summary,
-    dB_drought_change_summary_make_f(rast_drought_change, v_crop_ISO_lc_rcl_agg)
+    dB_drought_change_summary_make_f(rast_drought_change, vect_crop_ISO_lc_rcl_agg)
   )
 )
 
@@ -1157,15 +1157,15 @@ list(
 list(
   tar_target(
     dB_heatc_summary,
-    dB_heatc_summary_make_f(rast_heatc, v_crop_ISO_lc_rcl_agg)
+    dB_heatc_summary_make_f(rast_heatc, vect_crop_ISO_lc_rcl_agg)
   ),
   tar_target(
     dB_heatf_summary,
-    dB_heatf_summary_make_f(rast_heatf, v_crop_ISO_lc_rcl_agg)
+    dB_heatf_summary_make_f(rast_heatf, vect_crop_ISO_lc_rcl_agg)
   ),
   tar_target(
     dB_heat_change_summary,
-    dB_heat_change_summary_make_f(rast_heat_change, v_crop_ISO_lc_rcl_agg)
+    dB_heat_change_summary_make_f(rast_heat_change, vect_crop_ISO_lc_rcl_agg)
   )
 )
 
@@ -1219,15 +1219,15 @@ list(
 list(
   tar_target(
     dB_floodc_summary,
-    dB_floodc_summary_make_f(rast_floodc, v_crop_ISO_lc_rcl_agg)
+    dB_floodc_summary_make_f(rast_floodc, vect_crop_ISO_lc_rcl_agg)
   ),
   tar_target(
     dB_floodf_summary,
-    dB_floodf_summary_make_f(rast_floodf, v_crop_ISO_lc_rcl_agg)
+    dB_floodf_summary_make_f(rast_floodf, vect_crop_ISO_lc_rcl_agg)
   ),
   tar_target(
     dB_flood_change_summary,
-    dB_flood_change_summary_make_f(rast_flood_change, v_crop_ISO_lc_rcl_agg)
+    dB_flood_change_summary_make_f(rast_flood_change, vect_crop_ISO_lc_rcl_agg)
   )
 )
 
@@ -1830,14 +1830,14 @@ list(
 ```{targets impact_data_spatialisation_1}
 
 list(
-  tar_target(v_impact, v_impact_make_f(dB_impact_full)),
+  tar_target(vect_impact, vect_impact_make_f(dB_impact_full)),
   tar_target(
-    rB_impact_prelim,
-    rB_impact_prelim_make_f(v_impact, rast_droughtc)
+    rast_impact_prelim,
+    rast_impact_prelim_make_f(vect_impact, rast_droughtc)
   ),
   tar_target(
-    rB_impact,
-    rB_impact_make_f(v_impact, rast_droughtc, rB_impact_prelim)
+    rast_impact,
+    rast_impact_make_f(vect_impact, rast_droughtc, rast_impact_prelim)
   )
 )
 
@@ -1845,13 +1845,21 @@ list(
  
 ```{targets impact_data_spatialisation_2}
 
-list(tar_target(rB_impact_file,
-                rB_impact_file_make_f(rB_impact, ISO, crop)))
+list(tar_target(rast_impact_file,
+                rast_impact_file_make_f(rast_impact, ISO, crop)))
 
 ```
 
 ### Reload Spatial Impact Data
 
+```{targets impact_cat_table_1}
+
+list(
+    tar_target(impact_cat_table, impact_cat_table_make_f())
+)
+
+```  
+  
 #### Past Lower threshold
 
 ```{targets impact_data_reload_1}
@@ -1859,19 +1867,19 @@ list(tar_target(rB_impact_file,
 list(
     tar_target(
     rast_droughtc_l_heatc_l_max,
-    rast_droughtc_l_heatc_l_max_get_f(rB_impact_file, ISO, crop)
+    rast_droughtc_l_heatc_l_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   ),
     tar_target(
     rast_droughtc_l_floodc_l_max,
-    rast_droughtc_l_floodc_l_max_get_f(rB_impact_file, ISO, crop)
+    rast_droughtc_l_floodc_l_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   ),
   tar_target(
     rast_heatc_l_floodc_l_max,
-    rast_heatc_l_floodc_l_max_get_f(rB_impact_file, ISO, crop)
+    rast_heatc_l_floodc_l_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   ),
   tar_target(
     rast_droughtc_l_heatc_l_floodc_l_max,
-    rast_droughtc_l_heatc_l_floodc_l_max_get_f(rB_impact_file, ISO, crop)
+    rast_droughtc_l_heatc_l_floodc_l_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   )  
 )
 
@@ -1884,19 +1892,19 @@ list(
 list(
     tar_target(
     rast_droughtc_u_heatc_u_max,
-    rast_droughtc_u_heatc_u_max_get_f(rB_impact_file, ISO, crop)
+    rast_droughtc_u_heatc_u_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   ),
     tar_target(
     rast_droughtc_u_floodc_u_max,
-    rast_droughtc_u_floodc_u_max_get_f(rB_impact_file, ISO, crop)
+    rast_droughtc_u_floodc_u_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   ),
   tar_target(
     rast_heatc_u_floodc_u_max,
-    rast_heatc_u_floodc_u_max_get_f(rB_impact_file, ISO, crop)
+    rast_heatc_u_floodc_u_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   ),
   tar_target(
     rast_droughtc_u_heatc_u_floodc_u_max,
-    rast_droughtc_u_heatc_u_floodc_u_max_get_f(rB_impact_file, ISO, crop)
+    rast_droughtc_u_heatc_u_floodc_u_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   )  
 )
 
@@ -1908,51 +1916,51 @@ list(
 list(
   tar_target(
     rast_droughtc_l_heatc_u_max,
-    rast_droughtc_l_heatc_u_max_get_f(rB_impact_file, ISO, crop)
+    rast_droughtc_l_heatc_u_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   ),
   tar_target(
     rast_droughtc_u_heatc_l_max,
-    rast_droughtc_u_heatc_l_max_get_f(rB_impact_file, ISO, crop)
+    rast_droughtc_u_heatc_l_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   ),
   tar_target(
     rast_droughtc_l_floodc_u_max,
-    rast_droughtc_l_floodc_u_max_get_f(rB_impact_file, ISO, crop)
+    rast_droughtc_l_floodc_u_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   ),
   tar_target(
     rast_droughtc_u_floodc_l_max,
-    rast_droughtc_u_floodc_l_max_get_f(rB_impact_file, ISO, crop)
+    rast_droughtc_u_floodc_l_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   ),
   tar_target(
     rast_heatc_l_floodc_u_max,
-    rast_heatc_l_floodc_u_max_get_f(rB_impact_file, ISO, crop)
+    rast_heatc_l_floodc_u_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   ),
   tar_target(
     rast_heatc_u_floodc_l_max,
-    rast_heatc_u_floodc_l_max_get_f(rB_impact_file, ISO, crop)
+    rast_heatc_u_floodc_l_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   ),
   tar_target(
     rast_droughtc_l_heatc_l_floodc_u_max,
-    rast_droughtc_l_heatc_l_floodc_u_max_get_f(rB_impact_file, ISO, crop)
+    rast_droughtc_l_heatc_l_floodc_u_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   ),
   tar_target(
     rast_droughtc_l_heatc_u_floodc_l_max,
-    rast_droughtc_l_heatc_u_floodc_l_max_get_f(rB_impact_file, ISO, crop)
+    rast_droughtc_l_heatc_u_floodc_l_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   ),
   tar_target(
     rast_droughtc_u_heatc_l_floodc_l_max,
-    rast_droughtc_u_heatc_l_floodc_l_max_get_f(rB_impact_file, ISO, crop)
+    rast_droughtc_u_heatc_l_floodc_l_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   ),
   tar_target(
     rast_droughtc_l_heatc_u_floodc_u_max,
-    rast_droughtc_l_heatc_u_floodc_u_max_get_f(rB_impact_file, ISO, crop)
+    rast_droughtc_l_heatc_u_floodc_u_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   ),
   tar_target(
     rast_droughtc_u_heatc_l_floodc_u_max,
-    rast_droughtc_u_heatc_l_floodc_u_max_get_f(rB_impact_file, ISO, crop)
+    rast_droughtc_u_heatc_l_floodc_u_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   ),
   tar_target(
     rast_droughtc_u_heatc_u_floodc_l_max,
-    rast_droughtc_u_heatc_u_floodc_l_max_get_f(rB_impact_file, ISO, crop)
+    rast_droughtc_u_heatc_u_floodc_l_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   )
 )
 ```
@@ -1964,19 +1972,19 @@ list(
 list(
     tar_target(
     rast_droughtf_l_heatf_l_max,
-    rast_droughtf_l_heatf_l_max_get_f(rB_impact_file, ISO, crop)
+    rast_droughtf_l_heatf_l_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   ),
     tar_target(
     rast_droughtf_l_floodf_l_max,
-    rast_droughtf_l_floodf_l_max_get_f(rB_impact_file, ISO, crop)
+    rast_droughtf_l_floodf_l_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   ),
   tar_target(
     rast_heatf_l_floodf_l_max,
-    rast_heatf_l_floodf_l_max_get_f(rB_impact_file, ISO, crop)
+    rast_heatf_l_floodf_l_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   ),
   tar_target(
     rast_droughtf_l_heatf_l_floodf_l_max,
-    rast_droughtf_l_heatf_l_floodf_l_max_get_f(rB_impact_file, ISO, crop)
+    rast_droughtf_l_heatf_l_floodf_l_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   )  
 )
 
@@ -1989,19 +1997,19 @@ list(
 list(
     tar_target(
     rast_droughtf_u_heatf_u_max,
-    rast_droughtf_u_heatf_u_max_get_f(rB_impact_file, ISO, crop)
+    rast_droughtf_u_heatf_u_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   ),
     tar_target(
     rast_droughtf_u_floodf_u_max,
-    rast_droughtf_u_floodf_u_max_get_f(rB_impact_file, ISO, crop)
+    rast_droughtf_u_floodf_u_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   ),
   tar_target(
     rast_heatf_u_floodf_u_max,
-    rast_heatf_u_floodf_u_max_get_f(rB_impact_file, ISO, crop)
+    rast_heatf_u_floodf_u_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   ),
   tar_target(
     rast_droughtf_u_heatf_u_floodf_u_max,
-    rast_droughtf_u_heatf_u_floodf_u_max_get_f(rB_impact_file, ISO, crop)
+    rast_droughtf_u_heatf_u_floodf_u_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   )  
 )
 
@@ -2013,56 +2021,58 @@ list(
 list(
   tar_target(
     rast_droughtf_l_heatf_u_max,
-    rast_droughtf_l_heatf_u_max_get_f(rB_impact_file, ISO, crop)
+    rast_droughtf_l_heatf_u_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   ),
   tar_target(
     rast_droughtf_u_heatf_l_max,
-    rast_droughtf_u_heatf_l_max_get_f(rB_impact_file, ISO, crop)
+    rast_droughtf_u_heatf_l_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   ),
   tar_target(
     rast_droughtf_l_floodf_u_max,
-    rast_droughtf_l_floodf_u_max_get_f(rB_impact_file, ISO, crop)
+    rast_droughtf_l_floodf_u_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   ),
   tar_target(
     rast_droughtf_u_floodf_l_max,
-    rast_droughtf_u_floodf_l_max_get_f(rB_impact_file, ISO, crop)
+    rast_droughtf_u_floodf_l_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   ),
   tar_target(
     rast_heatf_l_floodf_u_max,
-    rast_heatf_l_floodf_u_max_get_f(rB_impact_file, ISO, crop)
+    rast_heatf_l_floodf_u_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   ),
   tar_target(
     rast_heatf_u_floodf_l_max,
-    rast_heatf_u_floodf_l_max_get_f(rB_impact_file, ISO, crop)
+    rast_heatf_u_floodf_l_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   ),
   tar_target(
     rast_droughtf_l_heatf_l_floodf_u_max,
-    rast_droughtf_l_heatf_l_floodf_u_max_get_f(rB_impact_file, ISO, crop)
+    rast_droughtf_l_heatf_l_floodf_u_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   ),
   tar_target(
     rast_droughtf_l_heatf_u_floodf_l_max,
-    rast_droughtf_l_heatf_u_floodf_l_max_get_f(rB_impact_file, ISO, crop)
+    rast_droughtf_l_heatf_u_floodf_l_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   ),
   tar_target(
     rast_droughtf_u_heatf_l_floodf_l_max,
-    rast_droughtf_u_heatf_l_floodf_l_max_get_f(rB_impact_file, ISO, crop)
+    rast_droughtf_u_heatf_l_floodf_l_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   ),
   tar_target(
     rast_droughtf_l_heatf_u_floodf_u_max,
-    rast_droughtf_l_heatf_u_floodf_u_max_get_f(rB_impact_file, ISO, crop)
+    rast_droughtf_l_heatf_u_floodf_u_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   ),
   tar_target(
     rast_droughtf_u_heatf_l_floodf_u_max,
-    rast_droughtf_u_heatf_l_floodf_u_max_get_f(rB_impact_file, ISO, crop)
+    rast_droughtf_u_heatf_l_floodf_u_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   ),
   tar_target(
     rast_droughtf_u_heatf_u_floodf_l_max,
-    rast_droughtf_u_heatf_u_floodf_l_max_get_f(rB_impact_file, ISO, crop)
+    rast_droughtf_u_heatf_u_floodf_l_max_get_f(rast_impact_file, ISO, crop, impact_cat_table)
   )
 )
 ```
 
 ### Plot Spatial Impact Data
+
+
 
 #### Past Lower threshold
 
@@ -2073,9 +2083,9 @@ list(
     rast_droughtc_l_heatc_l_max_plot,
     rast_droughtc_l_heatc_l_max_plot_f(
       rast_droughtc_l_heatc_l_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2086,9 +2096,9 @@ list(
     rast_droughtc_l_floodc_l_max_plot,
     rast_droughtc_l_floodc_l_max_plot_f(
       rast_droughtc_l_floodc_l_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2099,9 +2109,9 @@ list(
     rast_heatc_l_floodc_l_max_plot,
     rast_heatc_l_floodc_l_max_plot_f(
       rast_heatc_l_floodc_l_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2112,9 +2122,9 @@ list(
     rast_droughtc_l_heatc_l_floodc_l_max_plot,
     rast_droughtc_l_heatc_l_floodc_l_max_plot_f(
       rast_droughtc_l_heatc_l_floodc_l_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2134,9 +2144,9 @@ list(
     rast_droughtc_u_heatc_u_max_plot,
     rast_droughtc_u_heatc_u_max_plot_f(
       rast_droughtc_u_heatc_u_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2147,9 +2157,9 @@ list(
     rast_droughtc_u_floodc_u_max_plot,
     rast_droughtc_u_floodc_u_max_plot_f(
       rast_droughtc_u_floodc_u_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2160,9 +2170,9 @@ list(
     rast_heatc_u_floodc_u_max_plot,
     rast_heatc_u_floodc_u_max_plot_f(
        rast_heatc_u_floodc_u_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2173,9 +2183,9 @@ list(
     rast_droughtc_u_heatc_u_floodc_u_max_plot,
     rast_droughtc_u_heatc_u_floodc_u_max_plot_f(
       rast_droughtc_u_heatc_u_floodc_u_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2194,9 +2204,9 @@ list(
     rast_droughtc_l_heatc_u_max_plot,
     rast_droughtc_l_heatc_u_max_plot_f(
       rast_droughtc_l_heatc_u_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2207,9 +2217,9 @@ list(
     rast_droughtc_u_heatc_l_max_plot,
     rast_droughtc_u_heatc_l_max_plot_f(
        rast_droughtc_u_heatc_l_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2220,9 +2230,9 @@ list(
     rast_droughtc_l_floodc_u_max_plot,
     rast_droughtc_l_floodc_u_max_plot_f(
       rast_droughtc_l_floodc_u_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2233,9 +2243,9 @@ list(
     rast_droughtc_u_floodc_l_max_plot,
     rast_droughtc_u_floodc_l_max_plot_f(
       rast_droughtc_u_floodc_l_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2246,9 +2256,9 @@ list(
     rast_heatc_l_floodc_u_max_plot,
     rast_heatc_l_floodc_u_max_plot_f(
       rast_heatc_l_floodc_u_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2259,9 +2269,9 @@ list(
     rast_heatc_u_floodc_l_max_plot,
     rast_heatc_u_floodc_l_max_plot_f(
       rast_heatc_u_floodc_l_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2272,9 +2282,9 @@ list(
     rast_droughtc_l_heatc_l_floodc_u_max_plot,
     rast_droughtc_l_heatc_l_floodc_u_max_plot_f(
       rast_droughtc_l_heatc_l_floodc_u_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2285,9 +2295,9 @@ list(
     rast_droughtc_l_heatc_u_floodc_l_max_plot,
     rast_droughtc_l_heatc_u_floodc_l_max_plot_f(
       rast_droughtc_l_heatc_u_floodc_l_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2298,9 +2308,9 @@ list(
     rast_droughtc_u_heatc_l_floodc_l_max_plot,
     rast_droughtc_u_heatc_l_floodc_l_max_plot_f(
       rast_droughtc_u_heatc_l_floodc_l_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2311,9 +2321,9 @@ list(
     rast_droughtc_l_heatc_u_floodc_u_max_plot,
     rast_droughtc_l_heatc_u_floodc_u_max_plot_f(
       rast_droughtc_l_heatc_u_floodc_u_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2324,9 +2334,9 @@ list(
     rast_droughtc_u_heatc_l_floodc_u_max_plot,
     rast_droughtc_u_heatc_l_floodc_u_max_plot_f(
       rast_droughtc_u_heatc_l_floodc_u_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2337,9 +2347,9 @@ list(
     rast_droughtc_u_heatc_u_floodc_l_max_plot,
     rast_droughtc_u_heatc_u_floodc_l_max_plot_f(
       rast_droughtc_u_heatc_u_floodc_l_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2358,9 +2368,9 @@ list(
     rast_droughtf_l_heatf_l_max_plot,
     rast_droughtf_l_heatf_l_max_plot_f(
       rast_droughtf_l_heatf_l_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2371,9 +2381,9 @@ list(
     rast_droughtf_l_floodf_l_max_plot,
     rast_droughtf_l_floodf_l_max_plot_f(
       rast_droughtf_l_floodf_l_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2384,9 +2394,9 @@ list(
     rast_heatf_l_floodf_l_max_plot,
     rast_heatf_l_floodf_l_max_plot_f(
       rast_heatf_l_floodf_l_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2397,9 +2407,9 @@ list(
     rast_droughtf_l_heatf_l_floodf_l_max_plot,
     rast_droughtf_l_heatf_l_floodf_l_max_plot_f(
       rast_droughtf_l_heatf_l_floodf_l_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2419,9 +2429,9 @@ list(
     rast_droughtf_u_heatf_u_max_plot,
     rast_droughtf_u_heatf_u_max_plot_f(
       rast_droughtf_u_heatf_u_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2432,9 +2442,9 @@ list(
     rast_droughtf_u_floodf_u_max_plot,
     rast_droughtf_u_floodf_u_max_plot_f(
       rast_droughtf_u_floodf_u_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2445,9 +2455,9 @@ list(
     rast_heatf_u_floodf_u_max_plot,
     rast_heatf_u_floodf_u_max_plot_f(
       rast_heatf_u_floodf_u_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2458,9 +2468,9 @@ list(
     rast_droughtf_u_heatf_u_floodf_u_max_plot,
     rast_droughtf_u_heatf_u_floodf_u_max_plot_f(
       rast_droughtf_u_heatf_u_floodf_u_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2479,9 +2489,9 @@ list(
     rast_droughtf_l_heatf_u_max_plot,
     rast_droughtf_l_heatf_u_max_plot_f(
       rast_droughtf_l_heatf_u_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2492,9 +2502,9 @@ list(
     rast_droughtf_u_heatf_l_max_plot,
     rast_droughtf_u_heatf_l_max_plot_f(
       rast_droughtf_u_heatf_l_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2505,9 +2515,9 @@ list(
     rast_droughtf_l_floodf_u_max_plot,
     rast_droughtf_l_floodf_u_max_plot_f(
       rast_droughtf_l_floodf_u_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2518,9 +2528,9 @@ list(
     rast_droughtf_u_floodf_l_max_plot,
     rast_droughtf_u_floodf_l_max_plot_f(
       rast_droughtf_u_floodf_l_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2531,9 +2541,9 @@ list(
     rast_heatf_l_floodf_u_max_plot,
     rast_heatf_l_floodf_u_max_plot_f(
       rast_heatf_l_floodf_u_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2544,9 +2554,9 @@ list(
     rast_heatf_u_floodf_l_max_plot,
     rast_heatf_u_floodf_l_max_plot_f(
       rast_heatf_u_floodf_l_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2557,9 +2567,9 @@ list(
     rast_droughtf_l_heatf_l_floodf_u_max_plot,
     rast_droughtf_l_heatf_l_floodf_u_max_plot_f(
       rast_droughtf_l_heatf_l_floodf_u_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2570,9 +2580,9 @@ list(
     rast_droughtf_l_heatf_u_floodf_l_max_plot,
     rast_droughtf_l_heatf_u_floodf_l_max_plot_f(
       rast_droughtf_l_heatf_u_floodf_l_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2583,9 +2593,9 @@ list(
     rast_droughtf_u_heatf_l_floodf_l_max_plot,
     rast_droughtf_u_heatf_l_floodf_l_max_plot_f(
       rast_droughtf_u_heatf_l_floodf_l_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2596,9 +2606,9 @@ list(
     rast_droughtf_l_heatf_u_floodf_u_max_plot,
     rast_droughtf_l_heatf_u_floodf_u_max_plot_f(
       rast_droughtf_l_heatf_u_floodf_u_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2609,9 +2619,9 @@ list(
     rast_droughtf_u_heatf_l_floodf_u_max_plot,
     rast_droughtf_u_heatf_l_floodf_u_max_plot_f(
       rast_droughtf_u_heatf_l_floodf_u_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2622,9 +2632,9 @@ list(
     rast_droughtf_u_heatf_u_floodf_l_max_plot,
     rast_droughtf_u_heatf_u_floodf_l_max_plot_f(
       rast_droughtf_u_heatf_u_floodf_l_max,
-      v_ISO1,
-      v_crop_ISO_lc_rcl_agg,
-      v_ISO_extent,
+      vect_ISO1,
+      vect_crop_ISO_lc_rcl_agg,
+      vect_ISO,
       world,
       ISO,
       crop,
@@ -2644,27 +2654,27 @@ list(
 list(
   tar_target(
     dB_droughtc_l_summary,
-    dB_droughtc_l_summary_make_f(rB_impact, v_crop_ISO_lc_rcl_agg)
+    dB_droughtc_l_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
   ),
   tar_target(
     dB_droughtf_l_summary,
-    dB_droughtf_l_summary_make_f(rB_impact, v_crop_ISO_lc_rcl_agg)
+    dB_droughtf_l_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
   ),
   tar_target(
     dB_drought_change_l_summary,
-    dB_drought_change_l_summary_make_f(rB_impact, v_crop_ISO_lc_rcl_agg)
+    dB_drought_change_l_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
   ),
     tar_target(
     dB_droughtc_u_summary,
-    dB_droughtc_u_summary_make_f(rB_impact, v_crop_ISO_lc_rcl_agg)
+    dB_droughtc_u_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
   ),
   tar_target(
     dB_droughtf_u_summary,
-    dB_droughtf_u_summary_make_f(rB_impact, v_crop_ISO_lc_rcl_agg)
+    dB_droughtf_u_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
   ),
   tar_target(
     dB_drought_change_u_summary,
-    dB_drought_change_u_summary_make_f(rB_impact, v_crop_ISO_lc_rcl_agg)
+    dB_drought_change_u_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
   )
   
 )
@@ -2711,31 +2721,31 @@ list(
 list(
   tar_target(
     dB_heatc_l_summary_values,
-    dB_heatc_l_summary_values_make_f(rB_impact, v_crop_ISO_lc_rcl_agg)
+    dB_heatc_l_summary_values_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
   ),  
   tar_target(
     dB_heatc_l_summary,
-    dB_heatc_l_summary_make_f(rB_impact, v_crop_ISO_lc_rcl_agg)
+    dB_heatc_l_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
   ),
   tar_target(
     dB_heatf_l_summary,
-    dB_heatf_l_summary_make_f(rB_impact, v_crop_ISO_lc_rcl_agg)
+    dB_heatf_l_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
   ),
   tar_target(
     dB_heat_change_l_summary,
-    dB_heat_change_l_summary_make_f(rB_impact, v_crop_ISO_lc_rcl_agg)
+    dB_heat_change_l_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
   ),
     tar_target(
     dB_heatc_u_summary,
-    dB_heatc_u_summary_make_f(rB_impact, v_crop_ISO_lc_rcl_agg)
+    dB_heatc_u_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
   ),
   tar_target(
     dB_heatf_u_summary,
-    dB_heatf_u_summary_make_f(rB_impact, v_crop_ISO_lc_rcl_agg)
+    dB_heatf_u_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
   ),
   tar_target(
     dB_heat_change_u_summary,
-    dB_heat_change_u_summary_make_f(rB_impact, v_crop_ISO_lc_rcl_agg)
+    dB_heat_change_u_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
   )
   
 )
@@ -2782,27 +2792,27 @@ list(
 list(
   tar_target(
     dB_floodc_l_summary,
-    dB_floodc_l_summary_make_f(rB_impact, v_crop_ISO_lc_rcl_agg)
+    dB_floodc_l_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
   ),
   tar_target(
     dB_floodf_l_summary,
-    dB_floodf_l_summary_make_f(rB_impact, v_crop_ISO_lc_rcl_agg)
+    dB_floodf_l_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
   ),
   tar_target(
     dB_flood_change_l_summary,
-    dB_flood_change_l_summary_make_f(rB_impact, v_crop_ISO_lc_rcl_agg)
+    dB_flood_change_l_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
   ),
     tar_target(
     dB_floodc_u_summary,
-    dB_floodc_u_summary_make_f(rB_impact, v_crop_ISO_lc_rcl_agg)
+    dB_floodc_u_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
   ),
   tar_target(
     dB_floodf_u_summary,
-    dB_floodf_u_summary_make_f(rB_impact, v_crop_ISO_lc_rcl_agg)
+    dB_floodf_u_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
   ),
   tar_target(
     dB_flood_change_u_summary,
-    dB_flood_change_u_summary_make_f(rB_impact, v_crop_ISO_lc_rcl_agg)
+    dB_flood_change_u_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
   )
   
 )
@@ -2851,11 +2861,11 @@ list(
 list(
   tar_target(
     dB_profile_summary,
-    dB_profile_summary_make_f(rB_impact, v_crop_ISO_lc_rcl_agg)
+    dB_profile_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
   ),
   tar_target(
     dB_profile_summary_file,
-    dB_profile_summary_file_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profile_summary_file_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   )
 )
 
@@ -2871,19 +2881,19 @@ list(
 list(
   tar_target(
     dB_profilec_d_l_h_l_plot,
-    dB_profilec_d_l_h_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_d_l_h_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
   tar_target(
     dB_profilec_d_l_f_l_plot,
-    dB_profilec_d_l_f_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_d_l_f_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
   tar_target(
     dB_profilec_h_l_f_l_plot,
-    dB_profilec_h_l_f_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_h_l_f_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
     tar_target(
     dB_profilec_d_l_h_l_f_l_plot,
-    dB_profilec_d_l_h_l_f_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_d_l_h_l_f_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   )
 )
 ```  
@@ -2895,19 +2905,19 @@ list(
 list(
     tar_target(
     dB_profilec_d_u_h_u_plot,
-    dB_profilec_d_u_h_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_d_u_h_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
   tar_target(
     dB_profilec_d_u_f_u_plot,
-    dB_profilec_d_u_f_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_d_u_f_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
   tar_target(
     dB_profilec_h_u_f_u_plot,
-    dB_profilec_h_u_f_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_h_u_f_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
     tar_target(
     dB_profilec_d_u_h_u_f_u_plot,
-    dB_profilec_d_u_h_u_f_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_d_u_h_u_f_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   )
 )
 
@@ -2920,51 +2930,51 @@ list(
 list(
     tar_target(
     dB_profilec_d_u_h_l_plot,
-    dB_profilec_d_u_h_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_d_u_h_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
   tar_target(
     dB_profilec_d_l_h_u_plot,
-    dB_profilec_d_l_h_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_d_l_h_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
   tar_target(
     dB_profilec_d_u_f_l_plot,
-    dB_profilec_d_u_f_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_d_u_f_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
   tar_target(
     dB_profilec_d_l_f_u_plot,
-    dB_profilec_d_l_f_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_d_l_f_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
   tar_target(
     dB_profilec_h_u_f_l_plot,
-    dB_profilec_h_u_f_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_h_u_f_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
   tar_target(
     dB_profilec_h_l_f_u_plot,
-    dB_profilec_h_l_f_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_h_l_f_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
     tar_target(
     dB_profilec_d_u_h_l_f_l_plot,
-    dB_profilec_d_u_h_l_f_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_d_u_h_l_f_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
   tar_target(
     dB_profilec_d_l_h_u_f_l_plot,
-    dB_profilec_d_l_h_u_f_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_d_l_h_u_f_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
   tar_target(
     dB_profilec_d_l_h_l_f_u_plot,
-    dB_profilec_d_l_h_l_f_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_d_l_h_l_f_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
   tar_target(
     dB_profilec_d_u_h_u_f_l_plot,
-    dB_profilec_d_u_h_u_f_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_d_u_h_u_f_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
   tar_target(
     dB_profilec_d_u_h_l_f_u_plot,
-    dB_profilec_d_u_h_l_f_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_d_u_h_l_f_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
   tar_target(
     dB_profilec_d_l_h_u_f_u_plot,
-    dB_profilec_d_l_h_u_f_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_d_l_h_u_f_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   )
 )
 
@@ -2977,19 +2987,19 @@ list(
 list(
   tar_target(
     dB_profilef_d_l_h_l_plot,
-    dB_profilef_d_l_h_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_d_l_h_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
   tar_target(
     dB_profilef_d_l_f_l_plot,
-    dB_profilef_d_l_f_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_d_l_f_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
   tar_target(
     dB_profilef_h_l_f_l_plot,
-    dB_profilef_h_l_f_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_h_l_f_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
     tar_target(
     dB_profilef_d_l_h_l_f_l_plot,
-    dB_profilef_d_l_h_l_f_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_d_l_h_l_f_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   )
 )
 ```  
@@ -3001,19 +3011,19 @@ list(
 list(
     tar_target(
     dB_profilef_d_u_h_u_plot,
-    dB_profilef_d_u_h_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_d_u_h_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
   tar_target(
     dB_profilef_d_u_f_u_plot,
-    dB_profilef_d_u_f_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_d_u_f_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
   tar_target(
     dB_profilef_h_u_f_u_plot,
-    dB_profilef_h_u_f_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_h_u_f_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
     tar_target(
     dB_profilef_d_u_h_u_f_u_plot,
-    dB_profilef_d_u_h_u_f_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_d_u_h_u_f_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   )
 )
 
@@ -3026,51 +3036,51 @@ list(
 list(
     tar_target(
     dB_profilef_d_u_h_l_plot,
-    dB_profilef_d_u_h_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_d_u_h_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
   tar_target(
     dB_profilef_d_l_h_u_plot,
-    dB_profilef_d_l_h_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_d_l_h_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
   tar_target(
     dB_profilef_d_u_f_l_plot,
-    dB_profilef_d_u_f_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_d_u_f_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
   tar_target(
     dB_profilef_d_l_f_u_plot,
-    dB_profilef_d_l_f_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_d_l_f_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
   tar_target(
     dB_profilef_h_u_f_l_plot,
-    dB_profilef_h_u_f_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_h_u_f_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
   tar_target(
     dB_profilef_h_l_f_u_plot,
-    dB_profilef_h_l_f_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_h_l_f_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
     tar_target(
     dB_profilef_d_u_h_l_f_l_plot,
-    dB_profilef_d_u_h_l_f_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_d_u_h_l_f_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
   tar_target(
     dB_profilef_d_l_h_u_f_l_plot,
-    dB_profilef_d_l_h_u_f_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_d_l_h_u_f_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
   tar_target(
     dB_profilef_d_l_h_l_f_u_plot,
-    dB_profilef_d_l_h_l_f_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_d_l_h_l_f_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
   tar_target(
     dB_profilef_d_u_h_u_f_l_plot,
-    dB_profilef_d_u_h_u_f_l_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_d_u_h_u_f_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
   tar_target(
     dB_profilef_d_u_h_l_f_u_plot,
-    dB_profilef_d_u_h_l_f_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_d_u_h_l_f_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   ),
   tar_target(
     dB_profilef_d_l_h_u_f_u_plot,
-    dB_profilef_d_l_h_u_f_u_plot_make_f(v_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_d_l_h_u_f_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
   )
 )
 
@@ -3130,7 +3140,7 @@ tar_read(flood_threshold_u_width)
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
-tar_read(v_ISO_plot)
+tar_read(vect_ISO_plot)
 
 ```
 
@@ -3138,7 +3148,7 @@ tar_read(v_ISO_plot)
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
-tar_read(v_crop_plot)
+tar_read(vect_crop_plot)
 
 ```
 
@@ -3184,7 +3194,7 @@ tar_read(rast_crop_ISO_lc_rcl_plot)
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
-tar_read(v_crop_ISO_lc_rcl_agg_plot)
+tar_read(vect_crop_ISO_lc_rcl_agg_plot)
 
 ```
 

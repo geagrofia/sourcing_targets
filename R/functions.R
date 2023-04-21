@@ -128,8 +128,8 @@ vect_crop_get_f <- function(cc_data, cc_row) {
 
 
 # results in vect_crop
-#vect_crop_f <- function(v_crop) {
-#  vect(v_crop) %>% wrap()
+#vect_crop_f <- function(vect_crop) {
+#  vect(vect_crop) %>% wrap()
 #}
 
 # results in vect_crop_plot
@@ -174,8 +174,8 @@ vect_ISO_get_f <- function(ISO) {
 }
 
 
-# results in v_ISO1
-#v_ISO1_get_f <- function(cc_data, cc_row, ISO) {
+# results in vect_ISO1
+#vect_ISO1_get_f <- function(cc_data, cc_row, ISO) {
 
 #  if (cc_data[cc_row, 23] == 1)  {
 #    getData('GADM', country = paste(ISO), level = 1) %>% st_as_sf() %>% mutate(New_ID = 1)
@@ -210,7 +210,7 @@ vect_ISO_extent_f <- function(vect_ISO) {
 vect_ISO_plot_f <- function(vect_ISO1, ISO) {
   ggplot() +
    # geom_sf(
-   #  data = v_ISO1,
+   #  data = unwrap(vect_ISO1),
    # fill = 'grey', # previously aes(fill = NAME_1),
    #   col = 'black',
    #  na.rm = TRUE,
@@ -332,8 +332,8 @@ rast_lc_plot_f <- function(rast_lc, world) {
 
 
 # # results in rast_ISO_file
-# rast_ISO_make_write_f  <- function(v_ISO, rast_lc, v_ISO_extent, ISO) {
-#  rasterize(vect(v_ISO), rast(rast_lc), field = "New_ID")  %>% crop(v_ISO_extent) %>% rast() %>%
+# rast_ISO_make_write_f  <- function(vect_ISO, rast_lc, vect_ISO_extent, ISO) {
+#  rasterize(vect(vect_ISO), rast(rast_lc), field = "New_ID")  %>% crop(vect_ISO_extent) %>% rast() %>%
 #  writeRaster(paste0("data/", ISO, "/rast_ISO.tif"), overwrite = TRUE)
 # }
 
@@ -357,7 +357,7 @@ rast_ISO_a_get_f <- function(ISO, rast_ISO_a_file) {
 }
 
 # results in rast_ISO_file
-rast_ISO_make_write_f  <- function(rast_ISO_a, vect_ISO_extent, ISO) {
+rast_ISO_make_write_f  <- function(rast_ISO_a, vect_ISO, ISO) {
   terra::crop(
     unwrap(rast_ISO_a),
     unwrap(vect_ISO),
@@ -395,7 +395,7 @@ rast_lc_ISO_get_f <- function(ISO, rast_lc_ISO_file) {
 }
 
 # results in rast_lc_ISO_plot
-rast_lc_ISO_plot_f <- function(rast_lc_ISO, world, vect_ISO_extent, ISO) {
+rast_lc_ISO_plot_f <- function(rast_lc_ISO, world, vect_ISO, ISO) {
   #gplot(unwrap(rast_lc_ISO), maxpixels = 500000) + #this uses gplot from the rastervis package
     ggplot() + #reverts to ggplot thanks to tidyterra
     geom_spatraster(data = unwrap(rast_lc_ISO), aes(), alpha = 1) +
@@ -410,8 +410,8 @@ rast_lc_ISO_plot_f <- function(rast_lc_ISO, world, vect_ISO_extent, ISO) {
     scale_fill_gradient(low = "white",
                         high = 'dark green',
                         na.value = NA) +
-    xlim((vect_ISO_extent[1] - 1), (vect_ISO_extent[2] + 1)) +
-    ylim((vect_ISO_extent[3] - 1), (vect_ISO_extent[4] + 1)) +
+    xlim((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2] + 1)) +
+    ylim((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4] + 1)) +
     labs(fill = paste0(
       "-------------------\nrast_lc_ISO\n",
       ISO ,
@@ -457,14 +457,14 @@ rast_crop_ISO_plot_f <- function(rast_crop_ISO, vect_ISO1, ISO, crop) {
     geom_spatraster(data = unwrap(rast_crop_ISO), aes(), alpha = 1) +
     #geom_tile(aes(fill = value), alpha = 1) +
     #geom_sf(
-    #  data = v_ISO1,
+    #  data = unwrap(vect_ISO1),
     #  fill = NA,
     #  col = 'black',
     #  na.rm = TRUE,
     #  inherit.aes = FALSE
     #)  +
     geom_spatvector(
-      data = vect_ISO1,
+      data = unwrap(vect_ISO1),
       fill = NA,
       col = 'black',
       na.rm = TRUE,
@@ -505,17 +505,19 @@ rast_crop_ISO_lc_get_f <- function(rast_crop_ISO_lc_file, ISO, crop) {
 
 # results in rast_crop_ISO_lc_plot
 rast_crop_ISO_lc_plot_f <- function(rast_crop_ISO_lc, vect_ISO1, ISO, crop) {
-  gplot(unwrap(rast_crop_ISO_lc), maxpixels = 50000) + #this uses gplot from the rastervis package
-    geom_tile(aes(fill = value), alpha = 1) +
+  # gplot(unwrap(rast_crop_ISO_lc), maxpixels = 50000) + #this uses gplot from the rastervis package
+  ggplot() + #reverts to ggplot thanks to tidyterra
+    geom_spatraster(data = unwrap(rast_crop_ISO_lc), aes(), alpha = 1) +
+    #geom_tile(aes(fill = value), alpha = 1) +
     #geom_sf(
-    #  data = v_ISO1,
+    #  data = unwrap(vect_ISO1),
     #  fill = NA,
     #  col = 'black',
     #  na.rm = TRUE,
     #  inherit.aes = FALSE
     #)  +
     geom_spatvector(
-      data = vect_ISO1,
+      data = unwrap(vect_ISO1),
       fill = NA,
       col = 'black',
       na.rm = TRUE,
@@ -592,17 +594,19 @@ rast_crop_ISO_lc_rcl_get_f <-
 # results in rast_crop_ISO_lc_rcl_plot
 rast_crop_ISO_lc_rcl_plot_f <-
   function(rast_crop_ISO_lc_rcl, vect_ISO1, ISO, crop) {
-    gplot(unwrap(rast_crop_ISO_lc_rcl), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = value), alpha = 1) +
+    #gplot(unwrap(rast_crop_ISO_lc_rcl), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #  geom_tile(aes(fill = value), alpha = 1) +
+      ggplot() + #reverts to ggplot thanks to tidyterra
+      geom_spatraster(data = unwrap(rast_crop_ISO_lc_rcl), aes(), alpha = 1) +
       #geom_sf(
-      #  data = v_ISO1,
+      #  data = unwrap(vect_ISO1),
       #  fill = NA,
       #  col = 'black',
       #  na.rm = TRUE,
       #  inherit.aes = FALSE
       #)  +
       geom_spatvector(
-        data = vect_ISO1,
+       data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
@@ -664,8 +668,8 @@ rast_crop_ISO_lc_rcl_agg_values_get_f <-
   }
 
 
-# # results in v_crop_ISO_lc_rcl_agg_file1
-# v_crop_ISO_lc_rcl_agg1_make_write_f <-
+# # results in vect_crop_ISO_lc_rcl_agg_file1
+# vect_crop_ISO_lc_rcl_agg1_make_write_f <-
 #   function(rast_crop_ISO_lc_rcl_agg,  ISO, crop) {
 #     rasterToPolygons(
 #       rast_crop_ISO_lc_rcl_agg,
@@ -676,7 +680,7 @@ rast_crop_ISO_lc_rcl_agg_values_get_f <-
 #       dissolve = TRUE
 #     ) %>%
 #      st_as_sf %>%
-#      write_sf(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp"), overwrite = TRUE)
+#      write_sf(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg1.shp"), overwrite = TRUE)
 #   }
 
 # results in vect_crop_ISO_lc_rcl_agg_file1
@@ -692,7 +696,7 @@ vect_crop_ISO_lc_rcl_agg1_make_write_f <-
       na.rm = TRUE,
       extent = FALSE
     ) %>% `names<-`(c("layer")) %>%
-      writeVector(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp"),
+      writeVector(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg1.shp"),
                  overwrite = TRUE)
   }
 
@@ -721,17 +725,17 @@ vect_crop_ISO_lc_rcl_agg_get_f <-
     
     
     if (length(rast_crop_ISO_lc_rcl_agg_values) == 3) {
-      # st_read(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp")) %>%
+      # st_read(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg1.shp")) %>%
       #  st_make_valid() %>%
       # mutate(LC = factor(layer,
       #                     labels = c(
       #                       "Not Cropland", "Cropland", paste0("'", crop, "'")
       #                     ))) %>%
       #  dplyr::filter(layer > 0) %>%
-      #  st_intersection(v_ISO1) %>%
+      #  st_intersection(vect_ISO1) %>%
       #  mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
       
-      vect(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp")) %>%
+      vect(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg1.shp")) %>%
         tidyterra::mutate(LC = factor(layer, abels = c(
                                  "Not Cropland", "Cropland", paste0("'", crop, "'")
                               ))) %>%
@@ -741,15 +745,15 @@ vect_crop_ISO_lc_rcl_agg_get_f <-
       
     } else if (identical(rast_crop_ISO_lc_rcl_agg_values,
                          rast_crop_ISO_lc_rcl_agg_values_vec0)) {
-    #  st_read(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp")) %>%
+    #  st_read(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg1.shp")) %>%
     #    st_make_valid() %>%
     #    mutate(LC = factor(layer,
     #                       labels = c("Not Cropland"))) %>%
     #    dplyr::filter(layer > 0) %>%
-    #    st_intersection(v_ISO1) %>%
+    #    st_intersection(vect_ISO1) %>%
     #    mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
       
-      vect(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp")) %>%
+      vect(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg1.shp")) %>%
         tidyterra::mutate(LC = factor(layer, labels = c("Not Cropland"))) %>%
         dplyr::filter(layer > 0) %>%
         terra::intersect(unwrap(vect_ISO1)) %>%
@@ -757,15 +761,15 @@ vect_crop_ISO_lc_rcl_agg_get_f <-
       
     } else if (identical(rast_crop_ISO_lc_rcl_agg_values,
                          rast_crop_ISO_lc_rcl_agg_values_vec1)) {
-    #  st_read(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp")) %>%
+    #  st_read(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg1.shp")) %>%
     #    st_make_valid() %>%
     #    mutate(LC = factor(layer,
     #                       labels = c("Cropland"))) %>%
     #    dplyr::filter(layer > 0) %>%
-    #    st_intersection(v_ISO1) %>%
+    #    st_intersection(vect_ISO1) %>%
     #    mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
       
-      vect(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp")) %>%
+      vect(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg1.shp")) %>%
         tidyterra::mutate(LC = factor(layer, labels = c("Cropland"))) %>%
         dplyr::filter(layer > 0) %>%
         terra::intersect(unwrap(vect_ISO1)) %>%
@@ -773,15 +777,15 @@ vect_crop_ISO_lc_rcl_agg_get_f <-
       
     } else if (identical(rast_crop_ISO_lc_rcl_agg_values,
                          rast_crop_ISO_lc_rcl_agg_values_vec2)) {
-    #  st_read(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp")) %>%
+    #  st_read(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg1.shp")) %>%
     #    st_make_valid() %>%
     #    mutate(LC = factor(layer,
     #                       labels = c(paste0("'", crop, "'")))) %>%
     #    dplyr::filter(layer > 0) %>%
-    #    st_intersection(v_ISO1) %>%
+    #    st_intersection(vect_ISO1) %>%
     #    mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
       
-      vect(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp")) %>%
+      vect(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg1.shp")) %>%
         tidyterra::mutate(LC = factor(layer, labels = c(paste0("'", crop, "'")))) %>%
         dplyr::filter(layer > 0) %>%
         terra::intersect(unwrap(vect_ISO1)) %>%
@@ -789,15 +793,15 @@ vect_crop_ISO_lc_rcl_agg_get_f <-
       
     } else if (identical(rast_crop_ISO_lc_rcl_agg_values,
                          rast_crop_ISO_lc_rcl_agg_values_vec01)) {
-    #  st_read(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp")) %>%
+    #  st_read(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg1.shp")) %>%
     #    st_make_valid() %>%
     #    mutate(LC = factor(layer,
     #                       labels = c("Not Cropland", "Cropland"))) %>%
     #    dplyr::filter(layer > 0) %>%
-    #    st_intersection(v_ISO1) %>%
+    #    st_intersection(vect_ISO1) %>%
     #    mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
       
-     vect(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp")) %>%
+     vect(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg1.shp")) %>%
      tidyterra::mutate(LC = factor(layer, labels = c("Not Cropland","Cropland"))) %>%
      dplyr::filter(layer > 0) %>%
      terra::intersect(unwrap(vect_ISO1)) %>%
@@ -808,30 +812,30 @@ vect_crop_ISO_lc_rcl_agg_get_f <-
       
     } else if (identical(rast_crop_ISO_lc_rcl_agg_values,
                          rast_crop_ISO_lc_rcl_agg_values_vec02)) {
-      #st_read(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp")) %>%
+      #st_read(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg1.shp")) %>%
       #  st_make_valid() %>%
       #  mutate(LC = factor(layer,
       #                     labels = c("Not Cropland", paste0("'", crop, "'")))) %>%
       #  dplyr::filter(layer > 0) %>%
-      #  st_intersection(v_ISO1) %>%
+      #  st_intersection(vect_ISO1) %>%
       #  mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
       
-      vect(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp")) %>%
+      vect(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg1.shp")) %>%
         tidyterra::mutate(LC = factor(layer, labels = c("Not Cropland", paste0("'", crop, "'")))) %>%
         dplyr::filter(layer > 0) %>%
         terra::intersect(unwrap(vect_ISO1)) %>%
         tidyterra::mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_')) %>% wrap()
       
     } else {
-     # st_read(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp")) %>%
+     # st_read(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg1.shp")) %>%
      #  st_make_valid() %>%
      #  mutate(LC = factor(layer,
      #                      labels = c("Cropland", paste0("'", crop, "'")))) %>%
      #  dplyr::filter(layer > 0) %>%
-     #  st_intersection(v_ISO1) %>%
+     #  st_intersection(vect_ISO1) %>%
      #  mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
       
-      vect(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg1.shp")) %>%
+      vect(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg1.shp")) %>%
         tidyterra::mutate(LC = factor(layer, labels = c("Cropland", paste0("'", crop, "'")))) %>%
         dplyr::filter(layer > 0) %>%
         terra::intersect(unwrap(vect_ISO1)) %>%
@@ -847,7 +851,7 @@ vect_crop_ISO_lc_rcl_agg2_make_write_f <-
   function(vect_crop_ISO_lc_rcl_agg,  ISO, crop) {
     unwrap(vect_crop_ISO_lc_rcl_agg) %>%
     #  st_as_sf %>%
-    #  write_sf(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg.shp"),
+    #  write_sf(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg.shp"),
     #           overwrite = TRUE)
     writeVector(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg.shp"),
                   overwrite = TRUE)
@@ -871,7 +875,7 @@ vect_crop_ISO_lc_rcl_agg_plot_f <-
       inherit.aes = FALSE
     ) +
 #      geom_sf(
-#        data = vect_ISO1,
+#        data = unwrap(vect_ISO1),
 #        fill = NA,
 #        col = 'black',
 #        na.rm = TRUE,
@@ -939,11 +943,11 @@ crs_lam_make_f <- function(wkt_lam) {
 # results in vect_crop_ISO_lc_rcl_agg_proj_file
 vect_crop_ISO_lc_rcl_agg_proj_file_make_write_f <-
   function(vect_crop_ISO_lc_rcl_agg, crs_lam, ISO, crop) {
-    #st_transform(v_crop_ISO_lc_rcl_agg, crs_lam) %>%
-    #  write_sf(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg_proj.shp"),
+    #st_transform(vect_crop_ISO_lc_rcl_agg, crs_lam) %>%
+    #  write_sf(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg_proj.shp"),
     #           overwrite = TRUE)
     terra::project(unwrap(vect_crop_ISO_lc_rcl_agg), crs_lam) %>% 
-      writeVector(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg_proj.shp"), overwrite = TRUE)
+      writeVector(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg_proj.shp"), overwrite = TRUE)
 }
 
 # results in vect_crop_ISO_lc_rcl_agg_proj
@@ -951,8 +955,8 @@ vect_crop_ISO_lc_rcl_agg_proj_get_f <-
   function(vect_crop_ISO_lc_rcl_agg_proj_file,
            ISO,
            crop) {
-    #st_read(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg_proj.shp"))
-    vect(paste0("data/", ISO, "/", crop, "/v_crop_ISO_lc_rcl_agg_proj.shp")) %>% wrap()
+    #st_read(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg_proj.shp"))
+    vect(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg_proj.shp")) %>% wrap()
   }
 
 # results in dB_crop_ISO_lc_rcl_agg_proj
@@ -980,7 +984,7 @@ dB_crop_ISO_lc_rcl_agg_proj_make_f <-
         )
       ) %>%
       #right_join(dplyr::select(vect_ISO1,!geometry)) %>%
-      right_join(unwrap(vect_ISO1)) %>%
+      right_join(as_tibble(unwrap(vect_ISO1))) %>%
       dplyr::select(
         !c(
           GID_0,
@@ -1035,13 +1039,13 @@ dB_crop_ISO_lc_rcl_agg_proj_plot_f <-
 
 # results in rast_clim_mask_trim_file
 rast_clim_mask_trim_file_make_write_f <-
-  function(v_ISO, rast_clim_mask, ISO) {
+  function(vect_ISO, rast_clim_mask, ISO) {
     #aggregate((rast_lc_ISO / rast_lc_ISO), (res(rast_clim_mask)/res(rast_lc_ISO)), fun=modal) %>%
     #resample(rast_clim_mask, method="ngb",
     #  filename = paste0("data/", ISO, "/rast_clim_mask_trim.tif"), overwrite = TRUE)
     #resample(rast_ISO, rast_clim_mask, method="ngb", filename = paste0("data/", ISO, "/rast_clim_mask_trim.tif"), overwrite = TRUE)
     terra::rasterize(
-      vect(v_ISO),
+      unwrap(vect_ISO),
       unwrap(rast_clim_mask),
       field = 1,
       background = NA,
@@ -1281,13 +1285,15 @@ rast_duration_change_get_f <-
 rast_rainfallc_plot_f <-
   function(rast_rainfallc,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop) {
-    gplot(unwrap(rast_rainfallc), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = value), alpha = 1) +
+   # gplot(unwrap(rast_rainfallc), maxpixels = 50000) + #this uses gplot from the rastervis package
+    ggplot() +
+     geom_spatraster(data = unwrap(rast_rainfallc), aes(), alpha = 1) +
+      #geom_tile(aes(fill = value), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -1295,22 +1301,43 @@ rast_rainfallc_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+     # geom_sf(
+    #    data = unwrap(vect_ISO1),
+    #    fill = NA,
+    #    col = 'black',
+    #    na.rm = TRUE,
+    #    inherit.aes = FALSE
+    #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -1319,8 +1346,8 @@ rast_rainfallc_plot_f <-
       scale_fill_gradient(low = "light blue",
                           high = "blue",
                           na.value = NA) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nPast\nRainfall\nrast_rainfallc\n",
@@ -1343,13 +1370,15 @@ rast_rainfallc_plot_f <-
 rast_rainfallf_plot_f <-
   function(rast_rainfallf,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop) {
-    gplot(unwrap(rast_rainfallf), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = value), alpha = 1) +
+    # gplot(unwrap(rast_rainfallf), maxpixels = 50000) + #this uses gplot from the rastervis package
+      # geom_tile(aes(fill = value), alpha = 1) +
+    ggplot() +
+     geom_spatraster(data = unwrap(rast_rainfallf), aes(), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -1357,22 +1386,43 @@ rast_rainfallf_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -1381,8 +1431,8 @@ rast_rainfallf_plot_f <-
       scale_fill_gradient(low = "light blue",
                           high = "blue",
                           na.value = NA) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nFuture\nRainfall\nrast_rainfallf\n",
@@ -1405,13 +1455,15 @@ rast_rainfallf_plot_f <-
 rast_tempc_plot_f <-
   function(rast_tempc,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop) {
-    gplot(unwrap(rast_tempc), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = value), alpha = 1) +
+    # gplot(unwrap(rast_tempc), maxpixels = 50000) + #this uses gplot from the rastervis package
+      # geom_tile(aes(fill = value), alpha = 1) +
+      ggplot() +
+     geom_spatraster(data = unwrap(rast_tempc), aes(), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -1419,22 +1471,43 @@ rast_tempc_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -1443,8 +1516,8 @@ rast_tempc_plot_f <-
       scale_fill_gradient(low = "yellow",
                           high = "brown",
                           na.value = NA) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nPast\nMean\nTemperature\nrast_tempc\n",
@@ -1467,13 +1540,15 @@ rast_tempc_plot_f <-
 rast_tempf_plot_f <-
   function(rast_tempf,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop) {
-    gplot(unwrap(rast_tempf), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = value), alpha = 1) +
+    #gplot(unwrap(rast_tempf), maxpixels = 50000) + #this uses gplot from the rastervis package
+     # geom_tile(aes(fill = value), alpha = 1) +
+      ggplot() +
+     geom_spatraster(data = unwrap(rast_tempf), aes(), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -1481,22 +1556,43 @@ rast_tempf_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -1505,8 +1601,8 @@ rast_tempf_plot_f <-
       scale_fill_gradient(low = "yellow",
                           high = "brown",
                           na.value = NA) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nFuture\nMean\nTemperature\nrast_tempf\n",
@@ -1529,13 +1625,15 @@ rast_tempf_plot_f <-
 rast_onsetc_plot_f <-
   function(rast_onsetc,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop) {
-    gplot(unwrap(rast_onsetc), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = value), alpha = 1) +
+  #  gplot(unwrap(rast_onsetc), maxpixels = 50000) + #this uses gplot from the rastervis package
+  #    geom_tile(aes(fill = value), alpha = 1) +
+    ggplot() +
+     geom_spatraster(data = unwrap(rast_onsetc), aes(), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -1543,22 +1641,43 @@ rast_onsetc_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -1567,8 +1686,8 @@ rast_onsetc_plot_f <-
       scale_fill_gradient(low = "purple",
                           high = "yellow",
                           na.value = NA) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nPast\nSeason\nOnset\nrast_onsetc\n",
@@ -1591,13 +1710,15 @@ rast_onsetc_plot_f <-
 rast_onsetf_plot_f <-
   function(rast_onsetf,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop) {
-    gplot(unwrap(rast_onsetf), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = value), alpha = 1) +
+    #  gplot(unwrap(rast_onsetf), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #    geom_tile(aes(fill = value), alpha = 1) +
+    ggplot() +
+     geom_spatraster(data = unwrap(rast_onsetf), aes(), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -1605,22 +1726,43 @@ rast_onsetf_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -1629,8 +1771,8 @@ rast_onsetf_plot_f <-
       scale_fill_gradient(low = "purple",
                           high = "yellow",
                           na.value = NA) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nFuture\nSeason\nOnset\nrast_onsetf\n",
@@ -1653,13 +1795,15 @@ rast_onsetf_plot_f <-
 rast_durationc_plot_f <-
   function(rast_durationc,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop) {
-    gplot(unwrap(rast_durationc), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = value), alpha = 1) +
+    #  gplot(unwrap(rast_durationc), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #    geom_tile(aes(fill = value), alpha = 1) +
+    ggplot() +
+     geom_spatraster(data = unwrap(rast_durationc), aes(), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -1667,22 +1811,43 @@ rast_durationc_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -1691,8 +1856,8 @@ rast_durationc_plot_f <-
       scale_fill_gradient(low = "orange",
                           high = "red",
                           na.value = NA) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nPast\nSeason\nDuration\nrast_durationc\n",
@@ -1715,13 +1880,15 @@ rast_durationc_plot_f <-
 rast_durationf_plot_f <-
   function(rast_durationf,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop) {
-    gplot(unwrap(rast_durationf), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = value), alpha = 1) +
+    #  gplot(unwrap(rast_durationf), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #    geom_tile(aes(fill = value), alpha = 1) +
+    ggplot() +
+     geom_spatraster(data = unwrap(rast_durationf), aes(), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -1729,22 +1896,43 @@ rast_durationf_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -1753,8 +1941,8 @@ rast_durationf_plot_f <-
       scale_fill_gradient(low = "orange",
                           high = "red",
                           na.value = NA) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nFuture\nSeason\nDuration\nrast_durationf\n",
@@ -1779,13 +1967,15 @@ rast_durationf_plot_f <-
 rast_rainfall_change_plot_f <-
   function(rast_rainfall_change,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop) {
-    gplot(unwrap(rast_rainfall_change), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = value), alpha = 1) +
+    #  gplot(unwrap(rast_rainfall_change), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #    geom_tile(aes(fill = value), alpha = 1) +
+    ggplot() +
+     geom_spatraster(data = unwrap(rast_rainfall_change), aes(), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -1793,22 +1983,43 @@ rast_rainfall_change_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -1817,8 +2028,8 @@ rast_rainfall_change_plot_f <-
       scale_fill_gradient(low = "yellow",
                           high = "blue",
                           na.value = NA) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nChange\nRainfall\nrast_rainfall_change\n",
@@ -1841,13 +2052,15 @@ rast_rainfall_change_plot_f <-
 rast_temp_change_plot_f <-
   function(rast_temp_change,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop) {
-    gplot(unwrap(rast_temp_change), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = value), alpha = 1) +
+    #  gplot(unwrap(rast_temp_change), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #    geom_tile(aes(fill = value), alpha = 1) +
+    ggplot() +
+     geom_spatraster(data = unwrap(rast_temp_change), aes(), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -1855,22 +2068,43 @@ rast_temp_change_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -1879,8 +2113,8 @@ rast_temp_change_plot_f <-
       scale_fill_gradient(low = "blue",
                           high = "red",
                           na.value = NA) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nChange\nMean\nTemperature\nrast_temp_change\n",
@@ -1903,13 +2137,15 @@ rast_temp_change_plot_f <-
 rast_onset_change_plot_f <-
   function(rast_onset_change,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop) {
-    gplot(unwrap(rast_onset_change), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = value), alpha = 1) +
+    #  gplot(unwrap(rast_onset_change), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #    geom_tile(aes(fill = value), alpha = 1) +
+    ggplot() +
+     geom_spatraster(data = unwrap(rast_onset_change), aes(), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -1917,22 +2153,43 @@ rast_onset_change_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -1941,8 +2198,8 @@ rast_onset_change_plot_f <-
       scale_fill_gradient(low = "red",
                           high = "blue",
                           na.value = NA) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nChange\nSeason\nOnset\nrast_onset_change\n",
@@ -1965,13 +2222,15 @@ rast_onset_change_plot_f <-
 rast_duration_change_plot_f <-
   function(rast_duration_change,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop) {
-    gplot(unwrap(rast_duration_change), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = value), alpha = 1) +
+    #  gplot(unwrap(rast_onsetc), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #    geom_tile(aes(fill = value), alpha = 1) +
+    ggplot() +
+     geom_spatraster(data = unwrap(rast_onsetc), aes(), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -1979,22 +2238,43 @@ rast_duration_change_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -2003,8 +2283,8 @@ rast_duration_change_plot_f <-
       scale_fill_gradient(low = "purple",
                           high = "orange",
                           na.value = NA) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nChange\nSeason\nDuration\nrast_duration_change\n",
@@ -2183,14 +2463,16 @@ rast_flood_change_get_f <-
 rast_droughtc_plot_f <-
   function(rast_droughtc,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            drought) {
-    gplot(unwrap(rast_droughtc), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = value), alpha = 1) +
+    #  gplot(unwrap(rast_droughtc), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #    geom_tile(aes(fill = value), alpha = 1) +
+    ggplot() +
+     geom_spatraster(data = unwrap(rast_droughtc), aes(), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -2198,22 +2480,43 @@ rast_droughtc_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -2222,8 +2525,8 @@ rast_droughtc_plot_f <-
       scale_fill_gradient(low = "light blue",
                           high = "yellow",
                           na.value = NA) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nPast\n",
@@ -2248,14 +2551,16 @@ rast_droughtc_plot_f <-
 rast_droughtf_plot_f <-
   function(rast_droughtf,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            drought) {
-    gplot(unwrap(rast_droughtf), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = value), alpha = 1) +
+    #  gplot(unwrap(rast_droughtf), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #    geom_tile(aes(fill = value), alpha = 1) +
+    ggplot() +
+     geom_spatraster(data = unwrap(rast_droughtf), aes(), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -2263,22 +2568,43 @@ rast_droughtf_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -2287,8 +2613,8 @@ rast_droughtf_plot_f <-
       scale_fill_gradient(low = "light blue",
                           high = "yellow",
                           na.value = NA) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nFuture\n",
@@ -2313,14 +2639,16 @@ rast_droughtf_plot_f <-
 rast_drought_change_plot_f <-
   function(rast_drought_change,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            drought) {
-    gplot(unwrap(rast_drought_change), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = value), alpha = 1) +
+    #  gplot(unwrap(rast_drought_change), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #    geom_tile(aes(fill = value), alpha = 1) +
+    ggplot() +
+     geom_spatraster(data = unwrap(rast_drought_change), aes(), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -2328,22 +2656,43 @@ rast_drought_change_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -2352,8 +2701,8 @@ rast_drought_change_plot_f <-
       scale_fill_gradient(low = "light blue",
                           high = "yellow",
                           na.value = NA) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nChange\n",
@@ -2378,14 +2727,16 @@ rast_drought_change_plot_f <-
 rast_heatc_plot_f <-
   function(rast_heatc,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            heat) {
-    gplot(unwrap(rast_heatc), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = value), alpha = 1) +
+    #  gplot(unwrap(rast_heatc), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #    geom_tile(aes(fill = value), alpha = 1) +
+    ggplot() +
+     geom_spatraster(data = unwrap(rast_heatc), aes(), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -2393,22 +2744,43 @@ rast_heatc_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -2417,8 +2789,8 @@ rast_heatc_plot_f <-
       scale_fill_gradient(low = "yellow",
                           high = "brown",
                           na.value = NA) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nPast\n",
@@ -2443,14 +2815,16 @@ rast_heatc_plot_f <-
 rast_heatf_plot_f <-
   function(rast_heatf,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            heat) {
-    gplot(unwrap(rast_heatf), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = value), alpha = 1) +
+    #  gplot(unwrap(rast_heatf), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #    geom_tile(aes(fill = value), alpha = 1) +
+    ggplot() +
+     geom_spatraster(data = unwrap(rast_heatf), aes(), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -2458,22 +2832,43 @@ rast_heatf_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -2482,8 +2877,8 @@ rast_heatf_plot_f <-
       scale_fill_gradient(low = "yellow",
                           high = "brown",
                           na.value = NA) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nFuture\n",
@@ -2508,14 +2903,16 @@ rast_heatf_plot_f <-
 rast_heat_change_plot_f <-
   function(rast_heat_change,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            heat) {
-    gplot(unwrap(rast_heat_change), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = value), alpha = 1) +
+    #  gplot(unwrap(rast_heat_change), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #    geom_tile(aes(fill = value), alpha = 1) +
+    ggplot() +
+     geom_spatraster(data = unwrap(rast_heat_change), aes(), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -2523,22 +2920,43 @@ rast_heat_change_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -2547,8 +2965,8 @@ rast_heat_change_plot_f <-
       scale_fill_gradient(low = "light blue",
                           high = "red",
                           na.value = NA) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nChange\n",
@@ -2574,14 +2992,16 @@ rast_heat_change_plot_f <-
 rast_floodc_plot_f <-
   function(rast_floodc,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
-    gplot(unwrap(rast_floodc), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = value), alpha = 1) +
+    #  gplot(unwrap(rast_floodc), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #    geom_tile(aes(fill = value), alpha = 1) +
+    ggplot() +
+     geom_spatraster(data = unwrap(rast_floodc), aes(), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -2589,22 +3009,43 @@ rast_floodc_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -2613,8 +3054,8 @@ rast_floodc_plot_f <-
       scale_fill_gradient(low = "light blue",
                           high = "blue",
                           na.value = NA) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nPast\n",
@@ -2639,14 +3080,16 @@ rast_floodc_plot_f <-
 rast_floodf_plot_f <-
   function(rast_floodf,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
-    gplot(unwrap(rast_floodf), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = value), alpha = 1) +
+    #  gplot(unwrap(rast_floodf), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #    geom_tile(aes(fill = value), alpha = 1) +
+    ggplot() +
+     geom_spatraster(data = unwrap(rast_floodf), aes(), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -2654,22 +3097,43 @@ rast_floodf_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -2678,8 +3142,8 @@ rast_floodf_plot_f <-
       scale_fill_gradient(low = "light blue",
                           high = "blue",
                           na.value = NA) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nFuture\n",
@@ -2704,14 +3168,16 @@ rast_floodf_plot_f <-
 rast_flood_change_plot_f <-
   function(rast_flood_change,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
-    gplot(unwrap(rast_flood_change), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = value), alpha = 1) +
+    #  gplot(unwrap(rast_flood_change), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #    geom_tile(aes(fill = value), alpha = 1) +
+    ggplot() +
+     geom_spatraster(data = unwrap(rast_flood_change), aes(), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -2719,22 +3185,43 @@ rast_flood_change_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -2743,8 +3230,8 @@ rast_flood_change_plot_f <-
       scale_fill_gradient(low = "light blue",
                           high = "blue",
                           na.value = NA) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nChange\n",
@@ -2770,28 +3257,48 @@ rast_flood_change_plot_f <-
 ### Rainfall
 
 # results in dB_rainfallc_summary
+#dB_rainfallc_summary_make_f <-
+#  function(rast_rainfallc, vect_crop_ISO_lc_rcl_agg) {
+#    exact_extract(
+#      unwrap(rast_rainfallc),
+#     unwrap(vect_crop_ISO_lc_rcl_agg),
+#      fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
+#      quantiles = c(0.25, 0.75),
+#      append_cols = c("crop_ISO1")
+#    ) %>%
+#      mutate(IQR = (q75 - q25))  %>%
+#      mutate(l_whisker = (q25 -  (1.5 * IQR))) %>%
+#      mutate(u_whisker = (q75 +  (1.5 * IQR))) %>%
+#      mutate(max_min = pmax(min, l_whisker)) %>%
+#      mutate(min_max = pmin(max, u_whisker))
+#  }
+
+
+## A Farrow 18/04/2023 exactexctract doesn't work with spatvector so need to convert to sf
+
+# results in dB_rainfallc_summary
 dB_rainfallc_summary_make_f <-
-  function(rast_rainfallc, v_crop_ISO_lc_rcl_agg) {
+  function(rast_rainfallc, vect_crop_ISO_lc_rcl_agg) {
     exact_extract(
       unwrap(rast_rainfallc),
-      v_crop_ISO_lc_rcl_agg,
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
     ) %>%
-      mutate(IQR = (q75 - q25))  %>%
-      mutate(l_whisker = (q25 -  (1.5 * IQR))) %>%
-      mutate(u_whisker = (q75 +  (1.5 * IQR))) %>%
-      mutate(max_min = pmax(min, l_whisker)) %>%
-      mutate(min_max = pmin(max, u_whisker))
+      dplyr::mutate(IQR = (q75 - q25))  %>%
+      dplyr::mutate(l_whisker = (q25 -  (1.5 * IQR))) %>%
+      dplyr::mutate(u_whisker = (q75 +  (1.5 * IQR))) %>%
+      dplyr::mutate(max_min = pmax(min, l_whisker)) %>%
+      dplyr::mutate(min_max = pmin(max, u_whisker))
   }
 
 # results in dB_rainfallf_summary
 dB_rainfallf_summary_make_f <-
-  function(rast_rainfallf, v_crop_ISO_lc_rcl_agg) {
+  function(rast_rainfallf, vect_crop_ISO_lc_rcl_agg) {
     exact_extract(
       unwrap(rast_rainfallf),
-      v_crop_ISO_lc_rcl_agg,
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -2806,10 +3313,10 @@ dB_rainfallf_summary_make_f <-
 # results in dB_rainfall_change_summary
 dB_rainfall_change_summary_make_f <-
   function(rast_rainfall_change,
-           v_crop_ISO_lc_rcl_agg) {
+           vect_crop_ISO_lc_rcl_agg) {
     exact_extract(
       unwrap(rast_rainfall_change),
-      v_crop_ISO_lc_rcl_agg,
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -2825,10 +3332,10 @@ dB_rainfall_change_summary_make_f <-
 
 # results in dB_tempc_summary
 dB_tempc_summary_make_f <-
-  function(rast_tempc, v_crop_ISO_lc_rcl_agg) {
+  function(rast_tempc, vect_crop_ISO_lc_rcl_agg) {
     exact_extract(
       unwrap(rast_tempc),
-      v_crop_ISO_lc_rcl_agg,
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -2842,10 +3349,10 @@ dB_tempc_summary_make_f <-
 
 # results in dB_tempf_summary
 dB_tempf_summary_make_f <-
-  function(rast_tempf, v_crop_ISO_lc_rcl_agg) {
+  function(rast_tempf, vect_crop_ISO_lc_rcl_agg) {
     exact_extract(
       unwrap(rast_tempf),
-      v_crop_ISO_lc_rcl_agg,
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -2859,10 +3366,10 @@ dB_tempf_summary_make_f <-
 
 # results in dB_temp_change_summary
 dB_temp_change_summary_make_f <-
-  function(rast_temp_change, v_crop_ISO_lc_rcl_agg) {
+  function(rast_temp_change, vect_crop_ISO_lc_rcl_agg) {
     exact_extract(
       unwrap(rast_temp_change),
-      v_crop_ISO_lc_rcl_agg,
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -2878,10 +3385,10 @@ dB_temp_change_summary_make_f <-
 
 # results in dB_onsetc_summary
 dB_onsetc_summary_make_f <-
-  function(rast_onsetc, v_crop_ISO_lc_rcl_agg) {
+  function(rast_onsetc, vect_crop_ISO_lc_rcl_agg) {
     exact_extract(
       unwrap(rast_onsetc),
-      v_crop_ISO_lc_rcl_agg,
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -2895,10 +3402,10 @@ dB_onsetc_summary_make_f <-
 
 # results in dB_onsetf_summary
 dB_onsetf_summary_make_f <-
-  function(rast_onsetf, v_crop_ISO_lc_rcl_agg) {
+  function(rast_onsetf, vect_crop_ISO_lc_rcl_agg) {
     exact_extract(
       unwrap(rast_onsetf),
-      v_crop_ISO_lc_rcl_agg,
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -2912,10 +3419,10 @@ dB_onsetf_summary_make_f <-
 
 # results in dB_onset_change_summary
 dB_onset_change_summary_make_f <-
-  function(rast_onset_change, v_crop_ISO_lc_rcl_agg) {
+  function(rast_onset_change, vect_crop_ISO_lc_rcl_agg) {
     exact_extract(
       unwrap(rast_onset_change),
-      v_crop_ISO_lc_rcl_agg,
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -2931,10 +3438,10 @@ dB_onset_change_summary_make_f <-
 
 # results in dB_durationc_summary
 dB_durationc_summary_make_f <-
-  function(rast_durationc, v_crop_ISO_lc_rcl_agg) {
+  function(rast_durationc, vect_crop_ISO_lc_rcl_agg) {
     exact_extract(
       unwrap(rast_durationc),
-      v_crop_ISO_lc_rcl_agg,
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -2948,10 +3455,10 @@ dB_durationc_summary_make_f <-
 
 # results in dB_durationf_summary
 dB_durationf_summary_make_f <-
-  function(rast_durationf, v_crop_ISO_lc_rcl_agg) {
+  function(rast_durationf, vect_crop_ISO_lc_rcl_agg) {
     exact_extract(
       unwrap(rast_durationf),
-      v_crop_ISO_lc_rcl_agg,
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -2966,10 +3473,10 @@ dB_durationf_summary_make_f <-
 # results in dB_duration_change_summary
 dB_duration_change_summary_make_f <-
   function(rast_duration_change,
-           v_crop_ISO_lc_rcl_agg) {
+           vect_crop_ISO_lc_rcl_agg) {
     exact_extract(
       unwrap(rast_duration_change),
-      v_crop_ISO_lc_rcl_agg,
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -2985,10 +3492,10 @@ dB_duration_change_summary_make_f <-
 
 # results in dB_droughtc_summary
 dB_droughtc_summary_make_f <-
-  function(rast_droughtc, v_crop_ISO_lc_rcl_agg) {
+  function(rast_droughtc, vect_crop_ISO_lc_rcl_agg) {
     exact_extract(
       unwrap(rast_droughtc),
-      v_crop_ISO_lc_rcl_agg,
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -3002,10 +3509,10 @@ dB_droughtc_summary_make_f <-
 
 # results in dB_droughtf_summary
 dB_droughtf_summary_make_f <-
-  function(rast_droughtf, v_crop_ISO_lc_rcl_agg) {
+  function(rast_droughtf, vect_crop_ISO_lc_rcl_agg) {
     exact_extract(
       unwrap(rast_droughtf),
-      v_crop_ISO_lc_rcl_agg,
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -3019,10 +3526,10 @@ dB_droughtf_summary_make_f <-
 
 # results in dB_drought_change_summary
 dB_drought_change_summary_make_f <-
-  function(rast_drought_change, v_crop_ISO_lc_rcl_agg) {
+  function(rast_drought_change, vect_crop_ISO_lc_rcl_agg) {
     exact_extract(
       unwrap(rast_drought_change),
-      v_crop_ISO_lc_rcl_agg,
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -3038,10 +3545,10 @@ dB_drought_change_summary_make_f <-
 
 # results in dB_heatc_summary
 dB_heatc_summary_make_f <-
-  function(rast_heatc, v_crop_ISO_lc_rcl_agg) {
+  function(rast_heatc, vect_crop_ISO_lc_rcl_agg) {
     exact_extract(
       unwrap(rast_heatc),
-      v_crop_ISO_lc_rcl_agg,
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -3055,10 +3562,10 @@ dB_heatc_summary_make_f <-
 
 # results in dB_heatf_summary
 dB_heatf_summary_make_f <-
-  function(rast_heatf, v_crop_ISO_lc_rcl_agg) {
+  function(rast_heatf, vect_crop_ISO_lc_rcl_agg) {
     exact_extract(
       unwrap(rast_heatf),
-      v_crop_ISO_lc_rcl_agg,
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -3072,10 +3579,10 @@ dB_heatf_summary_make_f <-
 
 # results in dB_heat_change_summary
 dB_heat_change_summary_make_f <-
-  function(rast_heat_change, v_crop_ISO_lc_rcl_agg) {
+  function(rast_heat_change, vect_crop_ISO_lc_rcl_agg) {
     exact_extract(
       unwrap(rast_heat_change),
-      v_crop_ISO_lc_rcl_agg,
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -3091,10 +3598,10 @@ dB_heat_change_summary_make_f <-
 
 # results in dB_floodc_summary
 dB_floodc_summary_make_f <-
-  function(rast_floodc, v_crop_ISO_lc_rcl_agg) {
+  function(rast_floodc, vect_crop_ISO_lc_rcl_agg) {
     exact_extract(
       unwrap(rast_floodc),
-      v_crop_ISO_lc_rcl_agg,
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -3108,10 +3615,10 @@ dB_floodc_summary_make_f <-
 
 # results in dB_floodf_summary
 dB_floodf_summary_make_f <-
-  function(rast_floodf, v_crop_ISO_lc_rcl_agg) {
+  function(rast_floodf, vect_crop_ISO_lc_rcl_agg) {
     exact_extract(
       unwrap(rast_floodf),
-      v_crop_ISO_lc_rcl_agg,
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -3125,10 +3632,10 @@ dB_floodf_summary_make_f <-
 
 # results in dB_flood_change_summary
 dB_flood_change_summary_make_f <-
-  function(rast_flood_change, v_crop_ISO_lc_rcl_agg) {
+  function(rast_flood_change, vect_crop_ISO_lc_rcl_agg) {
     exact_extract(
       unwrap(rast_flood_change),
-      v_crop_ISO_lc_rcl_agg,
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -4128,32 +4635,32 @@ xy_impact_make_f <- function(dB_impact_prelim) {
 
 # results in newcol_droughtc
 newcol_droughtc_make_f <- function(xy_impact, rast_droughtc) {
-  extract(unwrap(rast_droughtc), xy_impact)
+  terra::extract(unwrap(rast_droughtc), xy_impact)
 }
 
 # results in newcol_droughtf
 newcol_droughtf_make_f <- function(xy_impact, rast_droughtf) {
-  extract(unwrap(rast_droughtf), xy_impact)
+  terra::extract(unwrap(rast_droughtf), xy_impact)
 }
 
 # results in newcol_heatc
 newcol_heatc_make_f <- function(xy_impact, rast_heatc) {
-  extract(unwrap(rast_heatc), xy_impact)
+  terra::extract(unwrap(rast_heatc), xy_impact)
 }
 
 # results in newcol_heatf
 newcol_heatf_make_f <- function(xy_impact, rast_heatf) {
-  extract(unwrap(rast_heatf), xy_impact)
+  terra::extract(unwrap(rast_heatf), xy_impact)
 }
 
 # results in newcol_floodc
 newcol_floodc_make_f <- function(xy_impact, rast_floodc) {
-  extract(unwrap(rast_floodc), xy_impact)
+  terra::extract(unwrap(rast_floodc), xy_impact)
 }
 
 # results in newcol_floodf
 newcol_floodf_make_f <- function(xy_impact, rast_floodf) {
-  extract(unwrap(rast_floodf), xy_impact)
+  terra::extract(unwrap(rast_floodf), xy_impact)
 }
 
 # results in dB_impact
@@ -5290,7 +5797,7 @@ dB_impact_full_make_f <- function(dB_impact,
                
                # A Farrow 09/02/2023 sometimes the 0.5 threshold is too high for instance when 
                # four classes have a value of 0.25
-               # so need to include the suboptimal option as an explicit if statement
+               # so need to include the suboptimal.option as an explicit if statement
                # then the else is a mixture
            
              ifelse(               
@@ -6536,728 +7043,728 @@ dB_impact_full_make_f <- function(dB_impact,
 
 ### Spatialise Impact Data
 
-# results in v_impact
-v_impact_make_f <- function(dB_impact_full) {
-  dB_impact_full %>% st_as_sf(coords = c("x", "y"), crs = st_crs(4326))
+# results in vect_impact
+vect_impact_make_f <- function(dB_impact_full) {
+  dB_impact_full %>% vect(geom = c("x", "y"), crs = 'EPSG:4326') %>% wrap()
 }
 
 # results in rast_impact_prelim
-rast_impact_prelim_make_f <- function(v_impact, rast_droughtc) {
-  terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_o') %>% wrap()
+rast_impact_prelim_make_f <- function(vect_impact, rast_droughtc) {
+  terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_o') %>% wrap()
 }
 
 # results in rast_impact
 rast_impact_make_f <-
-  function(v_impact, rast_droughtc, rast_impact_prelim) {
+  function(vect_impact, rast_droughtc, rast_impact_prelim) {
     unwrap(rast_impact_prelim) %>%
       
       # lower thresholds
       
       ###Farrow 14/03/2023 reached here
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_s')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_s')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'floodc_l_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'floodc_l_s')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_s')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_s')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'floodf_l_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'floodf_l_s'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtchange_l_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtchange_l_s')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatchange_l_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatchange_l_s')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'floodchange_l_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'floodchange_l_s'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_s')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatc_l_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatc_l_s')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'floodc_l_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'floodc_l_s')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_s')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatf_l_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatf_l_s')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'floodf_l_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'floodf_l_s'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtchange_l_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtchange_l_s')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatchange_l_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatchange_l_s')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'floodchange_l_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'floodchange_l_s'))  %>%
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_o'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_d'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_h'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_dh'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_max'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_o'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_d'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_h'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_dh'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_max'))  %>%
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_l_o'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_l_d'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_l_f'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_l_df'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_l_max'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_floodc_l_o'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_floodc_l_d'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_floodc_l_f'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_floodc_l_df'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_floodc_l_max'))  %>%
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_l_o'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_l_h'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_l_f'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_l_hf'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_l_max'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatc_l_floodc_l_o'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatc_l_floodc_l_h'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatc_l_floodc_l_f'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatc_l_floodc_l_hf'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatc_l_floodc_l_max'))  %>%
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_o'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_d'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_h'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_f'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_dh'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_df'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_hf'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_dhf'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_max'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_o'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_d'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_h'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_f'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_dh'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_df'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_hf'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_dhf'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_l_max'))  %>%
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_o'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_d'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_h'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_dh'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_max'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_o'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_d'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_h'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_dh'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_max'))  %>%
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_l_o'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_l_d'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_l_f'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_l_df'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_l_max'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_floodf_l_o'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_floodf_l_d'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_floodf_l_f'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_floodf_l_df'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_floodf_l_max'))  %>%
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_l_o'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_l_h'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_l_f'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_l_hf'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_l_max'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatf_l_floodf_l_o'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatf_l_floodf_l_h'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatf_l_floodf_l_f'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatf_l_floodf_l_hf'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatf_l_floodf_l_max'))  %>%
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_o'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_d'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_h'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_f'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_dh'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_df'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_hf'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_dhf'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_max'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_o'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_d'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_h'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_f'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_dh'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_df'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_hf'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_dhf'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_l_max'))  %>%
       
       # upper thresholds
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_s')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_s')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'floodc_u_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'floodc_u_s')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_s')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_s')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'floodf_u_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'floodf_u_s'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtchange_u_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtchange_u_s')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatchange_u_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatchange_u_s')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'floodchange_u_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'floodchange_u_s'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_s')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatc_u_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatc_u_s')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'floodc_u_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'floodc_u_s')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_s')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatf_u_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatf_u_s')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'floodf_u_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'floodf_u_s'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtchange_u_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtchange_u_s')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatchange_u_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatchange_u_s')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'floodchange_u_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'floodchange_u_s'))  %>%
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_o'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_d'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_h'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_dh'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_max'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_o'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_d'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_h'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_dh'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_max'))  %>%
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_u_o'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_u_d'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_u_f'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_u_df'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_u_max'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_floodc_u_o'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_floodc_u_d'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_floodc_u_f'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_floodc_u_df'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_floodc_u_max'))  %>%
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_u_o'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_u_h'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_u_f'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_u_hf'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_u_max'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatc_u_floodc_u_o'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatc_u_floodc_u_h'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatc_u_floodc_u_f'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatc_u_floodc_u_hf'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatc_u_floodc_u_max'))  %>%
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_o'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_d'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_h'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_f'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_dh'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_df'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_hf'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_dhf'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_max'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_o'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_d'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_h'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_f'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_dh'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_df'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_hf'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_dhf'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_u_max'))  %>%
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_o'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_d'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_h'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_dh'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_max'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_o'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_d'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_h'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_dh'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_max'))  %>%
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_u_o'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_u_d'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_u_f'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_u_df'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_u_max'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_floodf_u_o'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_floodf_u_d'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_floodf_u_f'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_floodf_u_df'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_floodf_u_max'))  %>%
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_u_o'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_u_h'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_u_f'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_u_hf'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_u_max'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatf_u_floodf_u_o'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatf_u_floodf_u_h'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatf_u_floodf_u_f'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatf_u_floodf_u_hf'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatf_u_floodf_u_max'))  %>%
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_o'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_d'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_h'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_f'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_dh'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_df'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_hf'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_dhf'))  %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_max'))    %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_o'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_d'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_h'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_f'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_dh'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_df'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_hf'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_dhf'))  %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_u_max'))    %>%
       
       # mixed thresholds
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_d')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_h')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_dh')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_max')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_d')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_h')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_dh')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_max')) %>%
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_d')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_h')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_dh')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_max')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_d')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_h')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_dh')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_max')) %>%
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_u_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_u_d')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_u_f')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_u_df')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_floodc_u_max')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_floodc_u_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_floodc_u_d')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_floodc_u_f')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_floodc_u_df')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_floodc_u_max')) %>%
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_l_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_l_d')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_l_f')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_l_df')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_floodc_l_max')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_floodc_l_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_floodc_l_d')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_floodc_l_f')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_floodc_l_df')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_floodc_l_max')) %>%
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_u_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_u_h')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_u_f')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_u_hf')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_l_floodc_u_max')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatc_l_floodc_u_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatc_l_floodc_u_h')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatc_l_floodc_u_f')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatc_l_floodc_u_hf')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatc_l_floodc_u_max')) %>%
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_l_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_l_h')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_l_f')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_l_hf')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatc_u_floodc_l_max')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatc_u_floodc_l_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatc_u_floodc_l_h')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatc_u_floodc_l_f')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatc_u_floodc_l_hf')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatc_u_floodc_l_max')) %>%
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_d')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_h')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_f')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_dh')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_df')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_hf')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_dhf')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_max')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_d')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_h')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_f')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_dh')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_df')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_hf')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_dhf')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_l_floodc_u_max')) %>%
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_d')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_h')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_f')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_dh')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_df')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_hf')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_dhf')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_max')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_d')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_h')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_f')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_dh')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_df')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_hf')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_dhf')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_l_max')) %>%
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_d')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_h')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_f')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_dh')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_df')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_hf')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_dhf')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_max')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_d')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_h')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_f')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_dh')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_df')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_hf')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_dhf')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_u_max')) %>%
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_d')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_h')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_f')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_dh')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_df')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_hf')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_dhf')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_max')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_d')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_h')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_f')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_dh')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_df')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_hf')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_dhf')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_l_floodc_l_max')) %>%
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_d')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_h')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_f')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_dh')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_df')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_hf')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_dhf')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_max')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_d')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_h')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_f')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_dh')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_df')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_hf')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_dhf')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_u_heatc_u_floodc_l_max')) %>%
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_d')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_h')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_f')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_dh')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_df')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_hf')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_dhf')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_max')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_d')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_h')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_f')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_dh')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_df')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_hf')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_dhf')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtc_l_heatc_u_floodc_u_max')) %>%
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_d')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_h')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_dh')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_max')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_d')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_h')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_dh')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_max')) %>%
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_d')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_h')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_dh')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_max')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_d')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_h')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_dh')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_max')) %>%
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_u_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_u_d')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_u_f')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_u_df')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_floodf_u_max')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_floodf_u_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_floodf_u_d')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_floodf_u_f')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_floodf_u_df')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_floodf_u_max')) %>%
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_l_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_l_d')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_l_f')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_l_df')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_floodf_l_max')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_floodf_l_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_floodf_l_d')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_floodf_l_f')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_floodf_l_df')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_floodf_l_max')) %>%
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_u_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_u_h')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_u_f')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_u_hf')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_l_floodf_u_max')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatf_l_floodf_u_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatf_l_floodf_u_h')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatf_l_floodf_u_f')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatf_l_floodf_u_hf')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatf_l_floodf_u_max')) %>%
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_l_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_l_h')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_l_f')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_l_hf')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'heatf_u_floodf_l_max')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatf_u_floodf_l_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatf_u_floodf_l_h')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatf_u_floodf_l_f')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatf_u_floodf_l_hf')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'heatf_u_floodf_l_max')) %>%
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_d')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_h')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_f')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_dh')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_df')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_hf')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_dhf')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_max')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_d')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_h')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_f')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_dh')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_df')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_hf')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_dhf')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_l_floodf_u_max')) %>%
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_d')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_h')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_f')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_dh')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_df')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_hf')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_dhf')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_max')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_d')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_h')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_f')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_dh')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_df')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_hf')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_dhf')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_l_max')) %>%
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_d')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_h')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_f')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_dh')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_df')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_hf')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_dhf')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_max')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_d')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_h')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_f')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_dh')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_df')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_hf')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_dhf')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_u_max')) %>%
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_d')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_h')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_f')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_dh')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_df')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_hf')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_dhf')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_max')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_d')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_h')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_f')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_dh')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_df')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_hf')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_dhf')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_l_floodf_l_max')) %>%
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_d')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_h')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_f')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_dh')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_df')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_hf')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_dhf')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_max')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_d')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_h')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_f')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_dh')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_df')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_hf')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_dhf')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_u_heatf_u_floodf_l_max')) %>%
       
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_o')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_d')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_h')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_f')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_dh')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_df')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_hf')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_dhf')) %>%
-      terra::add(terra::rasterize(v_impact, unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_max')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_o')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_d')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_h')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_f')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_dh')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_df')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_hf')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_dhf')) %>%
+      c(terra::rasterize(unwrap(vect_impact), unwrap(rast_droughtc), field = 'droughtf_l_heatf_u_floodf_u_max')) %>%
       
-      
+      # Farrow 20/04/2023 reached here
       # names
       
       `names<-`(
         c(
-          "hist drought l opt",
-          "hist drought l sub",
-          "hist heat l opt",
-          "hist heat l sub",
-          "hist flood l opt",
-          "hist flood l sub",
-          "future drought l opt",
-          "future drought l sub",
-          "future heat l opt",
-          "future heat l sub",
-          "future flood l opt",
-          "future flood l sub",
-          "drought l change opt",
-          "drought l change sub",
-          "heat l change opt",
-          "heat l change sub",
-          "flood l change opt",
-          "flood l change sub",
+          "hist.drought.l.opt",
+          "hist.drought.l.sub",
+          "hist.heat.l.opt",
+          "hist.heat.l.sub",
+          "hist.flood.l.opt",
+          "hist.flood.l.sub",
+          "future.drought.l.opt",
+          "future.drought.l.sub",
+          "future.heat.l.opt",
+          "future.heat.l.sub",
+          "future.flood.l.opt",
+          "future.flood.l.sub",
+          "drought.l.change.opt",
+          "drought.l.change.sub",
+          "heat.l.change.opt",
+          "heat.l.change.sub",
+          "flood.l.change.opt",
+          "flood.l.change.sub",
           
-          "hist drought l opt heat l opt" ,
-          "hist drought l sub heat l opt" ,
-          "hist drought l opt heat l sub" ,
-          "hist drought l sub heat l sub" ,
-          "hist drought l heat l max",
+          "hist.drought.l.opt.heat.l.opt" ,
+          "hist.drought.l.sub.heat.l.opt" ,
+          "hist.drought.l.opt.heat.l.sub" ,
+          "hist.drought.l.sub.heat.l.sub" ,
+          "hist.drought.l.heat.l.max",
           
-          "hist drought l opt flood l opt",
-          "hist drought l sub flood l opt" ,
-          "hist drought l opt flood l sub" ,
-          "hist drought l sub flood l sub" ,
-          "hist drought l flood l max",
+          "hist.drought.l.opt.flood.l.opt",
+          "hist.drought.l.sub.flood.l.opt" ,
+          "hist.drought.l.opt.flood.l.sub" ,
+          "hist.drought.l.sub.flood.l.sub" ,
+          "hist.drought.l.flood.l.max",
           
-          "hist heat l opt flood l opt" ,
-          "hist heat l sub flood l opt" ,
-          "hist heat l opt flood l sub" ,
-          "hist heat l sub flood l sub" ,
-          "hist heat l flood l max",
+          "hist.heat.l.opt.flood.l.opt" ,
+          "hist.heat.l.sub.flood.l.opt" ,
+          "hist.heat.l.opt.flood.l.sub" ,
+          "hist.heat.l.sub.flood.l.sub" ,
+          "hist.heat.l.flood.l.max",
           
-          "hist drought l opt heat l opt flood l opt" ,
-          "hist drought l sub heat l opt flood l opt" ,
-          "hist drought l opt heat l sub flood l opt" ,
-          "hist drought l opt heat l opt flood l sub" ,
-          "hist drought l sub heat l sub flood l opt" ,
-          "hist drought l sub heat l opt flood l sub" ,
-          "hist drought l opt heat l sub flood l sub" ,
-          "hist drought l sub heat l sub flood l sub" ,
-          "hist drought l heat l flood l max",
+          "hist.drought.l.opt.heat.l.opt.flood.l.opt" ,
+          "hist.drought.l.sub.heat.l.opt.flood.l.opt" ,
+          "hist.drought.l.opt.heat.l.sub.flood.l.opt" ,
+          "hist.drought.l.opt.heat.l.opt.flood.l.sub" ,
+          "hist.drought.l.sub.heat.l.sub.flood.l.opt" ,
+          "hist.drought.l.sub.heat.l.opt.flood.l.sub" ,
+          "hist.drought.l.opt.heat.l.sub.flood.l.sub" ,
+          "hist.drought.l.sub.heat.l.sub.flood.l.sub" ,
+          "hist.drought.l.heat.l.flood.l.max",
           
-          "future drought l opt heat l opt" ,
-          "future drought l sub heat l opt" ,
-          "future drought l opt heat l sub" ,
-          "future drought l sub heat l sub" ,
-          "future drought l heat l max",
+          "future.drought.l.opt.heat.l.opt" ,
+          "future.drought.l.sub.heat.l.opt" ,
+          "future.drought.l.opt.heat.l.sub" ,
+          "future.drought.l.sub.heat.l.sub" ,
+          "future.drought.l.heat.l.max",
           
-          "future drought l opt flood l opt",
-          "future drought l sub flood l opt" ,
-          "future drought l opt flood l sub" ,
-          "future drought l sub flood l sub" ,
-          "future drought l flood l max",
+          "future.drought.l.opt.flood.l.opt",
+          "future.drought.l.sub.flood.l.opt" ,
+          "future.drought.l.opt.flood.l.sub" ,
+          "future.drought.l.sub.flood.l.sub" ,
+          "future.drought.l.flood.l.max",
           
-          "future heat l opt flood l opt" ,
-          "future heat l sub flood l opt" ,
-          "future heat l opt flood l sub" ,
-          "future heat l sub flood l sub" ,
-          "future heat l flood l max",
+          "future.heat.l.opt.flood.l.opt" ,
+          "future.heat.l.sub.flood.l.opt" ,
+          "future.heat.l.opt.flood.l.sub" ,
+          "future.heat.l.sub.flood.l.sub" ,
+          "future.heat.l.flood.l.max",
           
-          "future drought l opt heat l opt flood l opt" ,
-          "future drought l sub heat l opt flood l opt" ,
-          "future drought l opt heat l sub flood l opt" ,
-          "future drought l opt heat l opt flood l sub" ,
-          "future drought l sub heat l sub flood l opt" ,
-          "future drought l sub heat l opt flood l sub" ,
-          "future drought l opt heat l sub flood l sub" ,
-          "future drought l sub heat l sub flood l sub",
-          "future drought l heat l flood l max",
+          "future.drought.l.opt.heat.l.opt.flood.l.opt" ,
+          "future.drought.l.sub.heat.l.opt.flood.l.opt" ,
+          "future.drought.l.opt.heat.l.sub.flood.l.opt" ,
+          "future.drought.l.opt.heat.l.opt.flood.l.sub" ,
+          "future.drought.l.sub.heat.l.sub.flood.l.opt" ,
+          "future.drought.l.sub.heat.l.opt.flood.l.sub" ,
+          "future.drought.l.opt.heat.l.sub.flood.l.sub" ,
+          "future.drought.l.sub.heat.l.sub.flood.l.sub",
+          "future.drought.l.heat.l.flood.l.max",
           
           #upper thresholds
           
-          "hist drought u opt",
-          "hist drought u sub",
-          "hist heat u opt",
-          "hist heat u sub",
-          "hist flood u opt",
-          "hist flood u sub",
-          "future drought u opt",
-          "future drought u sub",
-          "future heat u opt",
-          "future heat u sub",
-          "future flood u opt",
-          "future flood u sub",
-          "drought u change opt",
-          "drought u change sub",
-          "heat u change opt",
-          "heat u change sub",
-          "flood u change opt",
-          "flood u change sub",
+          "hist.drought.u.opt",
+          "hist.drought.u.sub",
+          "hist.heat.u.opt",
+          "hist.heat.u.sub",
+          "hist.flood.u.opt",
+          "hist.flood.u.sub",
+          "future.drought.u.opt",
+          "future.drought.u.sub",
+          "future.heat.u.opt",
+          "future.heat.u.sub",
+          "future.flood.u.opt",
+          "future.flood.u.sub",
+          "drought.u.change.opt",
+          "drought.u.change.sub",
+          "heat.u.change.opt",
+          "heat.u.change.sub",
+          "flood.u.change.opt",
+          "flood.u.change.sub",
           
-          "hist drought u opt heat u opt" ,
-          "hist drought u sub heat u opt" ,
-          "hist drought u opt heat u sub" ,
-          "hist drought u sub heat u sub" ,
-          "hist drought u heat u max",
+          "hist.drought.u.opt.heat.u.opt" ,
+          "hist.drought.u.sub.heat.u.opt" ,
+          "hist.drought.u.opt.heat.u.sub" ,
+          "hist.drought.u.sub.heat.u.sub" ,
+          "hist.drought.u.heat.u.max",
           
-          "hist drought u opt flood u opt",
-          "hist drought u sub flood u opt" ,
-          "hist drought u opt flood u sub" ,
-          "hist drought u sub flood u sub" ,
-          "hist drought u flood u max",
+          "hist.drought.u.opt.flood.u.opt",
+          "hist.drought.u.sub.flood.u.opt" ,
+          "hist.drought.u.opt.flood.u.sub" ,
+          "hist.drought.u.sub.flood.u.sub" ,
+          "hist.drought.u.flood.u.max",
           
-          "hist heat u opt flood u opt" ,
-          "hist heat u sub flood u opt" ,
-          "hist heat u opt flood u sub" ,
-          "hist heat u sub flood u sub" ,
-          "hist heat u flood u max",
+          "hist.heat.u.opt.flood.u.opt" ,
+          "hist.heat.u.sub.flood.u.opt" ,
+          "hist.heat.u.opt.flood.u.sub" ,
+          "hist.heat.u.sub.flood.u.sub" ,
+          "hist.heat.u.flood.u.max",
           
-          "hist drought u opt heat u opt flood u opt" ,
-          "hist drought u sub heat u opt flood u opt" ,
-          "hist drought u opt heat u sub flood u opt" ,
-          "hist drought u opt heat u opt flood u sub" ,
-          "hist drought u sub heat u sub flood u opt" ,
-          "hist drought u sub heat u opt flood u sub" ,
-          "hist drought u opt heat u sub flood u sub" ,
-          "hist drought u sub heat u sub flood u sub" ,
-          "hist drought u heat u flood u max",
+          "hist.drought.u.opt.heat.u.opt.flood.u.opt" ,
+          "hist.drought.u.sub.heat.u.opt.flood.u.opt" ,
+          "hist.drought.u.opt.heat.u.sub.flood.u.opt" ,
+          "hist.drought.u.opt.heat.u.opt.flood.u.sub" ,
+          "hist.drought.u.sub.heat.u.sub.flood.u.opt" ,
+          "hist.drought.u.sub.heat.u.opt.flood.u.sub" ,
+          "hist.drought.u.opt.heat.u.sub.flood.u.sub" ,
+          "hist.drought.u.sub.heat.u.sub.flood.u.sub" ,
+          "hist.drought.u.heat.u.flood.u.max",
           
-          "future drought u opt heat u opt" ,
-          "future drought u sub heat u opt" ,
-          "future drought u opt heat u sub" ,
-          "future drought u sub heat u sub" ,
-          "future drought u heat u max",
+          "future.drought.u.opt.heat.u.opt" ,
+          "future.drought.u.sub.heat.u.opt" ,
+          "future.drought.u.opt.heat.u.sub" ,
+          "future.drought.u.sub.heat.u.sub" ,
+          "future.drought.u.heat.u.max",
           
-          "future drought u opt flood u opt",
-          "future drought u sub flood u opt" ,
-          "future drought u opt flood u sub" ,
-          "future drought u sub flood u sub" ,
-          "future drought u flood u max",
+          "future.drought.u.opt.flood.u.opt",
+          "future.drought.u.sub.flood.u.opt" ,
+          "future.drought.u.opt.flood.u.sub" ,
+          "future.drought.u.sub.flood.u.sub" ,
+          "future.drought.u.flood.u.max",
           
-          "future heat u opt flood u opt" ,
-          "future heat u sub flood u opt" ,
-          "future heat u opt flood u sub" ,
-          "future heat u sub flood u sub" ,
-          "future heat u flood u max",
+          "future.heat.u.opt.flood.u.opt" ,
+          "future.heat.u.sub.flood.u.opt" ,
+          "future.heat.u.opt.flood.u.sub" ,
+          "future.heat.u.sub.flood.u.sub" ,
+          "future.heat.u.flood.u.max",
           
-          "future drought u opt heat u opt flood u opt" ,
-          "future drought u sub heat u opt flood u opt" ,
-          "future drought u opt heat u sub flood u opt" ,
-          "future drought u opt heat u opt flood u sub" ,
-          "future drought u sub heat u sub flood u opt" ,
-          "future drought u sub heat u opt flood u sub" ,
-          "future drought u opt heat u sub flood u sub" ,
-          "future drought u sub heat u sub flood u sub",
-          "future drought u heat u flood u max",
+          "future.drought.u.opt.heat.u.opt.flood.u.opt" ,
+          "future.drought.u.sub.heat.u.opt.flood.u.opt" ,
+          "future.drought.u.opt.heat.u.sub.flood.u.opt" ,
+          "future.drought.u.opt.heat.u.opt.flood.u.sub" ,
+          "future.drought.u.sub.heat.u.sub.flood.u.opt" ,
+          "future.drought.u.sub.heat.u.opt.flood.u.sub" ,
+          "future.drought.u.opt.heat.u.sub.flood.u.sub" ,
+          "future.drought.u.sub.heat.u.sub.flood.u.sub",
+          "future.drought.u.heat.u.flood.u.max",
           
           #mixed thresholds
           
-          "hist drought l opt heat u opt",
-          "hist drought l sub heat u opt",
-          "hist drought l opt heat u sub",
-          "hist drought l sub heat u sub",
-          "hist drought l heat u max",
+          "hist.drought.l.opt.heat.u.opt",
+          "hist.drought.l.sub.heat.u.opt",
+          "hist.drought.l.opt.heat.u.sub",
+          "hist.drought.l.sub.heat.u.sub",
+          "hist.drought.l.heat.u.max",
           
-          "hist drought u opt heat l opt",
-          "hist drought u sub heat l opt",
-          "hist drought u opt heat l sub",
-          "hist drought u sub heat l sub",
-          "hist drought u heat l max",
+          "hist.drought.u.opt.heat.l.opt",
+          "hist.drought.u.sub.heat.l.opt",
+          "hist.drought.u.opt.heat.l.sub",
+          "hist.drought.u.sub.heat.l.sub",
+          "hist.drought.u.heat.l.max",
           
-          "hist drought l opt flood u opt",
-          "hist drought l sub flood u opt",
-          "hist drought l opt flood u sub",
-          "hist drought l sub flood u sub",
-          "hist drought l flood u max",
+          "hist.drought.l.opt.flood.u.opt",
+          "hist.drought.l.sub.flood.u.opt",
+          "hist.drought.l.opt.flood.u.sub",
+          "hist.drought.l.sub.flood.u.sub",
+          "hist.drought.l.flood.u.max",
           
-          "hist drought u opt flood l opt",
-          "hist drought u sub flood l opt",
-          "hist drought u opt flood l sub",
-          "hist drought u sub flood l sub",
-          "hist drought u flood l max",
+          "hist.drought.u.opt.flood.l.opt",
+          "hist.drought.u.sub.flood.l.opt",
+          "hist.drought.u.opt.flood.l.sub",
+          "hist.drought.u.sub.flood.l.sub",
+          "hist.drought.u.flood.l.max",
           
-          "hist heat l opt flood u opt",
-          "hist heat l sub flood u opt",
-          "hist heat l opt flood u sub",
-          "hist heat l sub flood u sub",
-          "hist heat l flood u max",
+          "hist.heat.l.opt.flood.u.opt",
+          "hist.heat.l.sub.flood.u.opt",
+          "hist.heat.l.opt.flood.u.sub",
+          "hist.heat.l.sub.flood.u.sub",
+          "hist.heat.l.flood.u.max",
           
-          "hist heat u opt flood l opt",
-          "hist heat u sub flood l opt",
-          "hist heat u opt flood l sub",
-          "hist heat u sub flood l sub",
-          "hist heat u flood l max",
+          "hist.heat.u.opt.flood.l.opt",
+          "hist.heat.u.sub.flood.l.opt",
+          "hist.heat.u.opt.flood.l.sub",
+          "hist.heat.u.sub.flood.l.sub",
+          "hist.heat.u.flood.l.max",
           
-          "hist drought l opt heat l opt flood u opt",
-          "hist drought l sub heat l opt flood u opt",
-          "hist drought l opt heat l sub flood u opt",
-          "hist drought l opt heat l opt flood u sub",
-          "hist drought l sub heat l sub flood u opt",
-          "hist drought l sub heat l opt flood u sub",
-          "hist drought l opt heat l sub flood u sub",
-          "hist drought l sub heat l sub flood u sub",
-          "hist drought l heat l flood u max",
+          "hist.drought.l.opt.heat.l.opt.flood.u.opt",
+          "hist.drought.l.sub.heat.l.opt.flood.u.opt",
+          "hist.drought.l.opt.heat.l.sub.flood.u.opt",
+          "hist.drought.l.opt.heat.l.opt.flood.u.sub",
+          "hist.drought.l.sub.heat.l.sub.flood.u.opt",
+          "hist.drought.l.sub.heat.l.opt.flood.u.sub",
+          "hist.drought.l.opt.heat.l.sub.flood.u.sub",
+          "hist.drought.l.sub.heat.l.sub.flood.u.sub",
+          "hist.drought.l.heat.l.flood.u.max",
           
-          "hist drought l opt heat u opt flood l opt",
-          "hist drought l sub heat u opt flood l opt",
-          "hist drought l opt heat u sub flood l opt",
-          "hist drought l opt heat u opt flood l sub",
-          "hist drought l sub heat u sub flood l opt",
-          "hist drought l sub heat u opt flood l sub",
-          "hist drought l opt heat u sub flood l sub",
-          "hist drought l sub heat u sub flood l sub",
-          "hist drought l heat u flood l max",
+          "hist.drought.l.opt.heat.u.opt.flood.l.opt",
+          "hist.drought.l.sub.heat.u.opt.flood.l.opt",
+          "hist.drought.l.opt.heat.u.sub.flood.l.opt",
+          "hist.drought.l.opt.heat.u.opt.flood.l.sub",
+          "hist.drought.l.sub.heat.u.sub.flood.l.opt",
+          "hist.drought.l.sub.heat.u.opt.flood.l.sub",
+          "hist.drought.l.opt.heat.u.sub.flood.l.sub",
+          "hist.drought.l.sub.heat.u.sub.flood.l.sub",
+          "hist.drought.l.heat.u.flood.l.max",
           
-          "hist drought u opt heat l opt flood u opt",
-          "hist drought u sub heat l opt flood u opt",
-          "hist drought u opt heat l sub flood u opt",
-          "hist drought u opt heat l opt flood u sub",
-          "hist drought u sub heat l sub flood u opt",
-          "hist drought u sub heat l opt flood u sub",
-          "hist drought u opt heat l sub flood u sub",
-          "hist drought u sub heat l sub flood u sub",
-          "hist drought u heat l flood u max",
+          "hist.drought.u.opt.heat.l.opt.flood.u.opt",
+          "hist.drought.u.sub.heat.l.opt.flood.u.opt",
+          "hist.drought.u.opt.heat.l.sub.flood.u.opt",
+          "hist.drought.u.opt.heat.l.opt.flood.u.sub",
+          "hist.drought.u.sub.heat.l.sub.flood.u.opt",
+          "hist.drought.u.sub.heat.l.opt.flood.u.sub",
+          "hist.drought.u.opt.heat.l.sub.flood.u.sub",
+          "hist.drought.u.sub.heat.l.sub.flood.u.sub",
+          "hist.drought.u.heat.l.flood.u.max",
           
-          "hist drought u opt heat l opt flood l opt",
-          "hist drought u sub heat l opt flood l opt",
-          "hist drought u opt heat l sub flood l opt",
-          "hist drought u opt heat l opt flood l sub",
-          "hist drought u sub heat l sub flood l opt",
-          "hist drought u sub heat l opt flood l sub",
-          "hist drought u opt heat l sub flood l sub",
-          "hist drought u sub heat l sub flood l sub",
-          "hist drought u heat l flood l max",
+          "hist.drought.u.opt.heat.l.opt.flood.l.opt",
+          "hist.drought.u.sub.heat.l.opt.flood.l.opt",
+          "hist.drought.u.opt.heat.l.sub.flood.l.opt",
+          "hist.drought.u.opt.heat.l.opt.flood.l.sub",
+          "hist.drought.u.sub.heat.l.sub.flood.l.opt",
+          "hist.drought.u.sub.heat.l.opt.flood.l.sub",
+          "hist.drought.u.opt.heat.l.sub.flood.l.sub",
+          "hist.drought.u.sub.heat.l.sub.flood.l.sub",
+          "hist.drought.u.heat.l.flood.l.max",
           
-          "hist drought u opt heat u opt flood l opt",
-          "hist drought u sub heat u opt flood l opt",
-          "hist drought u opt heat u sub flood l opt",
-          "hist drought u opt heat u opt flood l sub",
-          "hist drought u sub heat u sub flood l opt",
-          "hist drought u sub heat u opt flood l sub",
-          "hist drought u opt heat u sub flood l sub",
-          "hist drought u sub heat u sub flood l sub",
-          "hist drought u heat u flood l max",
+          "hist.drought.u.opt.heat.u.opt.flood.l.opt",
+          "hist.drought.u.sub.heat.u.opt.flood.l.opt",
+          "hist.drought.u.opt.heat.u.sub.flood.l.opt",
+          "hist.drought.u.opt.heat.u.opt.flood.l.sub",
+          "hist.drought.u.sub.heat.u.sub.flood.l.opt",
+          "hist.drought.u.sub.heat.u.opt.flood.l.sub",
+          "hist.drought.u.opt.heat.u.sub.flood.l.sub",
+          "hist.drought.u.sub.heat.u.sub.flood.l.sub",
+          "hist.drought.u.heat.u.flood.l.max",
           
-          "hist drought l opt heat u opt flood u opt",
-          "hist drought l sub heat u opt flood u opt",
-          "hist drought l opt heat u sub flood u opt",
-          "hist drought l opt heat u opt flood u sub",
-          "hist drought l sub heat u sub flood u opt",
-          "hist drought l sub heat u opt flood u sub",
-          "hist drought l opt heat u sub flood u sub",
-          "hist drought l sub heat u sub flood u sub",
-          "hist drought l heat u flood u max",
+          "hist.drought.l.opt.heat.u.opt.flood.u.opt",
+          "hist.drought.l.sub.heat.u.opt.flood.u.opt",
+          "hist.drought.l.opt.heat.u.sub.flood.u.opt",
+          "hist.drought.l.opt.heat.u.opt.flood.u.sub",
+          "hist.drought.l.sub.heat.u.sub.flood.u.opt",
+          "hist.drought.l.sub.heat.u.opt.flood.u.sub",
+          "hist.drought.l.opt.heat.u.sub.flood.u.sub",
+          "hist.drought.l.sub.heat.u.sub.flood.u.sub",
+          "hist.drought.l.heat.u.flood.u.max",
           
-          "future drought l opt heat u opt",
-          "future drought l sub heat u opt",
-          "future drought l opt heat u sub",
-          "future drought l sub heat u sub",
-          "future drought l heat u max",
+          "future.drought.l.opt.heat.u.opt",
+          "future.drought.l.sub.heat.u.opt",
+          "future.drought.l.opt.heat.u.sub",
+          "future.drought.l.sub.heat.u.sub",
+          "future.drought.l.heat.u.max",
           
-          "future drought u opt heat l opt",
-          "future drought u sub heat l opt",
-          "future drought u opt heat l sub",
-          "future drought u sub heat l sub",
-          "future drought u heat l max",
+          "future.drought.u.opt.heat.l.opt",
+          "future.drought.u.sub.heat.l.opt",
+          "future.drought.u.opt.heat.l.sub",
+          "future.drought.u.sub.heat.l.sub",
+          "future.drought.u.heat.l.max",
           
-          "future drought l opt flood u opt",
-          "future drought l sub flood u opt",
-          "future drought l opt flood u sub",
-          "future drought l sub flood u sub",
-          "future drought l flood u max",
+          "future.drought.l.opt.flood.u.opt",
+          "future.drought.l.sub.flood.u.opt",
+          "future.drought.l.opt.flood.u.sub",
+          "future.drought.l.sub.flood.u.sub",
+          "future.drought.l.flood.u.max",
           
-          "future drought u opt flood l opt",
-          "future drought u sub flood l opt",
-          "future drought u opt flood l sub",
-          "future drought u sub flood l sub",
-          "future drought u flood l max",
+          "future.drought.u.opt.flood.l.opt",
+          "future.drought.u.sub.flood.l.opt",
+          "future.drought.u.opt.flood.l.sub",
+          "future.drought.u.sub.flood.l.sub",
+          "future.drought.u.flood.l.max",
           
-          "future heat l opt flood u opt",
-          "future heat l sub flood u opt",
-          "future heat l opt flood u sub",
-          "future heat l sub flood u sub",
-          "future heat l flood u max",
+          "future.heat.l.opt.flood.u.opt",
+          "future.heat.l.sub.flood.u.opt",
+          "future.heat.l.opt.flood.u.sub",
+          "future.heat.l.sub.flood.u.sub",
+          "future.heat.l.flood.u.max",
           
-          "future heat u opt flood l opt",
-          "future heat u sub flood l opt",
-          "future heat u opt flood l sub",
-          "future heat u sub flood l sub",
-          "future heat u flood l max",
+          "future.heat.u.opt.flood.l.opt",
+          "future.heat.u.sub.flood.l.opt",
+          "future.heat.u.opt.flood.l.sub",
+          "future.heat.u.sub.flood.l.sub",
+          "future.heat.u.flood.l.max",
           
-          "future drought l opt heat l opt flood u opt",
-          "future drought l sub heat l opt flood u opt",
-          "future drought l opt heat l sub flood u opt",
-          "future drought l opt heat l opt flood u sub",
-          "future drought l sub heat l sub flood u opt",
-          "future drought l sub heat l opt flood u sub",
-          "future drought l opt heat l sub flood u sub",
-          "future drought l sub heat l sub flood u sub",
-          "future drought l heat l flood u max",
+          "future.drought.l.opt.heat.l.opt.flood.u.opt",
+          "future.drought.l.sub.heat.l.opt.flood.u.opt",
+          "future.drought.l.opt.heat.l.sub.flood.u.opt",
+          "future.drought.l.opt.heat.l.opt.flood.u.sub",
+          "future.drought.l.sub.heat.l.sub.flood.u.opt",
+          "future.drought.l.sub.heat.l.opt.flood.u.sub",
+          "future.drought.l.opt.heat.l.sub.flood.u.sub",
+          "future.drought.l.sub.heat.l.sub.flood.u.sub",
+          "future.drought.l.heat.l.flood.u.max",
           
-          "future drought l opt heat u opt flood l opt",
-          "future drought l sub heat u opt flood l opt",
-          "future drought l opt heat u sub flood l opt",
-          "future drought l opt heat u opt flood l sub",
-          "future drought l sub heat u sub flood l opt",
-          "future drought l sub heat u opt flood l sub",
-          "future drought l opt heat u sub flood l sub",
-          "future drought l sub heat u sub flood l sub",
-          "future drought l heat u flood l max",
+          "future.drought.l.opt.heat.u.opt.flood.l.opt",
+          "future.drought.l.sub.heat.u.opt.flood.l.opt",
+          "future.drought.l.opt.heat.u.sub.flood.l.opt",
+          "future.drought.l.opt.heat.u.opt.flood.l.sub",
+          "future.drought.l.sub.heat.u.sub.flood.l.opt",
+          "future.drought.l.sub.heat.u.opt.flood.l.sub",
+          "future.drought.l.opt.heat.u.sub.flood.l.sub",
+          "future.drought.l.sub.heat.u.sub.flood.l.sub",
+          "future.drought.l.heat.u.flood.l.max",
           
-          "future drought u opt heat l opt flood u opt",
-          "future drought u sub heat l opt flood u opt",
-          "future drought u opt heat l sub flood u opt",
-          "future drought u opt heat l opt flood u sub",
-          "future drought u sub heat l sub flood u opt",
-          "future drought u sub heat l opt flood u sub",
-          "future drought u opt heat l sub flood u sub",
-          "future drought u sub heat l sub flood u sub",
-          "future drought u heat l flood u max",
+          "future.drought.u.opt.heat.l.opt.flood.u.opt",
+          "future.drought.u.sub.heat.l.opt.flood.u.opt",
+          "future.drought.u.opt.heat.l.sub.flood.u.opt",
+          "future.drought.u.opt.heat.l.opt.flood.u.sub",
+          "future.drought.u.sub.heat.l.sub.flood.u.opt",
+          "future.drought.u.sub.heat.l.opt.flood.u.sub",
+          "future.drought.u.opt.heat.l.sub.flood.u.sub",
+          "future.drought.u.sub.heat.l.sub.flood.u.sub",
+          "future.drought.u.heat.l.flood.u.max",
           
-          "future drought u opt heat l opt flood l opt",
-          "future drought u sub heat l opt flood l opt",
-          "future drought u opt heat l sub flood l opt",
-          "future drought u opt heat l opt flood l sub",
-          "future drought u sub heat l sub flood l opt",
-          "future drought u sub heat l opt flood l sub",
-          "future drought u opt heat l sub flood l sub",
-          "future drought u sub heat l sub flood l sub",
-          "future drought u heat l flood l max",
+          "future.drought.u.opt.heat.l.opt.flood.l.opt",
+          "future.drought.u.sub.heat.l.opt.flood.l.opt",
+          "future.drought.u.opt.heat.l.sub.flood.l.opt",
+          "future.drought.u.opt.heat.l.opt.flood.l.sub",
+          "future.drought.u.sub.heat.l.sub.flood.l.opt",
+          "future.drought.u.sub.heat.l.opt.flood.l.sub",
+          "future.drought.u.opt.heat.l.sub.flood.l.sub",
+          "future.drought.u.sub.heat.l.sub.flood.l.sub",
+          "future.drought.u.heat.l.flood.l.max",
           
-          "future drought u opt heat u opt flood l opt",
-          "future drought u sub heat u opt flood l opt",
-          "future drought u opt heat u sub flood l opt",
-          "future drought u opt heat u opt flood l sub",
-          "future drought u sub heat u sub flood l opt",
-          "future drought u sub heat u opt flood l sub",
-          "future drought u opt heat u sub flood l sub",
-          "future drought u sub heat u sub flood l sub",
-          "future drought u heat u flood l max",
+          "future.drought.u.opt.heat.u.opt.flood.l.opt",
+          "future.drought.u.sub.heat.u.opt.flood.l.opt",
+          "future.drought.u.opt.heat.u.sub.flood.l.opt",
+          "future.drought.u.opt.heat.u.opt.flood.l.sub",
+          "future.drought.u.sub.heat.u.sub.flood.l.opt",
+          "future.drought.u.sub.heat.u.opt.flood.l.sub",
+          "future.drought.u.opt.heat.u.sub.flood.l.sub",
+          "future.drought.u.sub.heat.u.sub.flood.l.sub",
+          "future.drought.u.heat.u.flood.l.max",
           
-          "future drought l opt heat u opt flood u opt",
-          "future drought l sub heat u opt flood u opt",
-          "future drought l opt heat u sub flood u opt",
-          "future drought l opt heat u opt flood u sub",
-          "future drought l sub heat u sub flood u opt",
-          "future drought l sub heat u opt flood u sub",
-          "future drought l opt heat u sub flood u sub",
-          "future drought l sub heat u sub flood u sub",
-          "future drought l heat u flood u max"
+          "future.drought.l.opt.heat.u.opt.flood.u.opt",
+          "future.drought.l.sub.heat.u.opt.flood.u.opt",
+          "future.drought.l.opt.heat.u.sub.flood.u.opt",
+          "future.drought.l.opt.heat.u.opt.flood.u.sub",
+          "future.drought.l.sub.heat.u.sub.flood.u.opt",
+          "future.drought.l.sub.heat.u.opt.flood.u.sub",
+          "future.drought.l.opt.heat.u.sub.flood.u.sub",
+          "future.drought.l.sub.heat.u.sub.flood.u.sub",
+          "future.drought.l.heat.u.flood.u.max"
         )
-      )
+      ) %>% wrap()
   }
 
-# results in rB_impact_file
-rB_impact_file_make_f <- function(rB_impact, ISO, crop) {
-  filenames <- file.path(paste0("data/", ISO, "/", crop, "/rB_impact_", names(rB_impact), ".tif"))
-  rast(rB_impact) %>%
+# results in rast_impact_file
+rast_impact_file_make_f <- function(rast_impact, ISO, crop) {
+  filenames <- file.path(paste0("data/", ISO, "/", crop, "/rast_impact_", names(unwrap(rast_impact)), ".tif"))
+  unwrap(rast_impact) %>%
     writeRaster(
       filenames,
       #paste0("data/", ISO, "/", crop, "/rB_impact.tif"),
@@ -7271,56 +7778,63 @@ rB_impact_file_make_f <- function(rB_impact, ISO, crop) {
 
 ### Reload impact raster files
 
+# results in impact_cat_table
+impact_cat_table_make_f <-
+  function() {
+    tibble(id=c(0, 1, 2, 3, 4, 5, 6,7, 8), risk_cat = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix"))
+  }
+
+
 ##### Past Lower threshold
 
 # results in rast_droughtc_l_heatc_l_max
 rast_droughtc_l_heatc_l_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.l.heat.l.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_hist.drought.l.heat.l.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
 }
 
 # results in rast_droughtc_l_floodc_l_max
 rast_droughtc_l_floodc_l_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.l.flood.l.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_hist.drought.l.flood.l.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
 }
 
 # results in rast_heatc_l_floodc_l_max
 rast_heatc_l_floodc_l_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.heat.l.flood.l.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_hist.heat.l.flood.l.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
 }
  
 # results in rast_droughtc_l_heatc_l_floodc_l_max
 rast_droughtc_l_heatc_l_floodc_l_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.l.heat.l.flood.l.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_hist.drought.l.heat.l.flood.l.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
   }
 
 ##### Past Upper threshold
 
 # results in rast_droughtc_u_heatc_u_max
 rast_droughtc_u_heatc_u_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.u.heat.u.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_hist.drought.u.heat.u.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
   }
 
 # results in rast_droughtc_u_floodc_u_max
 rast_droughtc_u_floodc_u_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.u.flood.u.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_hist.drought.u.flood.u.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
   }
 
 # results in rast_heatc_u_floodc_u_max
 rast_heatc_u_floodc_u_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.heat.u.flood.u.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_hist.heat.u.flood.u.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
   }
 
 # results in rast_droughtc_u_heatc_u_floodc_u_max
 rast_droughtc_u_heatc_u_floodc_u_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.u.heat.u.flood.u.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_hist.drought.u.heat.u.flood.u.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
   }   
 
 
@@ -7328,126 +7842,126 @@ rast_droughtc_u_heatc_u_floodc_u_max_get_f <-
 
 # results in rast_droughtc_l_heatc_u_max
 rast_droughtc_l_heatc_u_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.l.heat.u.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_hist.drought.l.heat.u.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
   }
 
 # results in rast_droughtc_u_heatc_l_max
 rast_droughtc_u_heatc_l_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.u.heat.l.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_hist.drought.u.heat.l.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
   }
 
 # results in rast_droughtc_l_floodc_u_max
 rast_droughtc_l_floodc_u_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.l.flood.u.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_hist.drought.l.flood.u.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
   }
 
 # results in rast_droughtc_u_floodc_l_max
 rast_droughtc_u_floodc_l_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.u.flood.l.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_hist.drought.u.flood.l.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
   }
 
 # results in rast_heatc_l_floodc_u_max
 rast_heatc_l_floodc_u_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.heat.l.flood.u.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_hist.heat.l.flood.u.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
   }
 
 # results in rast_heatc_u_floodc_l_max
 rast_heatc_u_floodc_l_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.heat.u.flood.l.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_hist.heat.u.flood.l.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
   }
 
 # results in rast_droughtc_l_heatc_l_floodc_u_max
 rast_droughtc_l_heatc_l_floodc_u_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.l.heat.l.flood.u.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_hist.drought.l.heat.l.flood.u.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
   }  
 
 # results in rast_droughtc_l_heatc_u_floodc_l_max
 rast_droughtc_l_heatc_u_floodc_l_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.l.heat.u.flood.l.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_hist.drought.l.heat.u.flood.l.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
   }  
 
 # results in rast_droughtc_u_heatc_l_floodc_l_max
 rast_droughtc_u_heatc_l_floodc_l_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.u.heat.l.flood.l.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_hist.drought.u.heat.l.flood.l.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
   }  
 
 # results in rast_droughtc_l_heatc_u_floodc_u_max
 rast_droughtc_l_heatc_u_floodc_u_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.l.heat.u.flood.u.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_hist.drought.l.heat.u.flood.u.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
   }  
 
 # results in rast_droughtc_u_heatc_l_floodc_u_max
 rast_droughtc_u_heatc_l_floodc_u_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.u.heat.l.flood.u.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_hist.drought.u.heat.l.flood.u.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
   }  
 
 # results in rast_droughtc_u_heatc_u_floodc_l_max
 rast_droughtc_u_heatc_u_floodc_l_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_hist.drought.u.heat.u.flood.l.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_hist.drought.u.heat.u.flood.l.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
   }  
 
 ##### Future Lower threshold
 
 # results in rast_droughtf_l_heatf_l_max
 rast_droughtf_l_heatf_l_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.l.heat.l.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_future.drought.l.heat.l.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
   }
 
 # results in rast_droughtf_l_floodf_l_max
 rast_droughtf_l_floodf_l_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.l.flood.l.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_future.drought.l.flood.l.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
   }
 
 # results in rast_heatf_l_floodf_l_max
 rast_heatf_l_floodf_l_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.heat.l.flood.l.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_future.heat.l.flood.l.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
   }
 
 # results in rast_droughtf_l_heatf_l_floodf_l_max
 rast_droughtf_l_heatf_l_floodf_l_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.l.heat.l.flood.l.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_future.drought.l.heat.l.flood.l.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
   }
 
 ##### Future Upper threshold
 
 # results in rast_droughtf_u_heatf_u_max
 rast_droughtf_u_heatf_u_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.u.heat.u.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_future.drought.u.heat.u.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
   }
 
 # results in rast_droughtf_u_floodf_u_max
 rast_droughtf_u_floodf_u_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.u.flood.u.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_future.drought.u.flood.u.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
   }
 
 # results in rast_heatf_u_floodf_u_max
 rast_heatf_u_floodf_u_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.heat.u.flood.u.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_future.heat.u.flood.u.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
   }
 
 # results in rast_droughtf_u_heatf_u_floodf_u_max
 rast_droughtf_u_heatf_u_floodf_u_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.u.heat.u.flood.u.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_future.drought.u.heat.u.flood.u.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
   }   
 
 
@@ -7455,78 +7969,79 @@ rast_droughtf_u_heatf_u_floodf_u_max_get_f <-
 
 # results in rast_droughtf_l_heatf_u_max
 rast_droughtf_l_heatf_u_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.l.heat.u.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_future.drought.l.heat.u.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
   }
 
 # results in rast_droughtf_u_heatf_l_max
 rast_droughtf_u_heatf_l_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.u.heat.l.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_future.drought.u.heat.l.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
   }
 
 # results in rast_droughtf_l_floodf_u_max
 rast_droughtf_l_floodf_u_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.l.flood.u.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_future.drought.l.flood.u.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
   }
 
 # results in rast_droughtf_u_floodf_l_max
 rast_droughtf_u_floodf_l_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.u.flood.l.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_future.drought.u.flood.l.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
   }
 
 # results in rast_heatf_l_floodf_u_max
 rast_heatf_l_floodf_u_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.heat.l.flood.u.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_future.heat.l.flood.u.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
   }
 
 # results in rast_heatf_u_floodf_l_max
 rast_heatf_u_floodf_l_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.heat.u.flood.l.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_future.heat.u.flood.l.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
   }
 
 # results in rast_droughtf_l_heatf_l_floodf_u_max
 rast_droughtf_l_heatf_l_floodf_u_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.l.heat.l.flood.u.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_future.drought.l.heat.l.flood.u.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
   }  
 
 # results in rast_droughtf_l_heatf_u_floodf_l_max
 rast_droughtf_l_heatf_u_floodf_l_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.l.heat.u.flood.l.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_future.drought.l.heat.u.flood.l.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
   }  
 
 # results in rast_droughtf_u_heatf_l_floodf_l_max
 rast_droughtf_u_heatf_l_floodf_l_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.u.heat.l.flood.l.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_future.drought.u.heat.l.flood.l.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
   }  
 
 # results in rast_droughtf_l_heatf_u_floodf_u_max
 rast_droughtf_l_heatf_u_floodf_u_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.l.heat.u.flood.u.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_future.drought.l.heat.u.flood.u.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
   }  
 
 # results in rast_droughtf_u_heatf_l_floodf_u_max
 rast_droughtf_u_heatf_l_floodf_u_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.u.heat.l.flood.u.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_future.drought.u.heat.l.flood.u.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
   }  
 
 # results in rast_droughtf_u_heatf_u_floodf_l_max
 rast_droughtf_u_heatf_u_floodf_l_max_get_f <-
-  function(rB_impact_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rB_impact_future.drought.u.heat.u.flood.l.max.tif")) %>% wrap()
+  function(rast_impact_file, ISO, crop, impact_cat_table) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_impact_future.drought.u.heat.u.flood.l.max.tif")) %>% `levels<-`(impact_cat_table) %>% wrap()
   } 
 
 
 ### Plot Spatial Impact Data
+
 
 #### Past climate
 #### Lower thresholds
@@ -7535,39 +8050,63 @@ rast_droughtf_u_heatf_u_floodf_l_max_get_f <-
 rast_droughtc_l_heatc_l_max_plot_f <-
   function(rast_droughtc_l_heatc_l_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
 
-    gplot(unwrap(rast_droughtc_l_heatc_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
-      geom_sf(
+#    gplot(unwrap(rast_droughtc_l_heatc_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+#      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+#                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_droughtc_l_heatc_l_max), aes(fill = risk_cat), alpha = 1) +
+    geom_sf(
         data = world,
         fill = NA,
         col = 'dark grey',
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -7588,8 +8127,8 @@ rast_droughtc_l_heatc_l_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nPast\n",
@@ -7615,15 +8154,18 @@ rast_droughtc_l_heatc_l_max_plot_f <-
 rast_droughtc_l_floodc_l_max_plot_f <-
   function(rast_droughtc_l_floodc_l_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
-    gplot(unwrap(rast_droughtc_l_floodc_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+#    gplot(unwrap(rast_droughtc_l_floodc_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+#      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+#                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_droughtc_l_floodc_l_max), aes(fill = risk_cat), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -7631,22 +8173,43 @@ rast_droughtc_l_floodc_l_max_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -7667,8 +8230,8 @@ rast_droughtc_l_floodc_l_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nPast\n",
@@ -7694,15 +8257,18 @@ rast_droughtc_l_floodc_l_max_plot_f <-
 rast_heatc_l_floodc_l_max_plot_f <-
   function(rast_heatc_l_floodc_l_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
-    gplot(unwrap(rast_heatc_l_floodc_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+#    gplot(unwrap(rast_heatc_l_floodc_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+#      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+#                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_heatc_l_floodc_l_max), aes(fill = risk_cat), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -7710,22 +8276,43 @@ rast_heatc_l_floodc_l_max_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -7746,8 +8333,8 @@ rast_heatc_l_floodc_l_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nPast\n",
@@ -7774,15 +8361,18 @@ rast_heatc_l_floodc_l_max_plot_f <-
 rast_droughtc_l_heatc_l_floodc_l_max_plot_f <-
   function(rast_droughtc_l_heatc_l_floodc_l_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
-    gplot(unwrap(rast_droughtc_l_heatc_l_floodc_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+#    gplot(unwrap(rast_droughtc_l_heatc_l_floodc_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+#      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+#                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_droughtc_l_heatc_l_floodc_l_max), aes(fill = risk_cat), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -7790,22 +8380,43 @@ rast_droughtc_l_heatc_l_floodc_l_max_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -7826,8 +8437,8 @@ rast_droughtc_l_heatc_l_floodc_l_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nPast\n",
@@ -7858,15 +8469,18 @@ rast_droughtc_l_heatc_l_floodc_l_max_plot_f <-
 rast_droughtc_u_heatc_u_max_plot_f <-
   function(rast_droughtc_u_heatc_u_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
-    gplot(unwrap(rast_droughtc_u_heatc_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+#    gplot(unwrap(rast_droughtc_u_heatc_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+#      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+#                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_droughtc_u_heatc_u_max), aes(fill = risk_cat), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -7874,22 +8488,43 @@ rast_droughtc_u_heatc_u_max_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -7910,8 +8545,8 @@ rast_droughtc_u_heatc_u_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nPast\n",
@@ -7937,15 +8572,18 @@ rast_droughtc_u_heatc_u_max_plot_f <-
 rast_droughtc_u_floodc_u_max_plot_f <-
   function(rast_droughtc_u_floodc_u_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
-    gplot(unwrap(rast_droughtc_u_floodc_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+#    gplot(unwrap(rast_droughtc_u_floodc_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+#     geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+#                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_droughtc_u_floodc_u_max), aes(fill = risk_cat), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -7953,22 +8591,43 @@ rast_droughtc_u_floodc_u_max_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -7989,8 +8648,8 @@ rast_droughtc_u_floodc_u_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nPast\n",
@@ -8016,15 +8675,18 @@ rast_droughtc_u_floodc_u_max_plot_f <-
 rast_heatc_u_floodc_u_max_plot_f <-
   function(rast_heatc_u_floodc_u_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
-    gplot(unwrap(rast_heatc_u_floodc_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+#    gplot(unwrap(rast_heatc_u_floodc_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+#      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+#                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_heatc_u_floodc_u_max), aes(fill = risk_cat), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -8032,22 +8694,43 @@ rast_heatc_u_floodc_u_max_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -8068,8 +8751,8 @@ rast_heatc_u_floodc_u_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nPast\n",
@@ -8096,15 +8779,18 @@ rast_heatc_u_floodc_u_max_plot_f <-
 rast_droughtc_u_heatc_u_floodc_u_max_plot_f <-
   function(rast_droughtc_u_heatc_u_floodc_u_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
-    gplot(unwrap(rast_droughtc_u_heatc_u_floodc_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+    # gplot(unwrap(rast_droughtc_u_heatc_u_floodc_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #   geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+    #                               labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_droughtc_u_heatc_u_floodc_u_max), aes(fill = risk_cat), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -8112,22 +8798,43 @@ rast_droughtc_u_heatc_u_floodc_u_max_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -8148,8 +8855,8 @@ rast_droughtc_u_heatc_u_floodc_u_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nPast\n",
@@ -8181,16 +8888,19 @@ rast_droughtc_u_heatc_u_floodc_u_max_plot_f <-
 rast_droughtc_l_heatc_u_max_plot_f <-
   function(rast_droughtc_l_heatc_u_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
     
-    gplot(unwrap(rast_droughtc_l_heatc_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+    # gplot(unwrap(rast_droughtc_l_heatc_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #   geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+    #                               labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_droughtc_l_heatc_u_max), aes(fill = risk_cat), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -8198,22 +8908,43 @@ rast_droughtc_l_heatc_u_max_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -8234,8 +8965,8 @@ rast_droughtc_l_heatc_u_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nPast\n",
@@ -8264,16 +8995,19 @@ rast_droughtc_l_heatc_u_max_plot_f <-
 rast_droughtc_u_heatc_l_max_plot_f <-
   function(rast_droughtc_u_heatc_l_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
     
-    gplot(unwrap(rast_droughtc_u_heatc_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+    # gplot(unwrap(rast_droughtc_u_heatc_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #   geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+    #                               labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_droughtc_u_heatc_l_max), aes(fill = risk_cat), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -8281,22 +9015,43 @@ rast_droughtc_u_heatc_l_max_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -8317,8 +9072,8 @@ rast_droughtc_u_heatc_l_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nPast\n",
@@ -8345,16 +9100,19 @@ rast_droughtc_u_heatc_l_max_plot_f <-
 rast_droughtc_l_floodc_u_max_plot_f <-
   function(rast_droughtc_l_floodc_u_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
     
-    gplot(unwrap(rast_droughtc_l_floodc_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+    # gplot(unwrap(rast_droughtc_l_floodc_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #   geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+    #                               labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_droughtc_l_floodc_u_max), aes(fill = risk_cat), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -8362,22 +9120,43 @@ rast_droughtc_l_floodc_u_max_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -8398,8 +9177,8 @@ rast_droughtc_l_floodc_u_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nPast\n",
@@ -8425,16 +9204,19 @@ rast_droughtc_l_floodc_u_max_plot_f <-
 rast_droughtc_u_floodc_l_max_plot_f <-
   function(rast_droughtc_u_floodc_l_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
     
-    gplot(unwrap(rast_droughtc_u_floodc_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+    # gplot(unwrap(rast_droughtc_u_floodc_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #   geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+    #                               labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_droughtc_u_floodc_l_max), aes(fill = risk_cat), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -8442,22 +9224,43 @@ rast_droughtc_u_floodc_l_max_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -8478,8 +9281,8 @@ rast_droughtc_u_floodc_l_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nPast\n",
@@ -8506,16 +9309,19 @@ rast_droughtc_u_floodc_l_max_plot_f <-
 rast_heatc_l_floodc_u_max_plot_f <-
   function(rast_heatc_l_floodc_u_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
     
-    gplot(unwrap(rast_heatc_l_floodc_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+    # gplot(unwrap(rast_heatc_l_floodc_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #   geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+    #                               labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_heatc_l_floodc_u_max), aes(fill = risk_cat), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -8523,22 +9329,43 @@ rast_heatc_l_floodc_u_max_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -8559,8 +9386,8 @@ rast_heatc_l_floodc_u_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nPast\n",
@@ -8588,16 +9415,19 @@ rast_heatc_l_floodc_u_max_plot_f <-
 rast_heatc_u_floodc_l_max_plot_f <-
   function(rast_heatc_u_floodc_l_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
     
-    gplot(unwrap(rast_heatc_u_floodc_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+    # gplot(unwrap(rast_heatc_u_floodc_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #   geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+    #                               labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_heatc_u_floodc_l_max), aes(fill = risk_cat), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -8605,22 +9435,43 @@ rast_heatc_u_floodc_l_max_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -8641,8 +9492,8 @@ rast_heatc_u_floodc_l_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nPast\n",
@@ -8667,16 +9518,19 @@ rast_heatc_u_floodc_l_max_plot_f <-
 rast_droughtc_l_heatc_l_floodc_u_max_plot_f <-
   function(rast_droughtc_l_heatc_l_floodc_u_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
     
-    gplot(unwrap(rast_droughtc_l_heatc_l_floodc_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+    # gplot(unwrap(rast_droughtc_l_heatc_l_floodc_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #   geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+    #                               labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_droughtc_l_heatc_l_floodc_u_max), aes(fill = risk_cat), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -8684,22 +9538,43 @@ rast_droughtc_l_heatc_l_floodc_u_max_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -8720,8 +9595,8 @@ rast_droughtc_l_heatc_l_floodc_u_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nPast\n",
@@ -8748,16 +9623,19 @@ rast_droughtc_l_heatc_l_floodc_u_max_plot_f <-
 rast_droughtc_l_heatc_u_floodc_l_max_plot_f <-
   function(rast_droughtc_l_heatc_u_floodc_l_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
     
-    gplot(unwrap(rast_droughtc_l_heatc_u_floodc_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+    # gplot(unwrap(rast_droughtc_l_heatc_u_floodc_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #   geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+    #                               labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_droughtc_l_heatc_u_floodc_l_max), aes(fill = risk_cat), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -8765,22 +9643,43 @@ rast_droughtc_l_heatc_u_floodc_l_max_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -8801,8 +9700,8 @@ rast_droughtc_l_heatc_u_floodc_l_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nPast\n",
@@ -8829,16 +9728,19 @@ rast_droughtc_l_heatc_u_floodc_l_max_plot_f <-
 rast_droughtc_u_heatc_l_floodc_l_max_plot_f <-
   function(rast_droughtc_u_heatc_l_floodc_l_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
     
-    gplot(unwrap(rast_droughtc_u_heatc_l_floodc_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+    # gplot(unwrap(rast_droughtc_u_heatc_l_floodc_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #   geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+    #                               labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_droughtc_u_heatc_l_floodc_l_max), aes(fill = risk_cat), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -8846,22 +9748,43 @@ rast_droughtc_u_heatc_l_floodc_l_max_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+     # geom_sf(
+    #    data = unwrap(vect_ISO1),
+    #    fill = NA,
+    #    col = 'black',
+    #    na.rm = TRUE,
+    #    inherit.aes = FALSE
+    #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -8882,8 +9805,8 @@ rast_droughtc_u_heatc_l_floodc_l_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nPast\n",
@@ -8910,16 +9833,19 @@ rast_droughtc_u_heatc_l_floodc_l_max_plot_f <-
 rast_droughtc_l_heatc_u_floodc_u_max_plot_f <-
   function(rast_droughtc_l_heatc_u_floodc_u_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
     
-    gplot(unwrap(rast_droughtc_l_heatc_u_floodc_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+    # gplot(unwrap(rast_droughtc_l_heatc_u_floodc_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #   geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+    #                               labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_droughtc_l_heatc_u_floodc_u_max), aes(fill = risk_cat), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -8927,22 +9853,43 @@ rast_droughtc_l_heatc_u_floodc_u_max_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -8963,8 +9910,8 @@ rast_droughtc_l_heatc_u_floodc_u_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nPast\n",
@@ -8991,16 +9938,19 @@ rast_droughtc_l_heatc_u_floodc_u_max_plot_f <-
 rast_droughtc_u_heatc_l_floodc_u_max_plot_f <-
   function(rast_droughtc_u_heatc_l_floodc_u_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
     
-    gplot(unwrap(rast_droughtc_u_heatc_l_floodc_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+    # gplot(unwrap(rast_droughtc_u_heatc_l_floodc_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #   geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+    #                               labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_droughtc_u_heatc_l_floodc_u_max), aes(fill = risk_cat), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -9008,22 +9958,43 @@ rast_droughtc_u_heatc_l_floodc_u_max_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -9044,8 +10015,8 @@ rast_droughtc_u_heatc_l_floodc_u_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nPast\n",
@@ -9072,16 +10043,19 @@ rast_droughtc_u_heatc_l_floodc_u_max_plot_f <-
 rast_droughtc_u_heatc_u_floodc_l_max_plot_f <-
   function(rast_droughtc_u_heatc_u_floodc_l_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
     
-    gplot(unwrap(rast_droughtc_u_heatc_u_floodc_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+    # gplot(unwrap(rast_droughtc_u_heatc_u_floodc_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #   geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+    #                               labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_droughtc_u_heatc_u_floodc_l_max), aes(fill = risk_cat), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -9089,22 +10063,43 @@ rast_droughtc_u_heatc_u_floodc_l_max_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -9125,8 +10120,8 @@ rast_droughtc_u_heatc_u_floodc_l_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nPast\n",
@@ -9156,16 +10151,19 @@ rast_droughtc_u_heatc_u_floodc_l_max_plot_f <-
 rast_droughtf_l_heatf_l_max_plot_f <-
   function(rast_droughtf_l_heatf_l_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
     
-    gplot(unwrap(rast_droughtf_l_heatf_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+    # gplot(unwrap(rast_droughtf_l_heatf_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #   geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+    #                               labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_droughtf_l_heatf_l_max), aes(fill = risk_cat), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -9173,22 +10171,43 @@ rast_droughtf_l_heatf_l_max_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -9209,8 +10228,8 @@ rast_droughtf_l_heatf_l_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nFuture\n",
@@ -9236,15 +10255,18 @@ rast_droughtf_l_heatf_l_max_plot_f <-
 rast_droughtf_l_floodf_l_max_plot_f <-
   function(rast_droughtf_l_floodf_l_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
-    gplot(unwrap(rast_droughtf_l_floodf_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+    # gplot(unwrap(rast_droughtf_l_floodf_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #   geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+    #                               labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_droughtf_l_floodf_l_max), aes(fill = risk_cat), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -9252,22 +10274,43 @@ rast_droughtf_l_floodf_l_max_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -9288,8 +10331,8 @@ rast_droughtf_l_floodf_l_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nFuture\n",
@@ -9315,15 +10358,18 @@ rast_droughtf_l_floodf_l_max_plot_f <-
 rast_heatf_l_floodf_l_max_plot_f <-
   function(rast_heatf_l_floodf_l_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
-    gplot(unwrap(rast_heatf_l_floodf_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+    # gplot(unwrap(rast_heatf_l_floodf_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #   geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+    #                               labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_heatf_l_floodf_l_max), aes(fill = risk_cat), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -9331,22 +10377,43 @@ rast_heatf_l_floodf_l_max_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -9367,8 +10434,8 @@ rast_heatf_l_floodf_l_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nFuture\n",
@@ -9395,15 +10462,18 @@ rast_heatf_l_floodf_l_max_plot_f <-
 rast_droughtf_l_heatf_l_floodf_l_max_plot_f <-
   function(rast_droughtf_l_heatf_l_floodf_l_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
-    gplot(unwrap(rast_droughtf_l_heatf_l_floodf_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+    # gplot(unwrap(rast_droughtf_l_heatf_l_floodf_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #   geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+    #                               labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_droughtf_l_heatf_l_floodf_l_max), aes(fill = risk_cat), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -9411,22 +10481,43 @@ rast_droughtf_l_heatf_l_floodf_l_max_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -9447,8 +10538,8 @@ rast_droughtf_l_heatf_l_floodf_l_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nFuture\n",
@@ -9479,15 +10570,18 @@ rast_droughtf_l_heatf_l_floodf_l_max_plot_f <-
 rast_droughtf_u_heatf_u_max_plot_f <-
   function(rast_droughtf_u_heatf_u_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
-    gplot(unwrap(rast_droughtf_u_heatf_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+    # gplot(unwrap(rast_droughtf_u_heatf_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #   geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+    #                               labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_droughtf_u_heatf_u_max), aes(fill = risk_cat), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -9495,22 +10589,43 @@ rast_droughtf_u_heatf_u_max_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -9531,8 +10646,8 @@ rast_droughtf_u_heatf_u_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nFuture\n",
@@ -9558,15 +10673,18 @@ rast_droughtf_u_heatf_u_max_plot_f <-
 rast_droughtf_u_floodf_u_max_plot_f <-
   function(rast_droughtf_u_floodf_u_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
-    gplot(unwrap(rast_droughtf_u_floodf_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+    # gplot(unwrap(rast_droughtf_u_floodf_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #   geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+    #                               labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_droughtf_u_floodf_u_max), aes(fill = risk_cat), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -9574,22 +10692,43 @@ rast_droughtf_u_floodf_u_max_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -9610,8 +10749,8 @@ rast_droughtf_u_floodf_u_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nFuture\n",
@@ -9637,15 +10776,18 @@ rast_droughtf_u_floodf_u_max_plot_f <-
 rast_heatf_u_floodf_u_max_plot_f <-
   function(rast_heatf_u_floodf_u_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
-    gplot(unwrap(rast_heatf_u_floodf_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      # gplot(unwrap(rast_heatf_u_floodf_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+      # geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+      #                             labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+    ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_heatf_u_floodf_u_max), aes(fill = risk_cat), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -9653,22 +10795,43 @@ rast_heatf_u_floodf_u_max_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -9689,8 +10852,8 @@ rast_heatf_u_floodf_u_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nFuture\n",
@@ -9717,15 +10880,18 @@ rast_heatf_u_floodf_u_max_plot_f <-
 rast_droughtf_u_heatf_u_floodf_u_max_plot_f <-
   function(rast_droughtf_u_heatf_u_floodf_u_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
-    gplot(unwrap(rast_droughtf_u_heatf_u_floodf_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+    # gplot(unwrap(rast_droughtf_u_heatf_u_floodf_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #   geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+    #                               labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_droughtf_u_heatf_u_floodf_u_max), aes(fill = risk_cat), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -9733,22 +10899,43 @@ rast_droughtf_u_heatf_u_floodf_u_max_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -9769,8 +10956,8 @@ rast_droughtf_u_heatf_u_floodf_u_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nFuture\n",
@@ -9802,16 +10989,19 @@ rast_droughtf_u_heatf_u_floodf_u_max_plot_f <-
 rast_droughtf_l_heatf_u_max_plot_f <-
   function(rast_droughtf_l_heatf_u_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
     
-    gplot(unwrap(rast_droughtf_l_heatf_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+    # gplot(unwrap(rast_droughtf_l_heatf_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #   geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+    #                               labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_droughtf_l_heatf_u_max), aes(fill = risk_cat), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -9819,22 +11009,43 @@ rast_droughtf_l_heatf_u_max_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -9855,8 +11066,8 @@ rast_droughtf_l_heatf_u_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nFuture\n",
@@ -9885,16 +11096,19 @@ rast_droughtf_l_heatf_u_max_plot_f <-
 rast_droughtf_u_heatf_l_max_plot_f <-
   function(rast_droughtf_u_heatf_l_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
     
-    gplot(unwrap(rast_droughtf_u_heatf_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+    # gplot(unwrap(rast_droughtf_u_heatf_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #   geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+    #                               labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_droughtf_u_heatf_l_max), aes(fill = risk_cat), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -9902,22 +11116,43 @@ rast_droughtf_u_heatf_l_max_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -9938,8 +11173,8 @@ rast_droughtf_u_heatf_l_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nFuture\n",
@@ -9966,16 +11201,19 @@ rast_droughtf_u_heatf_l_max_plot_f <-
 rast_droughtf_l_floodf_u_max_plot_f <-
   function(rast_droughtf_l_floodf_u_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
     
-    gplot(unwrap(rast_droughtf_l_floodf_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+    # gplot(unwrap(rast_droughtf_l_floodf_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #   geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+    #                               labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_droughtf_l_floodf_u_max), aes(fill = risk_cat), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -9983,22 +11221,43 @@ rast_droughtf_l_floodf_u_max_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -10019,8 +11278,8 @@ rast_droughtf_l_floodf_u_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nFuture\n",
@@ -10046,16 +11305,19 @@ rast_droughtf_l_floodf_u_max_plot_f <-
 rast_droughtf_u_floodf_l_max_plot_f <-
   function(rast_droughtf_u_floodf_l_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
     
-    gplot(unwrap(rast_droughtf_u_floodf_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+    # gplot(unwrap(rast_droughtf_u_floodf_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #   geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+    #                               labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_droughtf_u_floodf_l_max), aes(fill = risk_cat), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -10063,22 +11325,43 @@ rast_droughtf_u_floodf_l_max_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -10099,8 +11382,8 @@ rast_droughtf_u_floodf_l_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nFuture\n",
@@ -10127,16 +11410,19 @@ rast_droughtf_u_floodf_l_max_plot_f <-
 rast_heatf_l_floodf_u_max_plot_f <-
   function(rast_heatf_l_floodf_u_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
     
-    gplot(unwrap(rast_heatf_l_floodf_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+    # gplot(unwrap(rast_heatf_l_floodf_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #   geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+    #                               labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_heatf_l_floodf_u_max), aes(fill = risk_cat), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -10144,22 +11430,43 @@ rast_heatf_l_floodf_u_max_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -10180,8 +11487,8 @@ rast_heatf_l_floodf_u_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nFuture\n",
@@ -10209,16 +11516,19 @@ rast_heatf_l_floodf_u_max_plot_f <-
 rast_heatf_u_floodf_l_max_plot_f <-
   function(rast_heatf_u_floodf_l_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
     
-    gplot(unwrap(rast_heatf_u_floodf_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      # gplot(unwrap(rast_heatf_u_floodf_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+      # geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+      #                             labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+    ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_heatf_u_floodf_l_max), aes(fill = risk_cat), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -10226,22 +11536,43 @@ rast_heatf_u_floodf_l_max_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -10262,8 +11593,8 @@ rast_heatf_u_floodf_l_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nFuture\n",
@@ -10288,16 +11619,19 @@ rast_heatf_u_floodf_l_max_plot_f <-
 rast_droughtf_l_heatf_l_floodf_u_max_plot_f <-
   function(rast_droughtf_l_heatf_l_floodf_u_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
     
-    gplot(unwrap(rast_droughtf_l_heatf_l_floodf_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+    # gplot(unwrap(rast_droughtf_l_heatf_l_floodf_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #   geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+    #                               labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_droughtf_l_heatf_l_floodf_u_max), aes(fill = risk_cat), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -10305,22 +11639,43 @@ rast_droughtf_l_heatf_l_floodf_u_max_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -10341,8 +11696,8 @@ rast_droughtf_l_heatf_l_floodf_u_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nFuture\n",
@@ -10369,16 +11724,19 @@ rast_droughtf_l_heatf_l_floodf_u_max_plot_f <-
 rast_droughtf_l_heatf_u_floodf_l_max_plot_f <-
   function(rast_droughtf_l_heatf_u_floodf_l_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
     
-    gplot(unwrap(rast_droughtf_l_heatf_u_floodf_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+    # gplot(unwrap(rast_droughtf_l_heatf_u_floodf_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #   geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+    #                               labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_droughtf_l_heatf_u_floodf_l_max), aes(fill = risk_cat), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -10386,22 +11744,43 @@ rast_droughtf_l_heatf_u_floodf_l_max_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -10422,8 +11801,8 @@ rast_droughtf_l_heatf_u_floodf_l_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nFuture\n",
@@ -10450,16 +11829,19 @@ rast_droughtf_l_heatf_u_floodf_l_max_plot_f <-
 rast_droughtf_u_heatf_l_floodf_l_max_plot_f <-
   function(rast_droughtf_u_heatf_l_floodf_l_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
     
-    gplot(unwrap(rast_droughtf_u_heatf_l_floodf_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+    # gplot(unwrap(rast_droughtf_u_heatf_l_floodf_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #   geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+    #                               labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_droughtf_u_heatf_l_floodf_l_max), aes(fill = risk_cat), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -10467,22 +11849,43 @@ rast_droughtf_u_heatf_l_floodf_l_max_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -10503,8 +11906,8 @@ rast_droughtf_u_heatf_l_floodf_l_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nFuture\n",
@@ -10531,16 +11934,19 @@ rast_droughtf_u_heatf_l_floodf_l_max_plot_f <-
 rast_droughtf_l_heatf_u_floodf_u_max_plot_f <-
   function(rast_droughtf_l_heatf_u_floodf_u_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
     
-    gplot(unwrap(rast_droughtf_l_heatf_u_floodf_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+    # gplot(unwrap(rast_droughtf_l_heatf_u_floodf_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #   geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+    #                               labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_droughtf_l_heatf_u_floodf_u_max), aes(fill = risk_cat), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -10548,22 +11954,43 @@ rast_droughtf_l_heatf_u_floodf_u_max_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -10584,8 +12011,8 @@ rast_droughtf_l_heatf_u_floodf_u_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nFuture\n",
@@ -10612,16 +12039,19 @@ rast_droughtf_l_heatf_u_floodf_u_max_plot_f <-
 rast_droughtf_u_heatf_l_floodf_u_max_plot_f <-
   function(rast_droughtf_u_heatf_l_floodf_u_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
     
-    gplot(unwrap(rast_droughtf_u_heatf_l_floodf_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+    # gplot(unwrap(rast_droughtf_u_heatf_l_floodf_u_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #   geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+    #                               labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_droughtf_u_heatf_l_floodf_u_max), aes(fill = risk_cat), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -10629,22 +12059,43 @@ rast_droughtf_u_heatf_l_floodf_u_max_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -10665,8 +12116,8 @@ rast_droughtf_u_heatf_l_floodf_u_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nFuture\n",
@@ -10693,16 +12144,19 @@ rast_droughtf_u_heatf_l_floodf_u_max_plot_f <-
 rast_droughtf_u_heatf_u_floodf_l_max_plot_f <-
   function(rast_droughtf_u_heatf_u_floodf_l_max,
            vect_ISO1,
-           v_crop_ISO_lc_rcl_agg,
-           v_ISO_extent,
+           vect_crop_ISO_lc_rcl_agg,
+           vect_ISO,
            world,
            ISO,
            crop,
            flood) {
     
-    gplot(unwrap(rast_droughtf_u_heatf_u_floodf_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
-      geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
-                                  labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+    # gplot(unwrap(rast_droughtf_u_heatf_u_floodf_l_max), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #   geom_tile(aes(fill = factor(value, levels = c("0", "1", "2", "3", "4", "5", "6","7", "8", "NA"),
+    #                               labels = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix", "NA"))), alpha = 1) +
+      ggplot() +
+      geom_spatraster(data = 
+                        unwrap(rast_droughtf_u_heatf_u_floodf_l_max), aes(fill = risk_cat), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -10710,22 +12164,43 @@ rast_droughtf_u_heatf_u_floodf_l_max_plot_f <-
         na.rm = TRUE,
         inherit.aes = FALSE
       ) +
-      geom_sf(
-        data = v_ISO1,
+      # geom_sf(
+      #    data = unwrap(vect_ISO1),
+      #    fill = NA,
+      #    col = 'black',
+      #    na.rm = TRUE,
+      #    inherit.aes = FALSE
+      #  )  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
         fill = NA,
         col = 'black',
         na.rm = TRUE,
         inherit.aes = FALSE
       )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 1),
-        fill = NA,
-        col = 'dark blue',
-        na.rm = TRUE,
-        inherit.aes = FALSE
-      )  +
-      geom_sf(
-        data = dplyr::filter(v_crop_ISO_lc_rcl_agg, layer == 2),
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        fill = NA,
+      #        col = 'dark blue',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #      geom_sf(
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        fill = NA,
+      #        col = 'dark green',
+    #        na.rm = TRUE,
+    #        inherit.aes = FALSE
+    #      )  +
+    geom_spatvector(
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      fill = NA,
+      col = 'dark blue',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+      geom_spatvector(
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -10746,8 +12221,8 @@ rast_droughtf_u_heatf_u_floodf_l_max_plot_f <-
         ),
         na.translate = F
       ) +
-      xlim ((vect_ISO_extent[1] - 1), (vect_ISO_extent[2]) + 1) +
-      ylim ((vect_ISO_extent[3] - 1), (vect_ISO_extent[4]) + 1) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
       labs(
         fill = paste0(
           "--------------------\nFuture\n",
@@ -10778,10 +12253,10 @@ rast_droughtf_u_heatf_u_floodf_l_max_plot_f <-
 
 # results in dB_droughtc_l_summary
 dB_droughtc_l_summary_make_f <-
-  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
+  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      subset(rB_impact, 2),
-      v_crop_ISO_lc_rcl_agg,
+      subset(unwrap(rast_impact), 2),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -10834,10 +12309,10 @@ dB_droughtc_l_summary_plot_f <-
 
 # results in dB_droughtf_l_summary
 dB_droughtf_l_summary_make_f <-
-  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
+  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      subset(rB_impact, 8),
-      v_crop_ISO_lc_rcl_agg,
+      subset(unwrap(rast_impact), 8),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -10890,10 +12365,10 @@ dB_droughtf_l_summary_plot_f <-
 
 # results in dB_drought_change_l_summary
 dB_drought_change_l_summary_make_f <-
-  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
+  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      subset(rB_impact, 14),
-      v_crop_ISO_lc_rcl_agg,
+      subset(unwrap(rast_impact), 14),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -10951,10 +12426,10 @@ dB_drought_change_l_summary_plot_f <-
 
 # results in dB_droughtc_u_summary
 dB_droughtc_u_summary_make_f <-
-  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
+  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      subset(rB_impact, 68),
-      v_crop_ISO_lc_rcl_agg,
+      subset(unwrap(rast_impact), 68),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -11007,10 +12482,10 @@ dB_droughtc_u_summary_plot_f <-
 
 # results in dB_droughtf_u_summary
 dB_droughtf_u_summary_make_f <-
-  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
+  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      subset(rB_impact, 74),
-      v_crop_ISO_lc_rcl_agg,
+      subset(unwrap(rast_impact), 74),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -11063,10 +12538,10 @@ dB_droughtf_u_summary_plot_f <-
 
 # results in dB_drought_change_u_summary
 dB_drought_change_u_summary_make_f <-
-  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
+  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      subset(rB_impact, 80),
-      v_crop_ISO_lc_rcl_agg,
+      subset(unwrap(rast_impact), 80),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -11126,18 +12601,18 @@ dB_drought_change_u_summary_plot_f <-
 
 # results in dB_heatc_l_summary_values
 dB_heatc_l_summary_values_make_f <-
-  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
-    exact_extract(subset(rB_impact, 4),
-                  v_crop_ISO_lc_rcl_agg,
+  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
+    exact_extract(subset(unwrap(rast_impact), 4),
+                  st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
                   include_cols = c("crop_ISO1"))
   }
 
 # results in dB_heatc_l_summary
 dB_heatc_l_summary_make_f <-
-  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
+  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      subset(rB_impact, 4),
-      v_crop_ISO_lc_rcl_agg,
+      subset(unwrap(rast_impact), 4),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       default_weight = 1,
@@ -11189,10 +12664,10 @@ dB_heatc_l_summary_plot_f <-
 
 # results in dB_heatf_l_summary
 dB_heatf_l_summary_make_f <-
-  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
+  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      subset(rB_impact, 10),
-      v_crop_ISO_lc_rcl_agg,
+      subset(unwrap(rast_impact), 10),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -11243,10 +12718,10 @@ dB_heatf_l_summary_plot_f <-
 
 # results in dB_heat_change_l_summary
 dB_heat_change_l_summary_make_f <-
-  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
+  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      subset(rB_impact, 16),
-      v_crop_ISO_lc_rcl_agg,
+      subset(unwrap(rast_impact), 16),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -11301,10 +12776,10 @@ dB_heat_change_l_summary_plot_f <-
 
 # results in dB_heatc_u_summary
 dB_heatc_u_summary_make_f <-
-  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
+  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      subset(rB_impact, 70),
-      v_crop_ISO_lc_rcl_agg,
+      subset(unwrap(rast_impact), 70),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -11355,10 +12830,10 @@ dB_heatc_u_summary_plot_f <-
 
 # results in dB_heatf_u_summary
 dB_heatf_u_summary_make_f <-
-  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
+  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      subset(rB_impact, 76),
-      v_crop_ISO_lc_rcl_agg,
+      subset(unwrap(rast_impact), 76),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -11409,10 +12884,10 @@ dB_heatf_u_summary_plot_f <-
 
 # results in dB_heat_change_u_summary
 dB_heat_change_u_summary_make_f <-
-  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
+  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      subset(rB_impact, 82),
-      v_crop_ISO_lc_rcl_agg,
+      subset(unwrap(rast_impact), 82),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -11468,10 +12943,10 @@ dB_heat_change_u_summary_plot_f <-
 
 # results in dB_floodc_l_summary
 dB_floodc_l_summary_make_f <-
-  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
+  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      subset(rB_impact, 6),
-      v_crop_ISO_lc_rcl_agg,
+      subset(unwrap(rast_impact), 6),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -11522,10 +12997,10 @@ dB_floodc_l_summary_plot_f <-
 
 # results in dB_floodf_l_summary
 dB_floodf_l_summary_make_f <-
-  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
+  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      subset(rB_impact, 12),
-      v_crop_ISO_lc_rcl_agg,
+      subset(unwrap(rast_impact), 12),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -11578,10 +13053,10 @@ dB_floodf_l_summary_plot_f <-
 
 # results in dB_flood_change_l_summary
 dB_flood_change_l_summary_make_f <-
-  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
+  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      subset(rB_impact, 18),
-      v_crop_ISO_lc_rcl_agg,
+      subset(unwrap(rast_impact), 18),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -11639,10 +13114,10 @@ dB_flood_change_l_summary_plot_f <-
 
 # results in dB_floodc_u_summary
 dB_floodc_u_summary_make_f <-
-  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
+  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      subset(rB_impact, 72),
-      v_crop_ISO_lc_rcl_agg,
+      subset(unwrap(rast_impact), 72),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -11693,10 +13168,10 @@ dB_floodc_u_summary_plot_f <-
 
 # results in dB_floodf_u_summary
 dB_floodf_u_summary_make_f <-
-  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
+  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      subset(rB_impact, 78),
-      v_crop_ISO_lc_rcl_agg,
+      subset(unwrap(rast_impact), 78),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -11749,10 +13224,10 @@ dB_floodf_u_summary_plot_f <-
 
 # results in dB_flood_change_u_summary
 dB_flood_change_u_summary_make_f <-
-  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
+  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
     exact_extract(
-      subset(rB_impact, 84),
-      v_crop_ISO_lc_rcl_agg,
+      subset(unwrap(rast_impact), 84),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -11811,9 +13286,9 @@ dB_flood_change_u_summary_plot_f <-
 
 # results in dB_profile_summary
 dB_profile_summary_make_f <-
-  function(rB_impact, v_crop_ISO_lc_rcl_agg) {
-    exact_extract(dropLayer(
-      rB_impact,
+  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
+    exact_extract(terra::subset(
+      unwrap(rast_impact),
       c(
         1:18,
         23,
@@ -11856,19 +13331,20 @@ dB_profile_summary_make_f <-
         282,
         291,
         300
-      )
+      ),
+      negate = TRUE
     ),
-    v_crop_ISO_lc_rcl_agg,
+    st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
     fun = c('mean'))
   }
 
 # results in dB_profile_summary_file
 dB_profile_summary_file_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dB_profile_summary) %>%
       write_csv(paste0("data/", ISO, "/", crop, "/dB_profile_summary.csv"),
@@ -11883,11 +13359,11 @@ dB_profile_summary_file_make_f <-
 
 # results in dB_profilec_d_l_h_l_plot
 dB_profilec_d_l_h_l_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 1:4)) %>%
       reshape2::melt(value.name = "limits",
@@ -11930,11 +13406,11 @@ dB_profilec_d_l_h_l_plot_make_f <-
 
 # results in dB_profilec_d_l_f_l_plot
 dB_profilec_d_l_f_l_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 5:8)) %>%
       reshape2::melt(value.name = "limits",
@@ -11975,11 +13451,11 @@ dB_profilec_d_l_f_l_plot_make_f <-
 
 # results in dB_profilec_h_l_f_l_plot
 dB_profilec_h_l_f_l_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 9:12)) %>%
       reshape2::melt(value.name = "limits",
@@ -12020,11 +13496,11 @@ dB_profilec_h_l_f_l_plot_make_f <-
 
 # results in dB_profilec_d_l_h_l_f_l_plot
 dB_profilec_d_l_h_l_f_l_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 13:20)) %>%
       reshape2::melt(value.name = "limits",
@@ -12071,11 +13547,11 @@ dB_profilec_d_l_h_l_f_l_plot_make_f <-
 
 # results in dB_profilec_d_u_h_u_plot
 dB_profilec_d_u_h_u_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 41:44)) %>%
       reshape2::melt(value.name = "limits",
@@ -12116,11 +13592,11 @@ dB_profilec_d_u_h_u_plot_make_f <-
 
 # results in dB_profilec_d_u_f_u_plot
 dB_profilec_d_u_f_u_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 45:48)) %>%
       reshape2::melt(value.name = "limits",
@@ -12161,11 +13637,11 @@ dB_profilec_d_u_f_u_plot_make_f <-
 
 # results in dB_profilec_h_u_f_u_plot
 dB_profilec_h_u_f_u_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 49:52)) %>%
       reshape2::melt(value.name = "limits",
@@ -12206,11 +13682,11 @@ dB_profilec_h_u_f_u_plot_make_f <-
 
 # results in dB_profilec_d_u_h_u_f_u_plot
 dB_profilec_d_u_h_u_f_u_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 53:60)) %>%
       reshape2::melt(value.name = "limits",
@@ -12257,11 +13733,11 @@ dB_profilec_d_u_h_u_f_u_plot_make_f <-
 
 # results in dB_profilec_d_u_h_l_plot
 dB_profilec_d_u_h_l_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 85:88)) %>%
       reshape2::melt(value.name = "limits",
@@ -12302,11 +13778,11 @@ dB_profilec_d_u_h_l_plot_make_f <-
 
 # results in dB_profilec_d_l_h_u_plot
 dB_profilec_d_l_h_u_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 81:84)) %>%
       reshape2::melt(value.name = "limits",
@@ -12347,11 +13823,11 @@ dB_profilec_d_l_h_u_plot_make_f <-
 
 # results in dB_profilec_d_u_f_l_plot
 dB_profilec_d_u_f_l_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 93:96)) %>%
       reshape2::melt(value.name = "limits",
@@ -12392,11 +13868,11 @@ dB_profilec_d_u_f_l_plot_make_f <-
 
 # results in dB_profilec_d_l_f_u_plot
 dB_profilec_d_l_f_u_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 89:92)) %>%
       reshape2::melt(value.name = "limits",
@@ -12437,11 +13913,11 @@ dB_profilec_d_l_f_u_plot_make_f <-
 
 # results in dB_profilec_h_u_f_l_plot
 dB_profilec_h_u_f_l_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 101:104)) %>%
       reshape2::melt(value.name = "limits",
@@ -12483,11 +13959,11 @@ dB_profilec_h_u_f_l_plot_make_f <-
 
 # results in dB_profilec_h_l_f_u_plot
 dB_profilec_h_l_f_u_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 97:100)) %>%
       reshape2::melt(value.name = "limits",
@@ -12529,11 +14005,11 @@ dB_profilec_h_l_f_u_plot_make_f <-
 
 # results in dB_profilec_d_u_h_l_f_l_plot
 dB_profilec_d_u_h_l_f_l_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 129:136)) %>%
       reshape2::melt(value.name = "limits",
@@ -12578,11 +14054,11 @@ dB_profilec_d_u_h_l_f_l_plot_make_f <-
 
 # results in dB_profilec_d_l_h_u_f_l_plot
 dB_profilec_d_l_h_u_f_l_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 113:120)) %>%
       reshape2::melt(value.name = "limits",
@@ -12627,11 +14103,11 @@ dB_profilec_d_l_h_u_f_l_plot_make_f <-
 
 # results in dB_profilec_d_l_h_l_f_u_plot
 dB_profilec_d_l_h_l_f_u_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 105:112)) %>%
       reshape2::melt(value.name = "limits",
@@ -12676,11 +14152,11 @@ dB_profilec_d_l_h_l_f_u_plot_make_f <-
 
 # results in dB_profilec_d_u_h_u_f_l_plot
 dB_profilec_d_u_h_u_f_l_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 137:144)) %>%
       reshape2::melt(value.name = "limits",
@@ -12724,11 +14200,11 @@ dB_profilec_d_u_h_u_f_l_plot_make_f <-
   }
 # results in dB_profilec_d_u_h_l_f_u_plot
 dB_profilec_d_u_h_l_f_u_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 121:128)) %>%
       reshape2::melt(value.name = "limits",
@@ -12772,11 +14248,11 @@ dB_profilec_d_u_h_l_f_u_plot_make_f <-
   }
 # results in dB_profilec_d_l_h_u_f_u_plot
 dB_profilec_d_l_h_u_f_u_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 145:152)) %>%
       reshape2::melt(value.name = "limits",
@@ -12826,11 +14302,11 @@ dB_profilec_d_l_h_u_f_u_plot_make_f <-
 
 # results in dB_profilef_d_l_h_l_plot
 dB_profilef_d_l_h_l_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 21:24)) %>%
       reshape2::melt(value.name = "limits",
@@ -12871,11 +14347,11 @@ dB_profilef_d_l_h_l_plot_make_f <-
 
 # results in dB_profilef_d_l_f_l_plot
 dB_profilef_d_l_f_l_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 25:28)) %>%
       reshape2::melt(value.name = "limits",
@@ -12916,11 +14392,11 @@ dB_profilef_d_l_f_l_plot_make_f <-
 
 # results in dB_profilef_h_l_f_l_plot
 dB_profilef_h_l_f_l_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 29:32)) %>%
       reshape2::melt(value.name = "limits",
@@ -12961,11 +14437,11 @@ dB_profilef_h_l_f_l_plot_make_f <-
 
 # results in dB_profilef_d_l_h_l_f_l_plot
 dB_profilef_d_l_h_l_f_l_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 33:40)) %>%
       reshape2::melt(value.name = "limits",
@@ -13012,11 +14488,11 @@ dB_profilef_d_l_h_l_f_l_plot_make_f <-
 
 # results in dB_profilef_d_u_h_u_plot
 dB_profilef_d_u_h_u_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 61:64)) %>%
       reshape2::melt(value.name = "limits",
@@ -13057,11 +14533,11 @@ dB_profilef_d_u_h_u_plot_make_f <-
 
 # results in dB_profilef_d_u_f_u_plot
 dB_profilef_d_u_f_u_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 65:68)) %>%
       reshape2::melt(value.name = "limits",
@@ -13102,11 +14578,11 @@ dB_profilef_d_u_f_u_plot_make_f <-
 
 # results in dB_profilef_h_u_f_u_plot
 dB_profilef_h_u_f_u_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 69:72)) %>%
       reshape2::melt(value.name = "limits",
@@ -13147,11 +14623,11 @@ dB_profilef_h_u_f_u_plot_make_f <-
 
 # results in dB_profilef_d_u_h_u_f_u_plot
 dB_profilef_d_u_h_u_f_u_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 73:80)) %>%
       reshape2::melt(value.name = "limits",
@@ -13198,11 +14674,11 @@ dB_profilef_d_u_h_u_f_u_plot_make_f <-
 
 # results in dB_profilef_d_u_h_l_plot
 dB_profilef_d_u_h_l_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 157:160)) %>%
       reshape2::melt(value.name = "limits",
@@ -13243,11 +14719,11 @@ dB_profilef_d_u_h_l_plot_make_f <-
 
 # results in dB_profilef_d_l_h_u_plot
 dB_profilef_d_l_h_u_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 153:156)) %>%
       reshape2::melt(value.name = "limits",
@@ -13288,11 +14764,11 @@ dB_profilef_d_l_h_u_plot_make_f <-
 
 # results in dB_profilef_d_u_f_l_plot
 dB_profilef_d_u_f_l_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 165:168)) %>%
       reshape2::melt(value.name = "limits",
@@ -13333,11 +14809,11 @@ dB_profilef_d_u_f_l_plot_make_f <-
 
 # results in dB_profilef_d_l_f_u_plot
 dB_profilef_d_l_f_u_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 161:164)) %>%
       reshape2::melt(value.name = "limits",
@@ -13378,11 +14854,11 @@ dB_profilef_d_l_f_u_plot_make_f <-
 
 # results in dB_profilef_h_u_f_l_plot
 dB_profilef_h_u_f_l_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 173:176)) %>%
       reshape2::melt(value.name = "limits",
@@ -13424,11 +14900,11 @@ dB_profilef_h_u_f_l_plot_make_f <-
 
 # results in dB_profilef_h_l_f_u_plot
 dB_profilef_h_l_f_u_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 169:172)) %>%
       reshape2::melt(value.name = "limits",
@@ -13470,11 +14946,11 @@ dB_profilef_h_l_f_u_plot_make_f <-
 
 # results in dB_profilef_d_u_h_l_f_l_plot
 dB_profilef_d_u_h_l_f_l_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 201:208)) %>%
       reshape2::melt(value.name = "limits",
@@ -13519,11 +14995,11 @@ dB_profilef_d_u_h_l_f_l_plot_make_f <-
 
 # results in dB_profilef_d_l_h_u_f_l_plot
 dB_profilef_d_l_h_u_f_l_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 185:192)) %>%
       reshape2::melt(value.name = "limits",
@@ -13568,11 +15044,11 @@ dB_profilef_d_l_h_u_f_l_plot_make_f <-
 
 # results in dB_profilef_d_l_h_l_f_u_plot
 dB_profilef_d_l_h_l_f_u_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 177:184)) %>%
       reshape2::melt(value.name = "limits",
@@ -13617,11 +15093,11 @@ dB_profilef_d_l_h_l_f_u_plot_make_f <-
 
 # results in dB_profilef_d_u_h_u_f_l_plot
 dB_profilef_d_u_h_u_f_l_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 209:216)) %>%
       reshape2::melt(value.name = "limits",
@@ -13665,11 +15141,11 @@ dB_profilef_d_u_h_u_f_l_plot_make_f <-
   }
 # results in dB_profilef_d_u_h_l_f_u_plot
 dB_profilef_d_u_h_l_f_u_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 193:200)) %>%
       reshape2::melt(value.name = "limits",
@@ -13713,11 +15189,11 @@ dB_profilef_d_u_h_l_f_u_plot_make_f <-
   }
 # results in dB_profilef_d_l_h_u_f_u_plot
 dB_profilef_d_l_h_u_f_u_plot_make_f <-
-  function(v_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_agg,
            dB_profile_summary,
            ISO,
            crop) {
-    tibble(v_crop_ISO_lc_rcl_agg$crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 217:224)) %>%
       reshape2::melt(value.name = "limits",
