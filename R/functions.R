@@ -117,6 +117,7 @@ aggregation_value_get_f <- function(cc_data, cc_row) {
   as.numeric(paste(cc_data[cc_row, 37]))
 }
 
+
 ### ----- Country spatial data ----- ###
 
 # results in vect_crop
