@@ -869,24 +869,35 @@ vect_crop_ISO_lc_rcl_agg_plot_f <-
   #      na.rm = TRUE,
   #      inherit.aes = FALSE
   #    )  
-    geom_spatvector(
-      data = unwrap(vect_crop_ISO_lc_rcl_agg),
-      aes(fill = crop_ISO1),
-      na.rm = TRUE,
-      inherit.aes = FALSE
-    ) +
-#      geom_sf(
-#        data = unwrap(vect_ISO1),
-#        fill = NA,
-#        col = 'black',
-#        na.rm = TRUE,
-#        inherit.aes = FALSE
-#      )  +
       geom_spatvector(
         data = unwrap(vect_ISO1),
-        aes(fill = NA, col = 'black'),
+        aes(fill = NA),
+        col = 'darkred',
         na.rm = TRUE,
         inherit.aes = FALSE
+      ) +
+      geom_spatvector(
+        data = unwrap(vect_crop_ISO_lc_rcl_agg),
+        aes(fill = crop_ISO1),
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      ) +
+      #      geom_sf(
+      #        data = unwrap(vect_ISO1),
+      #        fill = NA,
+      #        col = 'black',
+      #        na.rm = TRUE,
+      #        inherit.aes = FALSE
+      #      )  +
+      #scale_fill_manual(values = c("Cropland"  = rgb(255, 0, 0, maxColorValue = 255))) +
+      scale_fill_viridis_d() +
+      geom_spatvector_text(
+        data = unwrap(vect_ISO1),
+        aes(label = NAME_1),
+        fontface = "bold",
+        size = 2,
+        color = "darkred",
+        check_overlap = T
       ) +
       guides(fill = "none") +
       labs(title = paste0("Sourcing Areas - ", ISO, " - ", crop))
