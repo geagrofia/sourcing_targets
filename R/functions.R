@@ -167,11 +167,17 @@ vect_crop_plot_f <- function(vect_crop, ISO, crop, world) {
     )
 }
 
+# results in GADM_query0
+GADM_query0_make_f <- function(ISO) {
+paste0("SELECT * FROM ADM_0 WHERE GID_0 = \'", ISO ,"\'")
+}
 
 # results in vect_ISO
-vect_ISO_get_f <- function(ISO) {
+vect_ISO_get_f <- function(GADM_query0) {
   #gadm( country = paste(ISO), level = 0 , version="latest", path = "D:/repos/sourcing_targets" ) %>% st_as_sf() %>% mutate(New_ID = 1)
-  gadm( country = paste(ISO), level = 0 , version="latest", path = "D:/repos/sourcing_targets" ) %>% tidyterra::mutate(New_ID = 1) %>% wrap()
+  #gadm( country = paste(ISO), level = 0 , version="latest", path = "D:/repos/sourcing_targets" ) %>% tidyterra::mutate(New_ID = 1) %>% wrap()
+  
+  vect("D:/DatosProyecto/SpatialData/Global/Socioeconomico/Admin boundaries/GADM41/gadm_410-levels.gpkg", query = GADM_query0 ) %>% tidyterra::mutate(New_ID = 1) %>% wrap()
 }
 
 
@@ -186,20 +192,27 @@ vect_ISO_get_f <- function(ISO) {
 #  
 #}
 
+# results in GADM_query1
+GADM_query1_make_f <- function(ISO) {
+  paste0("SELECT * FROM ADM_1 WHERE GID_0 = \'", ISO ,"\'")
+}
 
 # alternative because getData is being deprecated
 
 # results in vect_ISO1
-vect_ISO1_get_f <- function(cc_data, cc_row, ISO) {
+vect_ISO1_get_f <- function(cc_data, cc_row, GADM_query1) {
   
   if (cc_data[cc_row, 23] == 1)  {
     #gadm( country = paste(ISO), level = 1 , version="latest", path = "D:/repos/sourcing_targets" ) %>% st_as_sf() %>% mutate(New_ID = 1)
-    gadm( country = paste(ISO), level = 1 , version="latest", path = "D:/repos/sourcing_targets" ) %>% tidyterra::mutate(New_ID = 1) %>% wrap()
+    #gadm( country = paste(ISO), level = 1 , version="latest", path = "D:/repos/sourcing_targets" ) %>% tidyterra::mutate(New_ID = 1) %>% wrap()
+    vect("D:/DatosProyecto/SpatialData/Global/Socioeconomico/Admin boundaries/GADM41/gadm_410-levels.gpkg", query = GADM_query1 )%>% tidyterra::mutate(New_ID = 1) %>% wrap()
+    
   } else {
     #st_read(paste0("data/", paste(cc_data[cc_row, 24]))) %>% mutate(New_ID = 1)
     vect(paste0("data/", paste(cc_data[cc_row, 24]))) %>% tidyterra::mutate(New_ID = 1) %>% wrap()
   }
 }
+
 
 
 # results in vect_ISO_extent
@@ -1096,6 +1109,7 @@ rast_rainfallc_make_write_f <-
 rast_rainfallc_get_f <- function(ISO, crop, rast_rainfallc_file) {
   rast(paste0("data/", ISO, "/", crop, "/rast_rainfallc.tif")) %>% wrap()
 }
+
 
 # results in rast_rainfallf_file
 rast_rainfallf_make_write_f <-
@@ -2242,7 +2256,7 @@ rast_duration_change_plot_f <-
     #  gplot(unwrap(rast_onsetc), maxpixels = 50000) + #this uses gplot from the rastervis package
     #    geom_tile(aes(fill = value), alpha = 1) +
     ggplot() +
-     geom_spatraster(data = unwrap(rast_onsetc), aes(), alpha = 1) +
+     geom_spatraster(data = unwrap(rast_duration_change), aes(), alpha = 1) +
       geom_sf(
         data = world,
         fill = NA,
@@ -3305,6 +3319,7 @@ dB_rainfallc_summary_make_f <-
       dplyr::mutate(min_max = pmin(max, u_whisker))
   }
 
+
 # results in dB_rainfallf_summary
 dB_rainfallf_summary_make_f <-
   function(rast_rainfallf, vect_crop_ISO_lc_rcl_agg) {
@@ -3684,7 +3699,7 @@ dB_rainfallc_summary_plot_f <-
                           ISO,
                           " - ",
                           crop)) +
-      ylim(0, 2000) +
+      ylim(0, max(max(dB_rainfallc_summary$max, na.rm = TRUE), max(dB_rainfallf_summary$max, na.rm = TRUE))) +
       theme(
         panel.grid.major.x = element_line(colour = "grey"),
         panel.grid.minor.x = element_blank(),
@@ -3718,7 +3733,7 @@ dB_rainfallf_summary_plot_f <-
                           ISO,
                           " - ",
                           crop)) +
-      ylim(0, 2000) +
+      ylim(0, max(max(dB_rainfallc_summary$max, na.rm = TRUE), max(dB_rainfallf_summary$max, na.rm = TRUE))) +
       theme(
         panel.grid.major.x = element_line(colour = "grey"),
         panel.grid.minor.x = element_blank(),

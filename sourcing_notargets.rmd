@@ -1,5 +1,5 @@
 ---
-title: "Sourcing - SLE barley"
+title: "Sourcing - NGA barley"
 author: "A Farrow"
 date: "`r Sys.Date()`"
 header-includes:
@@ -64,7 +64,7 @@ Many parameters are defined in the cc_data file. We load this here.
 
 ```{r parameters, echo=FALSE, message=FALSE, warning=FALSE}
 
-cc_row <- 10
+cc_row <- 6
 
 ```
 
@@ -159,13 +159,15 @@ vect_crop_plot
 
 ```{r country_crop_data_d, echo=FALSE, message=FALSE, warning=FALSE}
 
-vect_ISO <- vect_ISO_get_f(ISO)
+GADM_query0 <- GADM_query0_make_f(ISO)
+vect_ISO <- vect_ISO_get_f(GADM_query0)
 
 ```
 
 ```{r country_crop_data_e, echo=FALSE, message=FALSE, warning=FALSE}
 
-vect_ISO1 <- vect_ISO1_get_f(cc_data, cc_row, ISO)
+GADM_query1 <- GADM_query1_make_f(ISO)
+vect_ISO1 <- vect_ISO1_get_f(cc_data, cc_row, GADM_query1)
 
 ```
 
@@ -739,6 +741,7 @@ rast_duration_change_plot <- rast_duration_change_plot_f(
   crop
 )
 
+
 ```
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
@@ -1024,48 +1027,41 @@ rast_flood_change_plot
 
 ```{r zonal_stats_rainfall_plots, echo=FALSE, message=FALSE, warning=FALSE}
  
-   
-    dB_rainfallc_summary_plot <- 
-    dB_rainfallc_summary_plot_f(
-      dB_rainfallc_summary,
-      ISO,
-      crop
-    )
-   
-   
-    dB_rainfallf_summary_plot <- 
-    dB_rainfallf_summary_plot_f(
-      dB_rainfallf_summary,
-      ISO,
-      crop
-    )
-   
-   
-    dB_rainfall_change_summary_plot <- 
-    dB_rainfall_change_summary_plot_f(
-      dB_rainfall_change_summary,
-      ISO,
-      crop
-    )
+
+dB_rainfallc_summary_plot <-
+  dB_rainfallc_summary_plot_f(dB_rainfallc_summary,
+                              ISO,
+                              crop)
+
+dB_rainfallf_summary_plot <-
+  dB_rainfallf_summary_plot_f(dB_rainfallf_summary,
+                              ISO,
+                              crop)
+
+
+dB_rainfall_change_summary_plot <-
+  dB_rainfall_change_summary_plot_f(dB_rainfall_change_summary,
+                                    ISO,
+                                    crop)
 
 
 ```
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
- dB_rainfallc_summary_plot
+dB_rainfallc_summary_plot
 
 ```
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
- dB_rainfallf_summary_plot
+dB_rainfallf_summary_plot
 
 ```
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
- dB_rainfall_change_summary_plot
+dB_rainfall_change_summary_plot
 
 ```
 
