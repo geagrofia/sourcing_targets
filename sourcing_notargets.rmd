@@ -1,5 +1,5 @@
 ---
-title: "Sourcing - NGA barley"
+title: "Sourcing - RWA maize"
 author: "A Farrow"
 date: "`r Sys.Date()`"
 header-includes:
@@ -54,7 +54,6 @@ r_filename <- function(filename) {
 }
 
 source(r_filename("functions.R"))
-#source("functions.R")
 
 ```
 
@@ -64,7 +63,7 @@ Many parameters are defined in the cc_data file. We load this here.
 
 ```{r parameters, echo=FALSE, message=FALSE, warning=FALSE}
 
-cc_row <- 6
+cc_row <- 19
 
 ```
 
@@ -97,6 +96,7 @@ flood_threshold_u_width <-  flood_threshold_u_width_get_f(cc_data, cc_row)
 crasa_params <- enframe(c(drought_threshold_l = drought_threshold_l, drought_threshold_l_width = drought_threshold_l_width, drought_threshold_u = drought_threshold_u, drought_threshold_u_width = drought_threshold_u_width, heat_threshold_l =  heat_threshold_l, heat_threshold_l_width = heat_threshold_l_width, heat_threshold_u = heat_threshold_u, heat_threshold_u_width = heat_threshold_u_width, flood_threshold_l = flood_threshold_l, flood_threshold_l_width =  flood_threshold_l_width, flood_threshold_u = flood_threshold_u, flood_threshold_u_width = flood_threshold_u_width)) %>% knitr::kable() %>%    kable_styling(latex_options = c("striped", "hold_position"), font_size = 9)
 
 aggregation_value <-  aggregation_value_get_f(cc_data, cc_row)
+aggregation_value_pot <-  aggregation_value_pot_get_f(cc_data, cc_row)
 
 ```
 
@@ -199,32 +199,62 @@ rast_clim_mask <- rast_clim_mask_get_f(ISO)
 
 ```
 
-```{r country_crop_data_i, echo=FALSE, message=FALSE, warning=FALSE}
+```{r country_crop_data_ii, echo=FALSE, message=FALSE, warning=FALSE}
 
 rast_lc_global <- rast_lc_global_get_f(rast_clim_mask, cc_data, cc_row)
 
 ```
 
-```{r country_crop_data_j, echo=FALSE, message=FALSE, warning=FALSE}
+
+```{r country_crop_data_iii, echo=FALSE, message=FALSE, warning=FALSE}
+
+rast_lc_potential <- rast_lc_potential_get_f(rast_clim_mask, cc_data, cc_row)
+
+```
+
+
+```{r country_crop_data_ji, echo=FALSE, message=FALSE, warning=FALSE}
 
 rast_lc_file <- rast_lc_make_write_f(rast_lc_global, aggregation_value, vect_ISO, ISO)
 
 ```
 
-```{r country_crop_data_k, echo=FALSE, message=FALSE, warning=FALSE}
+```{r country_crop_data_jii, echo=FALSE, message=FALSE, warning=FALSE}
+
+rast_lc_pot_file <- rast_lc_pot_make_write_f(rast_lc_potential, aggregation_value_pot, vect_ISO, ISO)
+
+```
+
+```{r country_crop_data_ki, echo=FALSE, message=FALSE, warning=FALSE}
 
 rast_lc <- rast_lc_get_f(rast_lc_file, ISO)
 
 ```
 
-```{r country_crop_data_l, echo=FALSE, message=FALSE, warning=FALSE}
+```{r country_crop_data_kii, echo=FALSE, message=FALSE, warning=FALSE}
+
+rast_lc_pot <- rast_lc_pot_get_f(rast_lc_pot_file, ISO)
+
+```
+
+```{r country_crop_data_li, echo=FALSE, message=FALSE, warning=FALSE}
 
 rast_lc_plot <- rast_lc_plot_f(rast_lc, world)
 
 ```
 
+```{r country_crop_data_lii, echo=FALSE, message=FALSE, warning=FALSE}
+
+rast_lc_pot_plot <- rast_lc_pot_plot_f(rast_lc_pot, world)
+
+```
+
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 rast_lc_plot
+```
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+rast_lc_pot_plot
 ```
 
 # Spatial data preparation
@@ -238,135 +268,180 @@ rast_ISO_a <- rast_ISO_a_get_f(ISO, rast_ISO_a_file)
 
 ```{r spatial_data_prep_processing_1aii, echo=FALSE, message=FALSE, warning=FALSE}
 
+rast_ISO_a_pot_file <- rast_ISO_a_pot_make_write_f(vect_ISO, rast_lc_pot, ISO)
+rast_ISO_a_pot <- rast_ISO_a_pot_get_f(ISO, rast_ISO_a_pot_file)
 
 ```
 
 ```{r spatial_data_prep_processing_1aiii, echo=FALSE, message=FALSE, warning=FALSE}
 
 rast_ISO_file <- rast_ISO_make_write_f(rast_ISO_a, vect_ISO, ISO)
+rast_ISO_pot_file <- rast_ISO_pot_make_write_f(rast_ISO_a_pot, vect_ISO, ISO)
 
 ```
 
 ```{r spatial_data_prep_processing_1aiv, echo=FALSE, message=FALSE, warning=FALSE}
 
 rast_ISO <- rast_ISO_get_f(ISO, rast_ISO_file)
+rast_ISO_pot <- rast_ISO_pot_get_f(ISO, rast_ISO_pot_file)
 
 ```
 
 ```{r spatial_data_prep_processing_1bi, echo=FALSE, message=FALSE, warning=FALSE}
 
 rast_lc_ISO_file <- rast_lc_ISO_make_write_f(rast_lc, rast_ISO, ISO)
+rast_lc_ISO_pot_file <- rast_lc_ISO_pot_make_write_f(rast_lc_pot, rast_ISO_pot, ISO)
 
 ```
 
 ```{r spatial_data_prep_processing_1bii, echo=FALSE, message=FALSE, warning=FALSE}
 
 rast_lc_ISO <- rast_lc_ISO_get_f(ISO, rast_lc_ISO_file)
+rast_lc_ISO_pot <- rast_lc_ISO_pot_get_f(ISO, rast_lc_ISO_pot_file)
 
 ```
 
 ```{r spatial_data_prep_processing_2a, echo=FALSE, message=FALSE, warning=FALSE}
 
 rast_crop_file <- rast_crop_make_write_f(vect_crop, rast_lc_ISO, ISO, crop)
-  
+rast_crop_pot_file <- rast_crop_pot_make_write_f(vect_crop, rast_lc_ISO_pot, ISO, crop)
+
 ```
 
 ```{r spatial_data_prep_processing_2b, echo=FALSE, message=FALSE, warning=FALSE}
 
 rast_crop <- rast_crop_get_f(rast_crop_file, ISO, crop)
-  
+rast_crop_pot <- rast_crop_pot_get_f(rast_crop_pot_file, ISO, crop)
+
 ```
 
 ```{r spatial_data_prep_processing_2c, echo=FALSE, message=FALSE, warning=FALSE}
 
 rast_crop_ISO_file <- rast_crop_ISO_make_write_f(rast_crop, rast_ISO, ISO, crop)
+rast_crop_ISO_pot_file <- rast_crop_ISO_pot_make_write_f(rast_crop_pot, rast_ISO_pot, ISO, crop)
   
 ```
 
 ```{r spatial_data_prep_processing_2d, echo=FALSE, message=FALSE, warning=FALSE}
 
 rast_crop_ISO <- rast_crop_ISO_get_f(rast_crop_ISO_file, ISO, crop)
-  
+rast_crop_ISO_pot <- rast_crop_ISO_pot_get_f(rast_crop_ISO_pot_file, ISO, crop)
+
 ```
 
 ```{r spatial_data_prep_processing_3a, echo=FALSE, message=FALSE, warning=FALSE}
 
 rast_crop_ISO_lc_file <- rast_crop_ISO_lc_file_make_write_f(rast_lc_ISO, rast_crop_ISO, ISO, crop)
-  
+rast_crop_ISO_lc_pot_file <- rast_crop_ISO_lc_pot_file_make_write_f(rast_lc_ISO_pot, rast_crop_ISO_pot, ISO, crop)
+
 ```
 
 ```{r spatial_data_prep_processing_3b, echo=FALSE, message=FALSE, warning=FALSE}
 
 rast_crop_ISO_lc <-  rast_crop_ISO_lc_get_f(rast_crop_ISO_lc_file, ISO, crop)
+rast_crop_ISO_lc_pot <-  rast_crop_ISO_lc_pot_get_f(rast_crop_ISO_lc_pot_file, ISO, crop)
   
 ```
 
 ```{r spatial_data_prep_processing_3c, echo=FALSE, message=FALSE, warning=FALSE}
 
 rast_crop_ISO_lc_rcl_file <- rast_crop_ISO_lc_rcl_make_write_f(rast_crop_ISO_lc, ISO, crop)
-  
+rast_crop_ISO_lc_rcl_pot_file <- rast_crop_ISO_lc_rcl_pot_make_write_f(rast_crop_ISO_lc_pot, ISO, crop)
+
 ```
 
 ```{r spatial_data_prep_processing_3d, echo=FALSE, message=FALSE, warning=FALSE}
 
 rast_crop_ISO_lc_rcl <- rast_crop_ISO_lc_rcl_get_f(rast_crop_ISO_lc_rcl_file, ISO, crop)
+rast_crop_ISO_lc_rcl_pot <- rast_crop_ISO_lc_rcl_pot_get_f(rast_crop_ISO_lc_rcl_pot_file, ISO, crop)
   
 ```
 
 ```{r spatial_data_prep_processing_4ai, echo=FALSE, message=FALSE, warning=FALSE}
 
-rast_crop_ISO_lc_rcl_agg_file  <- rast_crop_ISO_lc_rcl_agg_make_write_f(rast_crop_ISO_lc_rcl, ISO, crop)
+rast_crop_ISO_lc_rcl_combined_file  <- rast_crop_ISO_lc_rcl_combined_make_write_f(rast_crop_ISO_lc_rcl, rast_crop_ISO_lc_rcl_pot, ISO, crop)
+# rast_crop_ISO_lc_rcl_combined_pot_file  <- rast_crop_ISO_lc_rcl_combined_pot_make_write_f(rast_crop_ISO_lc_rcl_pot, ISO, crop)
 
 ```
 
 ```{r spatial_data_prep_processing_4aii, echo=FALSE, message=FALSE, warning=FALSE}
 
-rast_crop_ISO_lc_rcl_agg  <- rast_crop_ISO_lc_rcl_agg_get_f(rast_crop_ISO_lc_rcl_agg_file, ISO, crop)
+rast_crop_ISO_lc_rcl_combined  <- rast_crop_ISO_lc_rcl_combined_get_f(rast_crop_ISO_lc_rcl_combined_file, ISO, crop)
+# rast_crop_ISO_lc_rcl_combined_pot  <- rast_crop_ISO_lc_rcl_combined_pot_get_f(rast_crop_ISO_lc_rcl_combined_pot_file, ISO, crop)
 
 ```
 
 ```{r spatial_data_prep_processing_4b, echo=FALSE, message=FALSE, warning=FALSE}
   
-rast_crop_ISO_lc_rcl_agg_values  <- rast_crop_ISO_lc_rcl_agg_values_get_f(rast_crop_ISO_lc_rcl_agg)
+rast_crop_ISO_lc_rcl_combined_values  <- rast_crop_ISO_lc_rcl_combined_values_get_f(rast_crop_ISO_lc_rcl_combined)
 
-rast_crop_ISO_lc_rcl_agg_values_vec0  <- c(0)
-rast_crop_ISO_lc_rcl_agg_values_vec1  <- c(1)
-rast_crop_ISO_lc_rcl_agg_values_vec2  <- c(2)
-rast_crop_ISO_lc_rcl_agg_values_vec01  <- c(0, 1)
-rast_crop_ISO_lc_rcl_agg_values_vec02  <- c(0, 2)
-rast_crop_ISO_lc_rcl_agg_values_vec12  <- c(1, 2)
+# rast_crop_ISO_lc_rcl_combined_values_pot  <- rast_crop_ISO_lc_rcl_combined_values_pot_get_f(rast_crop_ISO_lc_rcl_combined_pot)
+
+rast_crop_ISO_lc_rcl_combined_values_vec0  <- c(0)
+rast_crop_ISO_lc_rcl_combined_values_vec1  <- c(1)
+rast_crop_ISO_lc_rcl_combined_values_vec2  <- c(2)
+rast_crop_ISO_lc_rcl_combined_values_vec01  <- c(0, 1)
+rast_crop_ISO_lc_rcl_combined_values_vec02  <- c(0, 2)
+rast_crop_ISO_lc_rcl_combined_values_vec12  <- c(1, 2)
 
 ```
 
+
+```{r spatial_data_prep_processing_4bi, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+
+
+
+```
+
+
+
 ```{r spatial_data_prep_processing_4c, echo=FALSE, message=FALSE, warning=FALSE}
 
-vect_crop_ISO_lc_rcl_agg_file1  <- vect_crop_ISO_lc_rcl_agg1_make_write_f(rast_crop_ISO_lc_rcl_agg,  ISO, crop)
+vect_crop_ISO_lc_rcl_combined_file1  <- vect_crop_ISO_lc_rcl_combined1_make_write_f(rast_crop_ISO_lc_rcl_combined,  ISO, crop)
 
+# vect_crop_ISO_lc_rcl_combined_pot_file1  <- vect_crop_ISO_lc_rcl_combined1_pot_make_write_f(rast_crop_ISO_lc_rcl_combined_pot,  ISO, crop)
 
 ```
 
 ```{r spatial_data_prep_processing_5a, echo=FALSE, message=FALSE, warning=FALSE}
 
-vect_crop_ISO_lc_rcl_agg  <-  vect_crop_ISO_lc_rcl_agg_get_f(
-    vect_crop_ISO_lc_rcl_agg_file1,
-    rast_crop_ISO_lc_rcl_agg_values,
-    rast_crop_ISO_lc_rcl_agg_values_vec0,
-    rast_crop_ISO_lc_rcl_agg_values_vec1,
-    rast_crop_ISO_lc_rcl_agg_values_vec2,
-    rast_crop_ISO_lc_rcl_agg_values_vec01,
-    rast_crop_ISO_lc_rcl_agg_values_vec02,
-    rast_crop_ISO_lc_rcl_agg_values_vec12,
+vect_crop_ISO_lc_rcl_combined  <-  vect_crop_ISO_lc_rcl_combined_get_f(
+    vect_crop_ISO_lc_rcl_combined_file1,
+    rast_crop_ISO_lc_rcl_combined_values,
+    rast_crop_ISO_lc_rcl_combined_values_vec0,
+    rast_crop_ISO_lc_rcl_combined_values_vec1,
+    rast_crop_ISO_lc_rcl_combined_values_vec2,
+    rast_crop_ISO_lc_rcl_combined_values_vec01,
+    rast_crop_ISO_lc_rcl_combined_values_vec02,
+    rast_crop_ISO_lc_rcl_combined_values_vec12,
     ISO,
     crop,
     vect_ISO1
   )
 
+# vect_crop_ISO_lc_rcl_combined_pot  <-  vect_crop_ISO_lc_rcl_combined_pot_get_f(
+#     vect_crop_ISO_lc_rcl_combined_file1_pot,
+#     rast_crop_ISO_lc_rcl_combined_values_pot,
+#     rast_crop_ISO_lc_rcl_combined_values_vec0,
+#     rast_crop_ISO_lc_rcl_combined_values_vec1,
+#     rast_crop_ISO_lc_rcl_combined_values_vec2,
+#     rast_crop_ISO_lc_rcl_combined_values_vec01,
+#     rast_crop_ISO_lc_rcl_combined_values_vec02,
+#     rast_crop_ISO_lc_rcl_combined_values_vec12,
+#     ISO,
+#     crop,
+#     vect_ISO1
+#   )
+
 ```
 
 ```{r spatial_data_prep_processing_5b, echo=FALSE, message=FALSE, warning=FALSE}
 
-vect_crop_ISO_lc_rcl_agg_file2  <- vect_crop_ISO_lc_rcl_agg2_make_write_f (vect_crop_ISO_lc_rcl_agg,  ISO, crop)
+vect_crop_ISO_lc_rcl_combined_file2  <- vect_crop_ISO_lc_rcl_combined2_make_write_f (vect_crop_ISO_lc_rcl_combined,  ISO, crop)
 
+# vect_crop_ISO_lc_rcl_combined_file2_pot  <- vect_crop_ISO_lc_rcl_combined2_pot_make_write_f (vect_crop_ISO_lc_rcl_combined_pot,  ISO, crop)
 
 ```
 
@@ -378,17 +453,21 @@ vect_crop_ISO_lc_rcl_agg_file2  <- vect_crop_ISO_lc_rcl_agg2_make_write_f (vect_
 wkt_lam  <- wkt_lam_make_f(vect_ISO)
 crs_lam  <- crs_lam_make_f(wkt_lam)
 
-vect_crop_ISO_lc_rcl_agg_proj_file  <- vect_crop_ISO_lc_rcl_agg_proj_file_make_write_f(vect_crop_ISO_lc_rcl_agg, crs_lam, ISO, crop)
+vect_crop_ISO_lc_rcl_combined_proj_file  <- vect_crop_ISO_lc_rcl_combined_proj_file_make_write_f(vect_crop_ISO_lc_rcl_combined, crs_lam, ISO, crop)
 
+# vect_crop_ISO_lc_rcl_combined_proj_pot_file  <- vect_crop_ISO_lc_rcl_combined_proj_pot_file_make_write_f(vect_crop_ISO_lc_rcl_combined_pot, crs_lam, ISO, crop)
 
-vect_crop_ISO_lc_rcl_agg_proj  <- vect_crop_ISO_lc_rcl_agg_proj_get_f(vect_crop_ISO_lc_rcl_agg_proj_file, ISO, crop)
+vect_crop_ISO_lc_rcl_combined_proj  <- vect_crop_ISO_lc_rcl_combined_proj_get_f(vect_crop_ISO_lc_rcl_combined_proj_file, ISO, crop)
 
+# vect_crop_ISO_lc_rcl_combined_proj_pot  <- vect_crop_ISO_lc_rcl_combined_proj_pot_get_f(vect_crop_ISO_lc_rcl_combined_proj_pot_file, ISO, crop)
 
-dB_crop_ISO_lc_rcl_agg_proj  <- dB_crop_ISO_lc_rcl_agg_proj_make_f(vect_crop_ISO_lc_rcl_agg_proj, vect_ISO1, ISO, crop)
+dB_crop_ISO_lc_rcl_combined_proj  <- dB_crop_ISO_lc_rcl_combined_proj_make_f(vect_crop_ISO_lc_rcl_combined_proj, vect_ISO1, ISO, crop)
+# 
+# dB_crop_ISO_lc_rcl_combined_proj_pot  <- dB_crop_ISO_lc_rcl_combined_proj_pot_make_f(vect_crop_ISO_lc_rcl_combined_proj_pot, vect_ISO1, ISO, crop)
 
+dB_crop_ISO_lc_rcl_combined_proj_plot <- dB_crop_ISO_lc_rcl_combined_proj_plot_f(dB_crop_ISO_lc_rcl_combined_proj)
 
-dB_crop_ISO_lc_rcl_agg_proj_plot <- dB_crop_ISO_lc_rcl_agg_proj_plot_f(dB_crop_ISO_lc_rcl_agg_proj)
-
+# dB_crop_ISO_lc_rcl_combined_proj_pot_plot <- dB_crop_ISO_lc_rcl_combined_proj_pot_plot_f(dB_crop_ISO_lc_rcl_combined_proj_pot)
 
 ```
 
@@ -400,7 +479,8 @@ cat("Projection = ", wkt_lam)
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
-dB_crop_ISO_lc_rcl_agg_proj_plot
+dB_crop_ISO_lc_rcl_combined_proj_plot
+# dB_crop_ISO_lc_rcl_combined_proj_pot_plot
 
 ```
 
@@ -409,13 +489,14 @@ dB_crop_ISO_lc_rcl_agg_proj_plot
 ```{r spatial_data_prep_plots_a,  echo=FALSE, message=FALSE, warning=FALSE}
  
 rast_lc_ISO_plot <- rast_lc_ISO_plot_f(rast_lc_ISO, world, vect_ISO, ISO)
-   
+# rast_lc_ISO_pot_plot <- rast_lc_ISO_pot_plot_f(rast_lc_ISO_pot, world, vect_ISO, ISO)
+
 ```
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
 rast_lc_ISO_plot
-
+# rast_lc_ISO_pot_plot
 ```
 
 ## Crop area converted to raster and clipped to country boundary
@@ -423,12 +504,14 @@ rast_lc_ISO_plot
 ```{r spatial_data_prep_plots_b,  echo=FALSE, message=FALSE, warning=FALSE}
 
 rast_crop_ISO_plot <- rast_crop_ISO_plot_f(rast_crop_ISO, vect_ISO1, ISO, crop)
-   
+# rast_crop_ISO_pot_plot <- rast_crop_ISO_pot_plot_f(rast_crop_ISO_pot, vect_ISO1, ISO, crop)
+
 ```
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
 rast_crop_ISO_plot
+# rast_crop_ISO_pot_plot
 
 ```
 
@@ -437,12 +520,14 @@ rast_crop_ISO_plot
 ```{r spatial_data_prep_plots_c, echo=FALSE, message=FALSE, warning=FALSE}
 
 rast_crop_ISO_lc_plot <- rast_crop_ISO_lc_plot_f(rast_crop_ISO_lc, vect_ISO1, ISO, crop)
-   
+# rast_crop_ISO_lc_pot_plot <- rast_crop_ISO_lc_pot_plot_f(rast_crop_ISO_lc_pot, vect_ISO1, ISO, crop)
+
 ```
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
 rast_crop_ISO_lc_plot
+# rast_crop_ISO_lc_pot_plot
 
 ```
 
@@ -451,12 +536,23 @@ rast_crop_ISO_lc_plot
 ```{r spatial_data_prep_plots_d, echo=FALSE, message=FALSE, warning=FALSE}
 
 rast_crop_ISO_lc_rcl_plot <- rast_crop_ISO_lc_rcl_plot_f(rast_crop_ISO_lc_rcl, vect_ISO1, ISO, crop)
+# rast_crop_ISO_lc_rcl_pot_plot <- rast_crop_ISO_lc_rcl_pot_plot_f(rast_crop_ISO_lc_rcl_pot, vect_ISO1, ISO, crop)
 
 ```
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
 rast_crop_ISO_lc_rcl_plot
+# rast_crop_ISO_lc_rcl_pot_plot
+
+```
+
+## Join the current sourcing area with the potential sourcing area
+
+
+```{r, message = FALSE, fig.width = 8, fig.height = 6}
+
+
 
 ```
 
@@ -464,13 +560,15 @@ rast_crop_ISO_lc_rcl_plot
 
 ```{r spatial_data_prep_plots_e, echo=FALSE, message=FALSE, warning=FALSE}
 
-vect_crop_ISO_lc_rcl_agg_plot <- vect_crop_ISO_lc_rcl_agg_plot_f(vect_crop_ISO_lc_rcl_agg, vect_ISO1, ISO, crop)
+vect_crop_ISO_lc_rcl_combined_plot <- vect_crop_ISO_lc_rcl_combined_plot_f(vect_crop_ISO_lc_rcl_combined, vect_ISO1, ISO, crop)
+# vect_crop_ISO_lc_rcl_combined_pot_plot <- vect_crop_ISO_lc_rcl_combined_pot_plot_f(vect_crop_ISO_lc_rcl_combined_pot, vect_ISO1, ISO, crop)
 
 ```
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
-vect_crop_ISO_lc_rcl_agg_plot
+vect_crop_ISO_lc_rcl_combined_plot
+# vect_crop_ISO_lc_rcl_combined_pot_plot
 
 ```
 
@@ -568,14 +666,14 @@ rast_onset_change  <- rast_onset_change_get_f(rast_onset_change_file, ISO, crop)
 
 rast_rainfallc_plot <- rast_rainfallc_plot_f(rast_rainfallc,
                       vect_ISO1,
-                      vect_crop_ISO_lc_rcl_agg,
+                      vect_crop_ISO_lc_rcl_combined,
                       vect_ISO,
                       world,
                       ISO,
                       crop)
 rast_rainfallf_plot <- rast_rainfallf_plot_f(rast_rainfallf,
                       vect_ISO1,
-                      vect_crop_ISO_lc_rcl_agg,
+                      vect_crop_ISO_lc_rcl_combined,
                       vect_ISO,
                       world,
                       ISO,
@@ -584,7 +682,7 @@ rast_rainfallf_plot <- rast_rainfallf_plot_f(rast_rainfallf,
 rast_rainfall_change_plot <- rast_rainfall_change_plot_f(
   rast_rainfall_change,
   vect_ISO1,
-  vect_crop_ISO_lc_rcl_agg,
+  vect_crop_ISO_lc_rcl_combined,
   vect_ISO,
   world,
   ISO,
@@ -619,14 +717,14 @@ rast_rainfall_change_plot
 ```{r climate_base_data_plot_2, echo=FALSE, message=FALSE, warning=FALSE}
 rast_tempc_plot <- rast_tempc_plot_f(rast_tempc,
                   vect_ISO1,
-                  vect_crop_ISO_lc_rcl_agg,
+                  vect_crop_ISO_lc_rcl_combined,
                   vect_ISO,
                   world,
                   ISO,
                   crop)
 rast_tempf_plot <- rast_tempf_plot_f(rast_tempf,
                   vect_ISO1,
-                  vect_crop_ISO_lc_rcl_agg,
+                  vect_crop_ISO_lc_rcl_combined,
                   vect_ISO,
                   world,
                   ISO,
@@ -634,7 +732,7 @@ rast_tempf_plot <- rast_tempf_plot_f(rast_tempf,
 
 rast_temp_change_plot <- rast_temp_change_plot_f(rast_temp_change,
                         vect_ISO1,
-                        vect_crop_ISO_lc_rcl_agg,
+                        vect_crop_ISO_lc_rcl_combined,
                         vect_ISO,
                         world,
                         ISO,
@@ -668,14 +766,14 @@ rast_temp_change_plot
  
 rast_onsetc_plot <- rast_onsetc_plot_f(rast_onsetc,
                    vect_ISO1,
-                   vect_crop_ISO_lc_rcl_agg,
+                   vect_crop_ISO_lc_rcl_combined,
                    vect_ISO,
                    world,
                    ISO,
                    crop)
 rast_onsetf_plot <- rast_onsetf_plot_f(rast_onsetf,
                    vect_ISO1,
-                   vect_crop_ISO_lc_rcl_agg,
+                   vect_crop_ISO_lc_rcl_combined,
                    vect_ISO,
                    world,
                    ISO,
@@ -683,7 +781,7 @@ rast_onsetf_plot <- rast_onsetf_plot_f(rast_onsetf,
 
 rast_onset_change_plot <- rast_onset_change_plot_f(rast_onset_change,
                          vect_ISO1,
-                         vect_crop_ISO_lc_rcl_agg,
+                         vect_crop_ISO_lc_rcl_combined,
                          vect_ISO,
                          world,
                          ISO,
@@ -717,7 +815,7 @@ rast_onset_change_plot
  
 rast_durationc_plot<- rast_durationc_plot_f(rast_durationc,
                       vect_ISO1,
-                      vect_crop_ISO_lc_rcl_agg,
+                      vect_crop_ISO_lc_rcl_combined,
                       vect_ISO,
                       world,
                       ISO,
@@ -725,7 +823,7 @@ rast_durationc_plot<- rast_durationc_plot_f(rast_durationc,
 
 rast_durationf_plot <- rast_durationf_plot_f(rast_durationf,
                       vect_ISO1,
-                      vect_crop_ISO_lc_rcl_agg,
+                      vect_crop_ISO_lc_rcl_combined,
                       vect_ISO,
                       world,
                       ISO,
@@ -734,7 +832,7 @@ rast_durationf_plot <- rast_durationf_plot_f(rast_durationf,
 rast_duration_change_plot <- rast_duration_change_plot_f(
   rast_duration_change,
   vect_ISO1,
-  vect_crop_ISO_lc_rcl_agg,
+  vect_crop_ISO_lc_rcl_combined,
   vect_ISO,
   world,
   ISO,
@@ -842,7 +940,7 @@ rast_flood_change <-
 rast_droughtc_plot <- rast_droughtc_plot_f(
   rast_droughtc,
   vect_ISO1,
-  vect_crop_ISO_lc_rcl_agg,
+  vect_crop_ISO_lc_rcl_combined,
   vect_ISO,
   world,
   ISO,
@@ -853,7 +951,7 @@ rast_droughtc_plot <- rast_droughtc_plot_f(
 rast_droughtf_plot <- rast_droughtf_plot_f(
   rast_droughtf,
   vect_ISO1,
-  vect_crop_ISO_lc_rcl_agg,
+  vect_crop_ISO_lc_rcl_combined,
   vect_ISO,
   world,
   ISO,
@@ -864,7 +962,7 @@ rast_droughtf_plot <- rast_droughtf_plot_f(
 rast_drought_change_plot <- rast_drought_change_plot_f(
   rast_drought_change,
   vect_ISO1,
-  vect_crop_ISO_lc_rcl_agg,
+  vect_crop_ISO_lc_rcl_combined,
   vect_ISO,
   world,
   ISO,
@@ -900,7 +998,7 @@ rast_drought_change_plot
 
 rast_heatc_plot <- rast_heatc_plot_f(rast_heatc,
                   vect_ISO1,
-                  vect_crop_ISO_lc_rcl_agg,
+                  vect_crop_ISO_lc_rcl_combined,
                   vect_ISO,
                   world,
                   ISO,
@@ -909,7 +1007,7 @@ rast_heatc_plot <- rast_heatc_plot_f(rast_heatc,
 
 rast_heatf_plot <- rast_heatf_plot_f(rast_heatf,
                   vect_ISO1,
-                  vect_crop_ISO_lc_rcl_agg,
+                  vect_crop_ISO_lc_rcl_combined,
                   vect_ISO,
                   world,
                   ISO,
@@ -919,7 +1017,7 @@ rast_heatf_plot <- rast_heatf_plot_f(rast_heatf,
 rast_heat_change_plot<- rast_heat_change_plot_f(
   rast_heat_change,
   vect_ISO1,
-  vect_crop_ISO_lc_rcl_agg,
+  vect_crop_ISO_lc_rcl_combined,
   vect_ISO,
   world,
   ISO,
@@ -953,7 +1051,7 @@ rast_heat_change_plot
 ```{r climate_hazard_data_plot_3, echo=FALSE, message=FALSE, warning=FALSE}
 rast_floodc_plot<- rast_floodc_plot_f(rast_floodc,
                    vect_ISO1,
-                   vect_crop_ISO_lc_rcl_agg,
+                   vect_crop_ISO_lc_rcl_combined,
                    vect_ISO,
                    world,
                    ISO,
@@ -962,7 +1060,7 @@ rast_floodc_plot<- rast_floodc_plot_f(rast_floodc,
 
 rast_floodf_plot<- rast_floodf_plot_f(rast_floodf,
                    vect_ISO1,
-                   vect_crop_ISO_lc_rcl_agg,
+                   vect_crop_ISO_lc_rcl_combined,
                    vect_ISO,
                    world,
                    ISO,
@@ -972,7 +1070,7 @@ rast_floodf_plot<- rast_floodf_plot_f(rast_floodf,
 rast_flood_change_plot <- rast_flood_change_plot_f(
   rast_flood_change,
   vect_ISO1,
-  vect_crop_ISO_lc_rcl_agg,
+  vect_crop_ISO_lc_rcl_combined,
   vect_ISO,
   world,
   ISO,
@@ -1010,15 +1108,15 @@ rast_flood_change_plot
  
    
     dB_rainfallc_summary <- 
-    dB_rainfallc_summary_make_f(rast_rainfallc, vect_crop_ISO_lc_rcl_agg)
+    dB_rainfallc_summary_make_f(rast_rainfallc, vect_crop_ISO_lc_rcl_combined)
    
    
     dB_rainfallf_summary <- 
-    dB_rainfallf_summary_make_f(rast_rainfallf, vect_crop_ISO_lc_rcl_agg)
+    dB_rainfallf_summary_make_f(rast_rainfallf, vect_crop_ISO_lc_rcl_combined)
    
    
     dB_rainfall_change_summary <- 
-    dB_rainfall_change_summary_make_f(rast_rainfall_change, vect_crop_ISO_lc_rcl_agg)
+    dB_rainfall_change_summary_make_f(rast_rainfall_change, vect_crop_ISO_lc_rcl_combined)
 
 
 ```
@@ -1072,15 +1170,15 @@ dB_rainfall_change_summary_plot
  
    
     dB_tempc_summary <- 
-    dB_tempc_summary_make_f(rast_tempc, vect_crop_ISO_lc_rcl_agg)
+    dB_tempc_summary_make_f(rast_tempc, vect_crop_ISO_lc_rcl_combined)
    
    
     dB_tempf_summary <- 
-    dB_tempf_summary_make_f(rast_tempf, vect_crop_ISO_lc_rcl_agg)
+    dB_tempf_summary_make_f(rast_tempf, vect_crop_ISO_lc_rcl_combined)
    
    
     dB_temp_change_summary <- 
-    dB_temp_change_summary_make_f(rast_temp_change, vect_crop_ISO_lc_rcl_agg)
+    dB_temp_change_summary_make_f(rast_temp_change, vect_crop_ISO_lc_rcl_combined)
 
 
 ```
@@ -1141,15 +1239,15 @@ dB_rainfall_change_summary_plot
  
    
     dB_onsetc_summary <- 
-    dB_onsetc_summary_make_f(rast_onsetc, vect_crop_ISO_lc_rcl_agg)
+    dB_onsetc_summary_make_f(rast_onsetc, vect_crop_ISO_lc_rcl_combined)
    
    
     dB_onsetf_summary <- 
-    dB_onsetf_summary_make_f(rast_onsetf, vect_crop_ISO_lc_rcl_agg)
+    dB_onsetf_summary_make_f(rast_onsetf, vect_crop_ISO_lc_rcl_combined)
    
    
     dB_onset_change_summary <- 
-    dB_onset_change_summary_make_f(rast_onset_change, vect_crop_ISO_lc_rcl_agg)
+    dB_onset_change_summary_make_f(rast_onset_change, vect_crop_ISO_lc_rcl_combined)
 
 
 ```
@@ -1210,15 +1308,15 @@ dB_rainfall_change_summary_plot
  
    
     dB_durationc_summary <- 
-    dB_durationc_summary_make_f(rast_durationc, vect_crop_ISO_lc_rcl_agg)
+    dB_durationc_summary_make_f(rast_durationc, vect_crop_ISO_lc_rcl_combined)
    
    
     dB_durationf_summary <- 
-    dB_durationf_summary_make_f(rast_durationf, vect_crop_ISO_lc_rcl_agg)
+    dB_durationf_summary_make_f(rast_durationf, vect_crop_ISO_lc_rcl_combined)
    
    
     dB_duration_change_summary <- 
-    dB_duration_change_summary_make_f(rast_duration_change, vect_crop_ISO_lc_rcl_agg)
+    dB_duration_change_summary_make_f(rast_duration_change, vect_crop_ISO_lc_rcl_combined)
 
 
 ```
@@ -1279,15 +1377,15 @@ dB_rainfall_change_summary_plot
  
    
     dB_droughtc_summary <- 
-    dB_droughtc_summary_make_f(rast_droughtc, vect_crop_ISO_lc_rcl_agg)
+    dB_droughtc_summary_make_f(rast_droughtc, vect_crop_ISO_lc_rcl_combined)
    
    
     dB_droughtf_summary <- 
-    dB_droughtf_summary_make_f(rast_droughtf, vect_crop_ISO_lc_rcl_agg)
+    dB_droughtf_summary_make_f(rast_droughtf, vect_crop_ISO_lc_rcl_combined)
    
    
     dB_drought_change_summary <- 
-    dB_drought_change_summary_make_f(rast_drought_change, vect_crop_ISO_lc_rcl_agg)
+    dB_drought_change_summary_make_f(rast_drought_change, vect_crop_ISO_lc_rcl_combined)
 
 
 ```
@@ -1357,15 +1455,15 @@ dB_rainfall_change_summary_plot
  
    
     dB_heatc_summary <- 
-    dB_heatc_summary_make_f(rast_heatc, vect_crop_ISO_lc_rcl_agg)
+    dB_heatc_summary_make_f(rast_heatc, vect_crop_ISO_lc_rcl_combined)
    
    
     dB_heatf_summary <- 
-    dB_heatf_summary_make_f(rast_heatf, vect_crop_ISO_lc_rcl_agg)
+    dB_heatf_summary_make_f(rast_heatf, vect_crop_ISO_lc_rcl_combined)
    
    
     dB_heat_change_summary <- 
-    dB_heat_change_summary_make_f(rast_heat_change, vect_crop_ISO_lc_rcl_agg)
+    dB_heat_change_summary_make_f(rast_heat_change, vect_crop_ISO_lc_rcl_combined)
   
 
 
@@ -1436,15 +1534,15 @@ dB_rainfall_change_summary_plot
  
    
     dB_floodc_summary <-
-    dB_floodc_summary_make_f(rast_floodc, vect_crop_ISO_lc_rcl_agg)
+    dB_floodc_summary_make_f(rast_floodc, vect_crop_ISO_lc_rcl_combined)
    
    
     dB_floodf_summary <-
-    dB_floodf_summary_make_f(rast_floodf, vect_crop_ISO_lc_rcl_agg)
+    dB_floodf_summary_make_f(rast_floodf, vect_crop_ISO_lc_rcl_combined)
    
    
     dB_flood_change_summary <-
-    dB_flood_change_summary_make_f(rast_flood_change, vect_crop_ISO_lc_rcl_agg)
+    dB_flood_change_summary_make_f(rast_flood_change, vect_crop_ISO_lc_rcl_combined)
   
 
 
@@ -2329,7 +2427,7 @@ rast_impact_file <-
     rast_droughtc_l_heatc_l_max_plot_f(
       rast_droughtc_l_heatc_l_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2342,7 +2440,7 @@ rast_impact_file <-
     rast_droughtc_l_floodc_l_max_plot_f(
       rast_droughtc_l_floodc_l_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2355,7 +2453,7 @@ rast_impact_file <-
     rast_heatc_l_floodc_l_max_plot_f(
       rast_heatc_l_floodc_l_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2368,7 +2466,7 @@ rast_impact_file <-
     rast_droughtc_l_heatc_l_floodc_l_max_plot_f(
       rast_droughtc_l_heatc_l_floodc_l_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2389,7 +2487,7 @@ rast_impact_file <-
     rast_droughtc_u_heatc_u_max_plot_f(
       rast_droughtc_u_heatc_u_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2402,7 +2500,7 @@ rast_impact_file <-
     rast_droughtc_u_floodc_u_max_plot_f(
       rast_droughtc_u_floodc_u_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2415,7 +2513,7 @@ rast_impact_file <-
     rast_heatc_u_floodc_u_max_plot_f(
        rast_heatc_u_floodc_u_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2428,7 +2526,7 @@ rast_impact_file <-
     rast_droughtc_u_heatc_u_floodc_u_max_plot_f(
       rast_droughtc_u_heatc_u_floodc_u_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2449,7 +2547,7 @@ rast_impact_file <-
     rast_droughtc_l_heatc_u_max_plot_f(
       rast_droughtc_l_heatc_u_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2462,7 +2560,7 @@ rast_impact_file <-
     rast_droughtc_u_heatc_l_max_plot_f(
        rast_droughtc_u_heatc_l_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2475,7 +2573,7 @@ rast_impact_file <-
     rast_droughtc_l_floodc_u_max_plot_f(
       rast_droughtc_l_floodc_u_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2488,7 +2586,7 @@ rast_impact_file <-
     rast_droughtc_u_floodc_l_max_plot_f(
       rast_droughtc_u_floodc_l_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2501,7 +2599,7 @@ rast_impact_file <-
     rast_heatc_l_floodc_u_max_plot_f(
       rast_heatc_l_floodc_u_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2514,7 +2612,7 @@ rast_impact_file <-
     rast_heatc_u_floodc_l_max_plot_f(
       rast_heatc_u_floodc_l_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2527,7 +2625,7 @@ rast_impact_file <-
     rast_droughtc_l_heatc_l_floodc_u_max_plot_f(
       rast_droughtc_l_heatc_l_floodc_u_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2540,7 +2638,7 @@ rast_impact_file <-
     rast_droughtc_l_heatc_u_floodc_l_max_plot_f(
       rast_droughtc_l_heatc_u_floodc_l_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2553,7 +2651,7 @@ rast_impact_file <-
     rast_droughtc_u_heatc_l_floodc_l_max_plot_f(
       rast_droughtc_u_heatc_l_floodc_l_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2566,7 +2664,7 @@ rast_impact_file <-
     rast_droughtc_l_heatc_u_floodc_u_max_plot_f(
       rast_droughtc_l_heatc_u_floodc_u_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2579,7 +2677,7 @@ rast_impact_file <-
     rast_droughtc_u_heatc_l_floodc_u_max_plot_f(
       rast_droughtc_u_heatc_l_floodc_u_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2592,7 +2690,7 @@ rast_impact_file <-
     rast_droughtc_u_heatc_u_floodc_l_max_plot_f(
       rast_droughtc_u_heatc_u_floodc_l_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2612,7 +2710,7 @@ rast_impact_file <-
     rast_droughtf_l_heatf_l_max_plot_f(
       rast_droughtf_l_heatf_l_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2625,7 +2723,7 @@ rast_impact_file <-
     rast_droughtf_l_floodf_l_max_plot_f(
       rast_droughtf_l_floodf_l_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2638,7 +2736,7 @@ rast_impact_file <-
     rast_heatf_l_floodf_l_max_plot_f(
       rast_heatf_l_floodf_l_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2651,7 +2749,7 @@ rast_impact_file <-
     rast_droughtf_l_heatf_l_floodf_l_max_plot_f(
       rast_droughtf_l_heatf_l_floodf_l_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2672,7 +2770,7 @@ rast_impact_file <-
     rast_droughtf_u_heatf_u_max_plot_f(
       rast_droughtf_u_heatf_u_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2685,7 +2783,7 @@ rast_impact_file <-
     rast_droughtf_u_floodf_u_max_plot_f(
       rast_droughtf_u_floodf_u_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2698,7 +2796,7 @@ rast_impact_file <-
     rast_heatf_u_floodf_u_max_plot_f(
       rast_heatf_u_floodf_u_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2711,7 +2809,7 @@ rast_impact_file <-
     rast_droughtf_u_heatf_u_floodf_u_max_plot_f(
       rast_droughtf_u_heatf_u_floodf_u_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2732,7 +2830,7 @@ rast_impact_file <-
     rast_droughtf_l_heatf_u_max_plot_f(
       rast_droughtf_l_heatf_u_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2745,7 +2843,7 @@ rast_impact_file <-
     rast_droughtf_u_heatf_l_max_plot_f(
       rast_droughtf_u_heatf_l_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2758,7 +2856,7 @@ rast_impact_file <-
     rast_droughtf_l_floodf_u_max_plot_f(
       rast_droughtf_l_floodf_u_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2771,7 +2869,7 @@ rast_impact_file <-
     rast_droughtf_u_floodf_l_max_plot_f(
       rast_droughtf_u_floodf_l_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2784,7 +2882,7 @@ rast_impact_file <-
     rast_heatf_l_floodf_u_max_plot_f(
       rast_heatf_l_floodf_u_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2797,7 +2895,7 @@ rast_impact_file <-
     rast_heatf_u_floodf_l_max_plot_f(
       rast_heatf_u_floodf_l_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2810,7 +2908,7 @@ rast_impact_file <-
     rast_droughtf_l_heatf_l_floodf_u_max_plot_f(
       rast_droughtf_l_heatf_l_floodf_u_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2823,7 +2921,7 @@ rast_impact_file <-
     rast_droughtf_l_heatf_u_floodf_l_max_plot_f(
       rast_droughtf_l_heatf_u_floodf_l_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2836,7 +2934,7 @@ rast_impact_file <-
     rast_droughtf_u_heatf_l_floodf_l_max_plot_f(
       rast_droughtf_u_heatf_l_floodf_l_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2849,7 +2947,7 @@ rast_impact_file <-
     rast_droughtf_l_heatf_u_floodf_u_max_plot_f(
       rast_droughtf_l_heatf_u_floodf_u_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2862,7 +2960,7 @@ rast_impact_file <-
     rast_droughtf_u_heatf_l_floodf_u_max_plot_f(
       rast_droughtf_u_heatf_l_floodf_u_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2875,7 +2973,7 @@ rast_impact_file <-
     rast_droughtf_u_heatf_u_floodf_l_max_plot_f(
       rast_droughtf_u_heatf_u_floodf_l_max,
       vect_ISO1,
-      vect_crop_ISO_lc_rcl_agg,
+      vect_crop_ISO_lc_rcl_combined,
       vect_ISO,
       world,
       ISO,
@@ -2894,31 +2992,33 @@ rast_impact_file <-
 
   
     dB_droughtc_l_summary <-
-    dB_droughtc_l_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
+    dB_droughtc_l_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_combined)
   
   
     dB_droughtf_l_summary <-
-    dB_droughtf_l_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
+    dB_droughtf_l_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_combined)
   
   
     dB_drought_change_l_summary <-
-    dB_drought_change_l_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
+    dB_drought_change_l_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_combined)
   
     
     dB_droughtc_u_summary <-
-    dB_droughtc_u_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
+    dB_droughtc_u_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_combined)
   
   
     dB_droughtf_u_summary <-
-    dB_droughtf_u_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
+    dB_droughtf_u_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_combined)
   
   
     dB_drought_change_u_summary <-
-    dB_drought_change_u_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
+    dB_drought_change_u_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_combined)
 
 ```
 
 ## Drought Plots
+
+\newpage
 
 ```{r impact_zonal_drought_plots}
 
@@ -2949,6 +3049,8 @@ rast_impact_file <-
 
 
 ```
+
+
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
@@ -2993,36 +3095,38 @@ rast_impact_file <-
 
   
     dB_heatc_l_summary_values <-
-    dB_heatc_l_summary_values_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
+    dB_heatc_l_summary_values_make_f(rast_impact, vect_crop_ISO_lc_rcl_combined)
     
   
     dB_heatc_l_summary <-
-    dB_heatc_l_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
+    dB_heatc_l_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_combined)
   
   
     dB_heatf_l_summary <-
-    dB_heatf_l_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
+    dB_heatf_l_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_combined)
   
   
     dB_heat_change_l_summary <-
-    dB_heat_change_l_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
+    dB_heat_change_l_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_combined)
   
     
     dB_heatc_u_summary <-
-    dB_heatc_u_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
+    dB_heatc_u_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_combined)
   
   
     dB_heatf_u_summary <-
-    dB_heatf_u_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
+    dB_heatf_u_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_combined)
   
   
     dB_heat_change_u_summary <-
-    dB_heat_change_u_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
+    dB_heat_change_u_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_combined)
 
 
 ```
 
 ## Heat Plots
+
+\newpage
 
 ```{r impact_zonal_heat_plots}
 
@@ -3103,32 +3207,34 @@ rast_impact_file <-
 
   
     dB_floodc_l_summary <-
-    dB_floodc_l_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
+    dB_floodc_l_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_combined)
   
   
     dB_floodf_l_summary <-
-    dB_floodf_l_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
+    dB_floodf_l_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_combined)
   
   
     dB_flood_change_l_summary <-
-    dB_flood_change_l_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
+    dB_flood_change_l_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_combined)
   
     
     dB_floodc_u_summary <-
-    dB_floodc_u_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
+    dB_floodc_u_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_combined)
   
   
     dB_floodf_u_summary <-
-    dB_floodf_u_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
+    dB_floodf_u_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_combined)
   
   
     dB_flood_change_u_summary <-
-    dB_flood_change_u_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
+    dB_flood_change_u_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_combined)
 
 
 ```
 
 ## Flood Plots
+
+\newpage
 
 ```{r impact_zonal_flood_plots}
 
@@ -3205,11 +3311,11 @@ rast_impact_file <-
 
   
     dB_profile_summary <- 
-    dB_profile_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_agg)
+    dB_profile_summary_make_f(rast_impact, vect_crop_ISO_lc_rcl_combined)
   
   
     dB_profile_summary_file <-
-    dB_profile_summary_file_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profile_summary_file_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
 
 
 ```
@@ -3218,24 +3324,26 @@ rast_impact_file <-
 
 ### Past - Lower thresholds
 
+\newpage
+
 ```{r climate_risk_profile_data_plots_c_l}
 
 
   
     dB_profilec_d_l_h_l_plot <-
-    dB_profilec_d_l_h_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_d_l_h_l_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
   
   
     dB_profilec_d_l_f_l_plot <-
-    dB_profilec_d_l_f_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_d_l_f_l_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
   
   
     dB_profilec_h_l_f_l_plot <-
-    dB_profilec_h_l_f_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_h_l_f_l_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
   
     
     dB_profilec_d_l_h_l_f_l_plot <-
-    dB_profilec_d_l_h_l_f_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_d_l_h_l_f_l_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
 
 ```
 
@@ -3290,24 +3398,26 @@ rast_droughtc_l_heatc_l_floodc_l_max_plot
 
 ### Past - Upper thresholds
 
+\newpage
+
 ```{r climate_risk_profile_data_plots_c_u}
 
 
     
     dB_profilec_d_u_h_u_plot <-
-    dB_profilec_d_u_h_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_d_u_h_u_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
   
   
     dB_profilec_d_u_f_u_plot <-
-    dB_profilec_d_u_f_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_d_u_f_u_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
   
   
     dB_profilec_h_u_f_u_plot <-
-    dB_profilec_h_u_f_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_h_u_f_u_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
   
     
     dB_profilec_d_u_h_u_f_u_plot <-
-    dB_profilec_d_u_h_u_f_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_d_u_h_u_f_u_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
 
 
 ```
@@ -3362,56 +3472,58 @@ rast_droughtc_u_heatc_u_floodc_u_max_plot
 
 ### Past - Mixed thresholds
 
+\newpage
+
 ```{r climate_risk_profile_data_plots_c_m}
 
 
     
     dB_profilec_d_u_h_l_plot <-
-    dB_profilec_d_u_h_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_d_u_h_l_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
   
   
     dB_profilec_d_l_h_u_plot <-
-    dB_profilec_d_l_h_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_d_l_h_u_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
   
   
     dB_profilec_d_u_f_l_plot <-
-    dB_profilec_d_u_f_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_d_u_f_l_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
   
   
     dB_profilec_d_l_f_u_plot <-
-    dB_profilec_d_l_f_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_d_l_f_u_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
   
   
     dB_profilec_h_u_f_l_plot <-
-    dB_profilec_h_u_f_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_h_u_f_l_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
   
   
     dB_profilec_h_l_f_u_plot <-
-    dB_profilec_h_l_f_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_h_l_f_u_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
   
     
     dB_profilec_d_u_h_l_f_l_plot <-
-    dB_profilec_d_u_h_l_f_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_d_u_h_l_f_l_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
   
   
     dB_profilec_d_l_h_u_f_l_plot <-
-    dB_profilec_d_l_h_u_f_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_d_l_h_u_f_l_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
   
   
     dB_profilec_d_l_h_l_f_u_plot <-
-    dB_profilec_d_l_h_l_f_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_d_l_h_l_f_u_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
   
   
     dB_profilec_d_u_h_u_f_l_plot <-
-    dB_profilec_d_u_h_u_f_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_d_u_h_u_f_l_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
   
   
     dB_profilec_d_u_h_l_f_u_plot <-
-    dB_profilec_d_u_h_l_f_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_d_u_h_l_f_u_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
   
   
     dB_profilec_d_l_h_u_f_u_plot <-
-    dB_profilec_d_l_h_u_f_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilec_d_l_h_u_f_u_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
 
 
 ```
@@ -3540,24 +3652,26 @@ rast_droughtc_l_heatc_u_floodc_u_max_plot
 
 ### Future - Lower thresholds
 
+\newpage
+
 ```{r climate_risk_profile_data_plots_f_l}
 
 
   
     dB_profilef_d_l_h_l_plot <-
-    dB_profilef_d_l_h_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_d_l_h_l_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
   
   
     dB_profilef_d_l_f_l_plot <-
-    dB_profilef_d_l_f_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_d_l_f_l_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
   
   
     dB_profilef_h_l_f_l_plot <-
-    dB_profilef_h_l_f_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_h_l_f_l_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
   
     
     dB_profilef_d_l_h_l_f_l_plot <-
-    dB_profilef_d_l_h_l_f_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_d_l_h_l_f_l_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
 
 ```
 
@@ -3612,24 +3726,26 @@ rast_droughtf_l_heatf_l_floodf_l_max_plot
 
 ### Future - Upper thresholds
 
+\newpage
+
 ```{r climate_risk_profile_data_plots_f_u}
 
 
     
     dB_profilef_d_u_h_u_plot <-
-    dB_profilef_d_u_h_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_d_u_h_u_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
   
   
     dB_profilef_d_u_f_u_plot <-
-    dB_profilef_d_u_f_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_d_u_f_u_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
   
   
     dB_profilef_h_u_f_u_plot <-
-    dB_profilef_h_u_f_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_h_u_f_u_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
   
     
     dB_profilef_d_u_h_u_f_u_plot <-
-    dB_profilef_d_u_h_u_f_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_d_u_h_u_f_u_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
 
 
 ```
@@ -3684,56 +3800,58 @@ rast_droughtf_u_heatf_u_floodf_u_max_plot
 
 ### Future - Mixed thresholds
 
+\newpage
+
 ```{r climate_risk_profile_data_plots_f_m}
 
 
     
     dB_profilef_d_u_h_l_plot <-
-    dB_profilef_d_u_h_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_d_u_h_l_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
   
   
     dB_profilef_d_l_h_u_plot <-
-    dB_profilef_d_l_h_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_d_l_h_u_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
   
   
     dB_profilef_d_u_f_l_plot <-
-    dB_profilef_d_u_f_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_d_u_f_l_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
   
   
     dB_profilef_d_l_f_u_plot <-
-    dB_profilef_d_l_f_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_d_l_f_u_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
   
   
     dB_profilef_h_u_f_l_plot <-
-    dB_profilef_h_u_f_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_h_u_f_l_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
   
   
     dB_profilef_h_l_f_u_plot <-
-    dB_profilef_h_l_f_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_h_l_f_u_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
   
     
     dB_profilef_d_u_h_l_f_l_plot <-
-    dB_profilef_d_u_h_l_f_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_d_u_h_l_f_l_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
   
   
     dB_profilef_d_l_h_u_f_l_plot <-
-    dB_profilef_d_l_h_u_f_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_d_l_h_u_f_l_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
   
   
     dB_profilef_d_l_h_l_f_u_plot <-
-    dB_profilef_d_l_h_l_f_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_d_l_h_l_f_u_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
   
   
     dB_profilef_d_u_h_u_f_l_plot <-
-    dB_profilef_d_u_h_u_f_l_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_d_u_h_u_f_l_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
   
   
     dB_profilef_d_u_h_l_f_u_plot <-
-    dB_profilef_d_u_h_l_f_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_d_u_h_l_f_u_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
   
   
     dB_profilef_d_l_h_u_f_u_plot <-
-    dB_profilef_d_l_h_u_f_u_plot_make_f(vect_crop_ISO_lc_rcl_agg, dB_profile_summary, ISO, crop)
+    dB_profilef_d_l_h_u_f_u_plot_make_f(vect_crop_ISO_lc_rcl_combined, dB_profile_summary, ISO, crop)
 
 
 ```

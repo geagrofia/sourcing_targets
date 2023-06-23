@@ -114,9 +114,13 @@ flood_threshold_u_width_get_f <- function(cc_data, cc_row) {
 
 # results in aggregation_value
 aggregation_value_get_f <- function(cc_data, cc_row) {
-  as.numeric(paste(cc_data[cc_row, 37]))
+  as.numeric(paste(cc_data[cc_row, 39]))
 }
 
+# results in aggregation_value_pot
+aggregation_value_pot_get_f <- function(cc_data, cc_row) {
+  as.numeric(paste(cc_data[cc_row, 37]))
+}
 
 ### ----- Country spatial data ----- ###
 
@@ -262,8 +266,16 @@ rast_clim_mask_get_f <- function(ISO) {
 # results in rast_lc_global
 # this is the new function - now (19/12/2022) to replace the global potential crop areas
 rast_lc_global_get_f <- function(rast_clim_mask, cc_data, cc_row) {
+  rast(paste0("data/", paste(cc_data[cc_row, 38]))) %>% wrap()
+}
+
+# results in rast_lc_potential
+# this is the new function - now (21/06/2023) to augment the global potential crop areas
+rast_lc_potential_get_f <- function(rast_clim_mask, cc_data, cc_row) {
   rast(paste0("data/", paste(cc_data[cc_row, 22]))) %>% wrap()
 }
+
+
 
 # results in rast_lc_file
 #rast_lc_make_write_f <- function(rast_lc_global, rast_clim_mask, ISO) {
@@ -282,13 +294,20 @@ rast_lc_make_write_f <- function(rast_lc_global, aggregation_value, vect_ISO, IS
  rast_lc_global %>% unwrap() %>% aggregate(aggregation_value, fun = "modal") %>% terra::crop(unwrap(vect_ISO), filename = paste0("data/", ISO, "/rast_lc.tif"), overwrite = TRUE)
 }
 
+# results in rast_lc_pot_file - alternative
+rast_lc_pot_make_write_f <- function(rast_lc_potential, aggregation_value_pot, vect_ISO, ISO) {
+  rast_lc_potential %>% unwrap() %>% aggregate(aggregation_value_pot, fun = "modal") %>% terra::crop(unwrap(vect_ISO), filename = paste0("data/", ISO, "/rast_lc_pot.tif"), overwrite = TRUE)
+}
 
 # results in rast_lc
 rast_lc_get_f <- function(rast_lc_file, ISO) {
   rast(paste0("data/", ISO, "/rast_lc.tif")) %>% wrap()
 }
 
-
+# results in rast_lc_pot
+rast_lc_pot_get_f <- function(rast_lc_pot_file, ISO) {
+  rast(paste0("data/", ISO, "/rast_lc_pot.tif")) %>% wrap()
+}
 
 # results in rast_lc_plot
 rast_lc_plot_f <- function(rast_lc, world) {
@@ -342,6 +361,33 @@ rast_lc_plot_f <- function(rast_lc, world) {
      )
 }
 
+# results in rast_lc_pot_plot
+rast_lc_pot_plot_f <- function(rast_lc_pot, world) {
+  
+ggplot() + #reverts to ggplot thanks to tidyterra
+    geom_spatraster(data = unwrap(rast_lc_pot), aes(), alpha = 1) +
+    geom_sf(
+      data = world,
+      fill = NA,
+      col = 'dark grey',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    ) +
+    scale_fill_gradient(low = "white",
+                        high = 'dark green',
+                        na.value = NA) +
+    xlim(-20, 60) +
+    ylim(-40, 40) +
+    labs(fill = "--------------------\nLand Cover\nPot Africa\n
+         \n\n\n--------------------") +
+    theme(
+      panel.grid.major.x = element_blank(),
+      panel.grid.minor.x = element_blank(),
+      axis.title.x = element_blank(),
+      axis.title.y = element_blank()
+    )
+}
+
 ### ----- Spatial data preparation ----- ###
 
 
@@ -365,10 +411,30 @@ rast_ISO_a_make_write_f  <- function(vect_ISO, rast_lc, ISO) {
   ) 
 }
 
+# results in rast_ISO_a_pot_file
+rast_ISO_a_pot_make_write_f  <- function(vect_ISO, rast_lc_pot, ISO) {
+  terra::rasterize(
+    unwrap(vect_ISO),
+    unwrap(rast_lc_pot),
+    fun = min, 
+    field = "New_ID",
+    touches = TRUE,
+    cover = TRUE,
+    filename = paste0("data/", ISO, "/rast_ISO_a_pot.tif"),
+    overwrite = TRUE
+  ) 
+}
+
 # results in rast_ISO_a
 rast_ISO_a_get_f <- function(ISO, rast_ISO_a_file) {
   rast(paste0("data/", ISO, "/rast_ISO_a.tif")) %>% wrap()
 }
+
+# results in rast_ISO_a_pot
+rast_ISO_a_pot_get_f <- function(ISO, rast_ISO_a_pot_file) {
+  rast(paste0("data/", ISO, "/rast_ISO_a_pot.tif")) %>% wrap()
+}
+
 
 # results in rast_ISO_file
 rast_ISO_make_write_f  <- function(rast_ISO_a, vect_ISO, ISO) {
@@ -380,32 +446,45 @@ rast_ISO_make_write_f  <- function(rast_ISO_a, vect_ISO, ISO) {
   )
 }
 
-# # results in rast_ISO_b
-# rast_ISO_b_get_f <- function(ISO, rast_ISO_b_file) {
-#   rast(paste0("data/", ISO, "/rast_ISO_b.tif"))
-# }
 
-# # results in rast_ISO_file
-# rast_ISO_make_write_f  <- function(rast_ISO_b, ISO) {
-# rast_ISO_b %>% rast() %>%
-#  writeRaster(paste0("data/", ISO, "/rast_ISO.tif"), overwrite = TRUE)
-# }
+# results in rast_ISO_pot_file
+rast_ISO_pot_make_write_f  <- function(rast_ISO_a_pot, vect_ISO, ISO) {
+  terra::crop(
+    unwrap(rast_ISO_a_pot),
+    unwrap(vect_ISO),
+    filename = paste0("data/", ISO, "/rast_ISO_pot.tif"),
+    overwrite = TRUE
+  )
+}
 
 # results in rast_ISO
 rast_ISO_get_f <- function(ISO, rast_ISO_file) {
   rast(paste0("data/", ISO, "/rast_ISO.tif")) %>% wrap()
 }
 
+# results in rast_ISO_pot
+rast_ISO_pot_get_f <- function(ISO, rast_ISO_pot_file) {
+  rast(paste0("data/", ISO, "/rast_ISO_pot.tif")) %>% wrap()
+}
 
 # results in rast_lc_ISO_file
 rast_lc_ISO_make_write_f  <- function(rast_lc, rast_ISO,  ISO) {
   (unwrap(rast_lc) * unwrap(rast_ISO)) %>% writeRaster(paste0("data/", ISO, "/rast_lc_ISO.tif"), overwrite = TRUE)
 }
  
+# results in rast_lc_ISO_pot_file
+rast_lc_ISO_pot_make_write_f  <- function(rast_lc_pot, rast_ISO_pot,  ISO) {
+  (unwrap(rast_lc_pot) * unwrap(rast_ISO_pot)) %>% writeRaster(paste0("data/", ISO, "/rast_lc_ISO_pot.tif"), overwrite = TRUE)
+}
 
 # results in rast_lc_ISO
 rast_lc_ISO_get_f <- function(ISO, rast_lc_ISO_file) {
   rast(paste0("data/", ISO, "/rast_lc_ISO.tif")) %>% wrap()
+}
+
+# results in rast_lc_ISO_pot
+rast_lc_ISO_pot_get_f <- function(ISO, rast_lc_ISO_pot_file) {
+  rast(paste0("data/", ISO, "/rast_lc_ISO_pot.tif")) %>% wrap()
 }
 
 # results in rast_lc_ISO_plot
@@ -440,6 +519,38 @@ rast_lc_ISO_plot_f <- function(rast_lc_ISO, world, vect_ISO, ISO) {
     )
 }
 
+# results in rast_lc_ISO_pot_plot
+rast_lc_ISO_pot_plot_f <- function(rast_lc_ISO_pot, world, vect_ISO, ISO) {
+  #gplot(unwrap(rast_lc_ISO), maxpixels = 500000) + #this uses gplot from the rastervis package
+  ggplot() + #reverts to ggplot thanks to tidyterra
+    geom_spatraster(data = unwrap(rast_lc_ISO_pot), aes(), alpha = 1) +
+    #  geom_tile(aes(fill = value), alpha = 1) +
+    geom_sf(
+      data = world,
+      fill = NA,
+      col = 'dark grey',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    ) +
+    scale_fill_gradient(low = "white",
+                        high = 'dark green',
+                        na.value = NA) +
+    xlim((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2] + 1)) +
+    ylim((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4] + 1)) +
+    labs(fill = paste0(
+      "-------------------\nrast_lc_ISO_pot\n",
+      ISO ,
+      "\n
+        \n\n\n--------------------"
+    )) +
+    theme(
+      panel.grid.major.x = element_blank(),
+      panel.grid.minor.x = element_blank(),
+      axis.title.x = element_blank(),
+      axis.title.y = element_blank()
+    )
+}
+
 # results in rast_crop_file
 rast_crop_make_write_f  <- function(vect_crop, rast_lc_ISO, ISO, crop) {
   terra::rasterize(unwrap(vect_crop),
@@ -448,9 +559,23 @@ rast_crop_make_write_f  <- function(vect_crop, rast_lc_ISO, ISO, crop) {
             background = 0)  %>% writeRaster(paste0("data/", ISO, "/", crop, "/rast_crop.tif"), overwrite = TRUE)
 }
 
+# results in rast_crop_pot_file
+rast_crop_pot_make_write_f  <- function(vect_crop, rast_lc_ISO_pot, ISO, crop) {
+  terra::rasterize(unwrap(vect_crop),
+                   unwrap(rast_lc_ISO_pot),
+                   field = 1,
+                   background = 0)  %>% writeRaster(paste0("data/", ISO, "/", crop, "/rast_crop_pot.tif"), overwrite = TRUE)
+}
+
+
 # results in rast_crop
 rast_crop_get_f <- function(rast_crop_file, ISO, crop) {
   rast(paste0("data/", ISO, "/", crop, "/rast_crop.tif")) %>% wrap()
+}
+
+# results in rast_crop_pot
+rast_crop_pot_get_f <- function(rast_crop_pot_file, ISO, crop) {
+  rast(paste0("data/", ISO, "/", crop, "/rast_crop_pot.tif")) %>% wrap()
 }
 
 # results in rast_crop_ISO_file
@@ -459,9 +584,20 @@ rast_crop_ISO_make_write_f <- function(rast_crop, rast_ISO, ISO, crop) {
                                    overwrite = TRUE)
 }
 
+# results in rast_crop_ISO_pot_file
+rast_crop_ISO_pot_make_write_f <- function(rast_crop_pot, rast_ISO_pot, ISO, crop) {
+  (unwrap(rast_crop_pot) * unwrap(rast_ISO_pot)) %>% writeRaster(paste0("data/", ISO, "/", crop, "/rast_crop_ISO_pot.tif"),
+                                                         overwrite = TRUE)
+}
+
 # results in rast_crop_ISO
 rast_crop_ISO_get_f <- function(rast_crop_ISO_file, ISO, crop) {
   rast(paste0("data/", ISO, "/", crop, "/rast_crop_ISO.tif")) %>% wrap()
+}
+
+# results in rast_crop_ISO_pot
+rast_crop_ISO_pot_get_f <- function(rast_crop_ISO_pot_file, ISO, crop) {
+  rast(paste0("data/", ISO, "/", crop, "/rast_crop_ISO_pot.tif")) %>% wrap()
 }
 
 # results in rast_crop_ISO_plot
@@ -505,6 +641,47 @@ rast_crop_ISO_plot_f <- function(rast_crop_ISO, vect_ISO1, ISO, crop) {
     coord_sf(expand = FALSE)
 }
 
+# results in rast_crop_ISO_pot_plot
+rast_crop_ISO_pot_plot_f <- function(rast_crop_ISO_pot, vect_ISO1, ISO, crop) {
+  #gplot(unwrap(rast_crop_ISO), maxpixels = 50000) + #this uses gplot from the rastervis package
+  ggplot() + #reverts to ggplot thanks to tidyterra
+    geom_spatraster(data = unwrap(rast_crop_ISO_pot), aes(), alpha = 1) +
+    #geom_tile(aes(fill = value), alpha = 1) +
+    #geom_sf(
+    #  data = unwrap(vect_ISO1),
+    #  fill = NA,
+    #  col = 'black',
+    #  na.rm = TRUE,
+    #  inherit.aes = FALSE
+    #)  +
+    geom_spatvector(
+      data = unwrap(vect_ISO1),
+      fill = NA,
+      col = 'black',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+    scale_fill_gradient(high = "green",
+                        low = 'red',
+                        na.value = NA) +
+    labs(
+      fill = paste0(
+        "--------------------\nrast_crop_ISO_pot\n",
+        ISO,
+        " ",
+        crop,
+        "\n\n\n\n\n--------------------"
+      )
+    ) +
+    theme(
+      panel.grid.major.x = element_blank(),
+      panel.grid.minor.x = element_blank(),
+      axis.title.x = element_blank(),
+      axis.title.y = element_blank()
+    ) +
+    coord_sf(expand = FALSE)
+}
+
 # results in rast_crop_ISO_lc_file
 rast_crop_ISO_lc_file_make_write_f <-
   function(rast_lc_ISO, rast_crop_ISO, ISO, crop) {
@@ -512,9 +689,21 @@ rast_crop_ISO_lc_file_make_write_f <-
                                                     overwrite = TRUE)
   }
 
+# results in rast_crop_ISO_lc_pot_file
+rast_crop_ISO_lc_pot_file_make_write_f <-
+  function(rast_lc_ISO_pot, rast_crop_ISO_pot, ISO, crop) {
+    (unwrap(rast_lc_ISO_pot) + (unwrap(rast_crop_ISO_pot)  * 10)) %>% writeRaster(paste0("data/", ISO, "/", crop, "/rast_crop_ISO_lc_pot.tif"),
+                                                                          overwrite = TRUE)
+  }
+
 # results in rast_crop_ISO_lc
 rast_crop_ISO_lc_get_f <- function(rast_crop_ISO_lc_file, ISO, crop) {
   rast(paste0("data/", ISO, "/", crop, "/rast_crop_ISO_lc.tif")) %>% wrap()
+}
+
+# results in rast_crop_ISO_lc_pot
+rast_crop_ISO_lc_pot_get_f <- function(rast_crop_ISO_lc_pot_file, ISO, crop) {
+  rast(paste0("data/", ISO, "/", crop, "/rast_crop_ISO_lc_pot.tif")) %>% wrap()
 }
 
 # results in rast_crop_ISO_lc_plot
@@ -558,12 +747,93 @@ rast_crop_ISO_lc_plot_f <- function(rast_crop_ISO_lc, vect_ISO1, ISO, crop) {
     coord_sf(expand = FALSE)
 }
 
+# results in rast_crop_ISO_lc_pot_plot
+rast_crop_ISO_lc_pot_plot_f <- function(rast_crop_ISO_lc_pot, vect_ISO1, ISO, crop) {
+  # gplot(unwrap(rast_crop_ISO_lc), maxpixels = 50000) + #this uses gplot from the rastervis package
+  ggplot() + #reverts to ggplot thanks to tidyterra
+    geom_spatraster(data = unwrap(rast_crop_ISO_lc_pot), aes(), alpha = 1) +
+    #geom_tile(aes(fill = value), alpha = 1) +
+    #geom_sf(
+    #  data = unwrap(vect_ISO1),
+    #  fill = NA,
+    #  col = 'black',
+    #  na.rm = TRUE,
+    #  inherit.aes = FALSE
+    #)  +
+    geom_spatvector(
+      data = unwrap(vect_ISO1),
+      fill = NA,
+      col = 'black',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+    scale_fill_gradient(high = "green",
+                        low = 'red',
+                        na.value = NA) +
+    labs(
+      fill = paste0(
+        "--------------------\nrast_crop_ISO_lc_pot\n",
+        ISO,
+        " ",
+        crop,
+        "\n\n\n\n\n--------------------"
+      )
+    ) +
+    theme(
+      panel.grid.major.x = element_blank(),
+      panel.grid.minor.x = element_blank(),
+      axis.title.x = element_blank(),
+      axis.title.y = element_blank()
+    ) +
+    coord_sf(expand = FALSE)
+}
+
 
 # results in rast_crop_ISO_lc_rcl_file
 rast_crop_ISO_lc_rcl_make_write_f <-
   function(rast_crop_ISO_lc, ISO, crop) {
     classify(
       unwrap(rast_crop_ISO_lc),
+      matrix(
+        c(
+          -0.5,
+          0.5,
+          0,
+          0.5,
+          1.5,
+          0,
+          1.5,
+          2.5,
+          0,
+          2.5,
+          3.5,
+          0,    #changed from 1 to 0
+          3.5,
+          10.5,
+          0,
+          10.5,
+          11.5,
+          0,
+          11.5,
+          12.5,
+          0,
+          12.5,
+          13.5,
+          2
+        ),
+        ncol = 3,
+        byrow = TRUE
+      ),
+      filename = paste0("data/", ISO, "/", crop, "/rast_crop_ISO_lc_rcl.tif"),
+      overwrite = TRUE
+    )
+  }
+
+# results in rast_crop_ISO_lc_rcl_pot_file
+rast_crop_ISO_lc_rcl_pot_make_write_f <-
+  function(rast_crop_ISO_lc_pot, ISO, crop) {
+    classify(
+      unwrap(rast_crop_ISO_lc_pot),
       matrix(
         c(
           -0.5,
@@ -589,12 +859,12 @@ rast_crop_ISO_lc_rcl_make_write_f <-
           0,
           12.5,
           13.5,
-          2
+          0     #changed from 2 to 0
         ),
         ncol = 3,
         byrow = TRUE
       ),
-      filename = paste0("data/", ISO, "/", crop, "/rast_crop_ISO_lc_rcl.tif"),
+      filename = paste0("data/", ISO, "/", crop, "/rast_crop_ISO_lc_rcl_pot.tif"),
       overwrite = TRUE
     )
   }
@@ -604,6 +874,13 @@ rast_crop_ISO_lc_rcl_get_f <-
   function(rast_crop_ISO_lc_rcl_file, ISO, crop) {
     rast(paste0("data/", ISO, "/", crop, "/rast_crop_ISO_lc_rcl.tif")) %>% wrap()
   }
+
+# results in rast_crop_ISO_lc_rcl_pot
+rast_crop_ISO_lc_rcl_pot_get_f <-
+  function(rast_crop_ISO_lc_rcl_pot_file, ISO, crop) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_crop_ISO_lc_rcl_pot.tif")) %>% wrap()
+  }
+
 
 # results in rast_crop_ISO_lc_rcl_plot
 rast_crop_ISO_lc_rcl_plot_f <-
@@ -647,46 +924,131 @@ rast_crop_ISO_lc_rcl_plot_f <-
       coord_sf(expand = FALSE)
   }
 
+# results in rast_crop_ISO_lc_rcl_pot_plot
+rast_crop_ISO_lc_rcl_pot_plot_f <-
+  function(rast_crop_ISO_lc_rcl_pot, vect_ISO1, ISO, crop) {
+    #gplot(unwrap(rast_crop_ISO_lc_rcl), maxpixels = 50000) + #this uses gplot from the rastervis package
+    #  geom_tile(aes(fill = value), alpha = 1) +
+    ggplot() + #reverts to ggplot thanks to tidyterra
+      geom_spatraster(data = unwrap(rast_crop_ISO_lc_rcl_pot), aes(), alpha = 1) +
+      #geom_sf(
+      #  data = unwrap(vect_ISO1),
+      #  fill = NA,
+      #  col = 'black',
+      #  na.rm = TRUE,
+      #  inherit.aes = FALSE
+      #)  +
+      geom_spatvector(
+        data = unwrap(vect_ISO1),
+        fill = NA,
+        col = 'black',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      scale_fill_gradient(high = "green",
+                          low = 'red',
+                          na.value = NA) +
+      labs(
+        fill = paste0(
+          "--------------------\nrast_crop_ISO_lc_rcl_pot\n",
+          ISO,
+          " ",
+          crop,
+          "\n\n\n\n\n--------------------"
+        )
+      ) +
+      theme(
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+      ) +
+      coord_sf(expand = FALSE)
+  }
+
+
+### ----- Combine current and potential sourcing areas together and reclassify to remove overlaps
+
+# results in rast_crop_ISO_lc_rcl_combined_file
+rast_crop_ISO_lc_rcl_combined_make_write_f <-
+  function(rast_crop_ISO_lc_rcl, rast_crop_ISO_lc_rcl_pot, ISO, crop) {
+    
+    (unwrap(rast_crop_ISO_lc_rcl) + (resample(unwrap(rast_crop_ISO_lc_rcl_pot), unwrap(rast_crop_ISO_lc_rcl), method = "near")))     %>% 
+classify(matrix(c(
+          -0.5, 0.5,0,
+          0.5, 1.5, 1,
+          1.5, 2.5, 2,
+          2.5, 3.5, 2 ),
+        ncol = 3,
+        byrow = TRUE
+      ),
+      filename = paste0("data/", ISO, "/", crop, "/rast_crop_ISO_lc_rcl_combined.tif"),
+      overwrite = TRUE
+    )
+}
+
 
 ### ----- Aggregate the crop/landuse raster and convert to vector----- ###
 
 ### old version before aggregating earlier
-# results in rast_crop_ISO_lc_rcl_agg_file
-#rast_crop_ISO_lc_rcl_agg_make_write_f <-
+# results in rast_crop_ISO_lc_rcl_combined_file
+#rast_crop_ISO_lc_rcl_combined_make_write_f <-
 #  function(rast_crop_ISO_lc_rcl, aggregation_value, ISO, crop) {
-#    aggregate(rast_crop_ISO_lc_rcl, aggregation_value, fun = "modal") %>% writeRaster(paste0("data/", ISO, "/", crop, "/rast_crop_ISO_lc_rcl_agg.tif"),
+#    aggregate(rast_crop_ISO_lc_rcl, aggregation_value, fun = "modal") %>% writeRaster(paste0("data/", ISO, "/", crop, "/rast_crop_ISO_lc_rcl_combined.tif"),
 #                                                                    overwrite = TRUE)
 #  }
 
-# results in rast_crop_ISO_lc_rcl_agg_file
-rast_crop_ISO_lc_rcl_agg_make_write_f <-
-  function(rast_crop_ISO_lc_rcl, ISO, crop) {
-    unwrap(rast_crop_ISO_lc_rcl) %>% writeRaster(paste0("data/", ISO, "/", crop, "/rast_crop_ISO_lc_rcl_agg.tif"),
-                                                                    overwrite = TRUE)
-  }
+# # results in rast_crop_ISO_lc_rcl_combined_file
+# rast_crop_ISO_lc_rcl_combined_make_write_f <-
+#   function(rast_crop_ISO_lc_rcl, ISO, crop) {
+#     unwrap(rast_crop_ISO_lc_rcl) %>% writeRaster(paste0("data/", ISO, "/", crop, "/rast_crop_ISO_lc_rcl_combined.tif"),
+#                                                                     overwrite = TRUE)
+#   }
 
-# results in rast_crop_ISO_lc_rcl_agg
-rast_crop_ISO_lc_rcl_agg_get_f <-
-  function(rast_crop_ISO_lc_rcl_agg_file, ISO, crop) {
-    rast(paste0("data/", ISO, "/", crop, "/rast_crop_ISO_lc_rcl_agg.tif")) %>% wrap()
+## results in rast_crop_ISO_lc_rcl_combined_pot_file
+#rast_crop_ISO_lc_rcl_combined_pot_make_write_f <-
+#  function(rast_crop_ISO_lc_rcl_pot, ISO, crop) {
+#    unwrap(rast_crop_ISO_lc_rcl_pot) %>% writeRaster(paste0("data/", ISO, "/", crop, "/rast_crop_ISO_lc_rcl_combined_pot.tif"),
+#                                                 overwrite = TRUE)
+#  }
+
+# results in rast_crop_ISO_lc_rcl_combined
+rast_crop_ISO_lc_rcl_combined_get_f <-
+  function(rast_crop_ISO_lc_rcl_combined_file, ISO, crop) {
+    rast(paste0("data/", ISO, "/", crop, "/rast_crop_ISO_lc_rcl_combined.tif")) %>% wrap()
   }
  
+## results in rast_crop_ISO_lc_rcl_combined_pot
+#rast_crop_ISO_lc_rcl_combined_pot_get_f <-
+#  function(rast_crop_ISO_lc_rcl_combined_pot_file, ISO, crop) {
+#    rast(paste0("data/", ISO, "/", crop, "/rast_crop_ISO_lc_rcl_combined_pot.tif")) %>% wrap()
+#  }
 
-# results in rast_crop_ISO_lc_rcl_agg_values
-rast_crop_ISO_lc_rcl_agg_values_get_f <-
-  function(rast_crop_ISO_lc_rcl_agg) {
-    #values(rast_crop_ISO_lc_rcl_agg) %>% unique() %>% as.numeric(na.omit())
+# results in rast_crop_ISO_lc_rcl_combined_values
+rast_crop_ISO_lc_rcl_combined_values_get_f <-
+  function(rast_crop_ISO_lc_rcl_combined) {
+    #values(rast_crop_ISO_lc_rcl_combined) %>% unique() %>% as.numeric(na.omit())
     as.numeric(na.omit(unique(values(
-      unwrap(rast_crop_ISO_lc_rcl_agg)
+      unwrap(rast_crop_ISO_lc_rcl_combined)
     ))))
   }
 
 
-# # results in vect_crop_ISO_lc_rcl_agg_file1
-# vect_crop_ISO_lc_rcl_agg1_make_write_f <-
-#   function(rast_crop_ISO_lc_rcl_agg,  ISO, crop) {
+## results in rast_crop_ISO_lc_rcl_combined_values_pot
+#rast_crop_ISO_lc_rcl_combined_values_pot_get_f <-
+#  function(rast_crop_ISO_lc_rcl_combined_pot) {
+#    #values(rast_crop_ISO_lc_rcl_combined) %>% unique() %>% as.numeric(na.omit())
+#    as.numeric(na.omit(unique(values(
+#      unwrap(rast_crop_ISO_lc_rcl_combined_pot)
+#    ))))
+#  }
+
+
+# # results in vect_crop_ISO_lc_rcl_combined_file1
+# vect_crop_ISO_lc_rcl_combined1_make_write_f <-
+#   function(rast_crop_ISO_lc_rcl_combined,  ISO, crop) {
 #     rasterToPolygons(
-#       rast_crop_ISO_lc_rcl_agg,
+#       rast_crop_ISO_lc_rcl_combined,
 #       fun = NULL,
 #       n = 4,
 #       na.rm = TRUE,
@@ -694,52 +1056,67 @@ rast_crop_ISO_lc_rcl_agg_values_get_f <-
 #       dissolve = TRUE
 #     ) %>%
 #      st_as_sf %>%
-#      write_sf(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg1.shp"), overwrite = TRUE)
+#      write_sf(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined1.shp"), overwrite = TRUE)
 #   }
 
-# results in vect_crop_ISO_lc_rcl_agg_file1
+# results in vect_crop_ISO_lc_rcl_combined_file1
 ## added layer = "layer" to function on 11/03/2023
 
-vect_crop_ISO_lc_rcl_agg1_make_write_f <-
-  function(rast_crop_ISO_lc_rcl_agg,  ISO, crop) {
+vect_crop_ISO_lc_rcl_combined1_make_write_f <-
+  function(rast_crop_ISO_lc_rcl_combined,  ISO, crop) {
     as.polygons(
-      unwrap(rast_crop_ISO_lc_rcl_agg),
+      unwrap(rast_crop_ISO_lc_rcl_combined),
       trunc = TRUE,
       dissolve = TRUE,
       values = TRUE,
       na.rm = TRUE,
       extent = FALSE
     ) %>% `names<-`(c("layer")) %>%
-      writeVector(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg1.shp"),
+      writeVector(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined1.shp"),
                  overwrite = TRUE)
   }
+
+## results in vect_crop_ISO_lc_rcl_combined_file1_pot
+#vect_crop_ISO_lc_rcl_combined1_pot_make_write_f <-
+#  function(rast_crop_ISO_lc_rcl_combined_pot,  ISO, crop) {
+#    as.polygons(
+#      unwrap(rast_crop_ISO_lc_rcl_combined_pot),
+#      trunc = TRUE,
+#      dissolve = TRUE,
+#      values = TRUE,
+#      na.rm = TRUE,
+#      extent = FALSE
+#    ) %>% `names<-`(c("layer")) %>%
+#      writeVector(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined1_pot.shp"),
+#                  overwrite = TRUE)
+#  }
 
 ##
 
 
-# results in vect_crop_ISO_lc_rcl_agg
-vect_crop_ISO_lc_rcl_agg_get_f <-
-  function(vect_crop_ISO_lc_rcl_agg_file1,
-           rast_crop_ISO_lc_rcl_agg_values,
-           rast_crop_ISO_lc_rcl_agg_values_vec0,
-           rast_crop_ISO_lc_rcl_agg_values_vec1,
-           rast_crop_ISO_lc_rcl_agg_values_vec2,
-           rast_crop_ISO_lc_rcl_agg_values_vec01,
-           rast_crop_ISO_lc_rcl_agg_values_vec02,
-           rast_crop_ISO_lc_rcl_agg_values_vec12,
+# results in vect_crop_ISO_lc_rcl_combined
+vect_crop_ISO_lc_rcl_combined_get_f <-
+  function(vect_crop_ISO_lc_rcl_combined_file1,
+           rast_crop_ISO_lc_rcl_combined_values,
+           rast_crop_ISO_lc_rcl_combined_values_vec0,
+           rast_crop_ISO_lc_rcl_combined_values_vec1,
+           rast_crop_ISO_lc_rcl_combined_values_vec2,
+           rast_crop_ISO_lc_rcl_combined_values_vec01,
+           rast_crop_ISO_lc_rcl_combined_values_vec02,
+           rast_crop_ISO_lc_rcl_combined_values_vec12,
            ISO,
            crop,
            vect_ISO1) {
     # compare vector of raster values with possibilities    
     # 23/09/2022 Problem while computing `LC = factor(...)`.Caused by error in `unique.default()`:! unique() applies only to vectors
     
-    ## try changing rast_crop_ISO to rast_crop_ISO_lc_rcl_agg - this does not work
-    ## try the rast_crop_ISO_lc_rcl_agg_values - this does work but rast_crop_ISO is meant to be a field
+    ## try changing rast_crop_ISO to rast_crop_ISO_lc_rcl_combined - this does not work
+    ## try the rast_crop_ISO_lc_rcl_combined_values - this does work but rast_crop_ISO is meant to be a field
     ## try changing rast_crop_ISO to layer
     
-    
-    if (length(rast_crop_ISO_lc_rcl_agg_values) == 3) {
-      # st_read(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg1.shp")) %>%
+   
+    if (length(rast_crop_ISO_lc_rcl_combined_values) == 3) {
+      # st_read(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined1.shp")) %>%
       #  st_make_valid() %>%
       # mutate(LC = factor(layer,
       #                     labels = c(
@@ -749,17 +1126,17 @@ vect_crop_ISO_lc_rcl_agg_get_f <-
       #  st_intersection(vect_ISO1) %>%
       #  mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
       
-      vect(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg1.shp")) %>%
-        tidyterra::mutate(LC = factor(layer, abels = c(
+      vect(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined1.shp")) %>%
+        tidyterra::mutate(LC = factor(layer, labels = c(
                                  "Not Cropland", "Cropland", paste0("'", crop, "'")
                               ))) %>%
         dplyr::filter(layer > 0) %>%
         terra::intersect(unwrap(vect_ISO1)) %>%
         tidyterra::mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_')) %>% wrap()
       
-    } else if (identical(rast_crop_ISO_lc_rcl_agg_values,
-                         rast_crop_ISO_lc_rcl_agg_values_vec0)) {
-    #  st_read(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg1.shp")) %>%
+    } else if (identical(rast_crop_ISO_lc_rcl_combined_values,
+                         rast_crop_ISO_lc_rcl_combined_values_vec0)) {
+    #  st_read(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined1.shp")) %>%
     #    st_make_valid() %>%
     #    mutate(LC = factor(layer,
     #                       labels = c("Not Cropland"))) %>%
@@ -767,15 +1144,15 @@ vect_crop_ISO_lc_rcl_agg_get_f <-
     #    st_intersection(vect_ISO1) %>%
     #    mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
       
-      vect(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg1.shp")) %>%
+      vect(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined1.shp")) %>%
         tidyterra::mutate(LC = factor(layer, labels = c("Not Cropland"))) %>%
         dplyr::filter(layer > 0) %>%
         terra::intersect(unwrap(vect_ISO1)) %>%
         tidyterra::mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_')) %>% wrap()
       
-    } else if (identical(rast_crop_ISO_lc_rcl_agg_values,
-                         rast_crop_ISO_lc_rcl_agg_values_vec1)) {
-    #  st_read(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg1.shp")) %>%
+    } else if (identical(rast_crop_ISO_lc_rcl_combined_values,
+                         rast_crop_ISO_lc_rcl_combined_values_vec1)) {
+    #  st_read(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined1.shp")) %>%
     #    st_make_valid() %>%
     #    mutate(LC = factor(layer,
     #                       labels = c("Cropland"))) %>%
@@ -783,15 +1160,15 @@ vect_crop_ISO_lc_rcl_agg_get_f <-
     #    st_intersection(vect_ISO1) %>%
     #    mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
       
-      vect(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg1.shp")) %>%
+      vect(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined1.shp")) %>%
         tidyterra::mutate(LC = factor(layer, labels = c("Cropland"))) %>%
         dplyr::filter(layer > 0) %>%
         terra::intersect(unwrap(vect_ISO1)) %>%
         tidyterra::mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_')) %>% wrap()
       
-    } else if (identical(rast_crop_ISO_lc_rcl_agg_values,
-                         rast_crop_ISO_lc_rcl_agg_values_vec2)) {
-    #  st_read(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg1.shp")) %>%
+    } else if (identical(rast_crop_ISO_lc_rcl_combined_values,
+                         rast_crop_ISO_lc_rcl_combined_values_vec2)) {
+    #  st_read(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined1.shp")) %>%
     #    st_make_valid() %>%
     #    mutate(LC = factor(layer,
     #                       labels = c(paste0("'", crop, "'")))) %>%
@@ -799,15 +1176,15 @@ vect_crop_ISO_lc_rcl_agg_get_f <-
     #    st_intersection(vect_ISO1) %>%
     #    mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
       
-      vect(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg1.shp")) %>%
+      vect(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined1.shp")) %>%
         tidyterra::mutate(LC = factor(layer, labels = c(paste0("'", crop, "'")))) %>%
         dplyr::filter(layer > 0) %>%
         terra::intersect(unwrap(vect_ISO1)) %>%
         tidyterra::mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_')) %>% wrap()
       
-    } else if (identical(rast_crop_ISO_lc_rcl_agg_values,
-                         rast_crop_ISO_lc_rcl_agg_values_vec01)) {
-    #  st_read(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg1.shp")) %>%
+    } else if (identical(rast_crop_ISO_lc_rcl_combined_values,
+                         rast_crop_ISO_lc_rcl_combined_values_vec01)) {
+    #  st_read(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined1.shp")) %>%
     #    st_make_valid() %>%
     #    mutate(LC = factor(layer,
     #                       labels = c("Not Cropland", "Cropland"))) %>%
@@ -815,7 +1192,7 @@ vect_crop_ISO_lc_rcl_agg_get_f <-
     #    st_intersection(vect_ISO1) %>%
     #    mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
       
-     vect(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg1.shp")) %>%
+     vect(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined1.shp")) %>%
      tidyterra::mutate(LC = factor(layer, labels = c("Not Cropland","Cropland"))) %>%
      dplyr::filter(layer > 0) %>%
      terra::intersect(unwrap(vect_ISO1)) %>%
@@ -824,9 +1201,9 @@ vect_crop_ISO_lc_rcl_agg_get_f <-
  ## A Farrow 31/03/2023 reached here     
       
       
-    } else if (identical(rast_crop_ISO_lc_rcl_agg_values,
-                         rast_crop_ISO_lc_rcl_agg_values_vec02)) {
-      #st_read(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg1.shp")) %>%
+    } else if (identical(rast_crop_ISO_lc_rcl_combined_values,
+                         rast_crop_ISO_lc_rcl_combined_values_vec02)) {
+      #st_read(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined1.shp")) %>%
       #  st_make_valid() %>%
       #  mutate(LC = factor(layer,
       #                     labels = c("Not Cropland", paste0("'", crop, "'")))) %>%
@@ -834,14 +1211,14 @@ vect_crop_ISO_lc_rcl_agg_get_f <-
       #  st_intersection(vect_ISO1) %>%
       #  mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
       
-      vect(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg1.shp")) %>%
+      vect(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined1.shp")) %>%
         tidyterra::mutate(LC = factor(layer, labels = c("Not Cropland", paste0("'", crop, "'")))) %>%
         dplyr::filter(layer > 0) %>%
         terra::intersect(unwrap(vect_ISO1)) %>%
         tidyterra::mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_')) %>% wrap()
       
     } else {
-     # st_read(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg1.shp")) %>%
+     # st_read(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined1.shp")) %>%
      #  st_make_valid() %>%
      #  mutate(LC = factor(layer,
      #                      labels = c("Cropland", paste0("'", crop, "'")))) %>%
@@ -849,7 +1226,7 @@ vect_crop_ISO_lc_rcl_agg_get_f <-
      #  st_intersection(vect_ISO1) %>%
      #  mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
       
-      vect(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg1.shp")) %>%
+      vect(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined1.shp")) %>%
         tidyterra::mutate(LC = factor(layer, labels = c("Cropland", paste0("'", crop, "'")))) %>%
         dplyr::filter(layer > 0) %>%
         terra::intersect(unwrap(vect_ISO1)) %>%
@@ -857,26 +1234,177 @@ vect_crop_ISO_lc_rcl_agg_get_f <-
     }
   }
 
+# # results in vect_crop_ISO_lc_rcl_combined_pot
+# vect_crop_ISO_lc_rcl_combined_pot_get_f <-
+#   function(vect_crop_ISO_lc_rcl_combined_file1_pot,
+#            rast_crop_ISO_lc_rcl_combined_values_pot,
+#            rast_crop_ISO_lc_rcl_combined_values_vec0,
+#            rast_crop_ISO_lc_rcl_combined_values_vec1,
+#            rast_crop_ISO_lc_rcl_combined_values_vec2,
+#            rast_crop_ISO_lc_rcl_combined_values_vec01,
+#            rast_crop_ISO_lc_rcl_combined_values_vec02,
+#            rast_crop_ISO_lc_rcl_combined_values_vec12,
+#            ISO,
+#            crop,
+#            vect_ISO1) {
+#     # compare vector of raster values with possibilities    
+#     # 23/09/2022 Problem while computing `LC = factor(...)`.Caused by error in `unique.default()`:! unique() applies only to vectors
+#     
+#     ## try changing rast_crop_ISO to rast_crop_ISO_lc_rcl_combined - this does not work
+#     ## try the rast_crop_ISO_lc_rcl_combined_values - this does work but rast_crop_ISO is meant to be a field
+#     ## try changing rast_crop_ISO to layer
+#     
+#     
+#     if (length(rast_crop_ISO_lc_rcl_combined_values_pot) == 3) {
+#       # st_read(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined1.shp")) %>%
+#       #  st_make_valid() %>%
+#       # mutate(LC = factor(layer,
+#       #                     labels = c(
+#       #                       "Not Cropland", "Cropland", paste0("'", crop, "'")
+#       #                     ))) %>%
+#       #  dplyr::filter(layer > 0) %>%
+#       #  st_intersection(vect_ISO1) %>%
+#       #  mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
+#       
+#       vect(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined1_pot.shp")) %>%
+#         tidyterra::mutate(LC = factor(layer, labels = c(
+#           "Not Cropland", "Cropland", paste0("'", crop, "'")
+#         ))) %>%
+#         dplyr::filter(layer > 0) %>%
+#         terra::intersect(unwrap(vect_ISO1)) %>%
+#         tidyterra::mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_')) %>% wrap()
+#       
+#     } else if (identical(rast_crop_ISO_lc_rcl_combined_values_pot,
+#                          rast_crop_ISO_lc_rcl_combined_values_vec0)) {
+#       #  st_read(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined1.shp")) %>%
+#       #    st_make_valid() %>%
+#       #    mutate(LC = factor(layer,
+#       #                       labels = c("Not Cropland"))) %>%
+#       #    dplyr::filter(layer > 0) %>%
+#       #    st_intersection(vect_ISO1) %>%
+#       #    mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
+#       
+#       vect(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined1_pot.shp")) %>%
+#         tidyterra::mutate(LC = factor(layer, labels = c("Not Cropland"))) %>%
+#         dplyr::filter(layer > 0) %>%
+#         terra::intersect(unwrap(vect_ISO1)) %>%
+#         tidyterra::mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_')) %>% wrap()
+#       
+#     } else if (identical(rast_crop_ISO_lc_rcl_combined_values_pot,
+#                          rast_crop_ISO_lc_rcl_combined_values_vec1)) {
+#       #  st_read(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined1.shp")) %>%
+#       #    st_make_valid() %>%
+#       #    mutate(LC = factor(layer,
+#       #                       labels = c("Cropland"))) %>%
+#       #    dplyr::filter(layer > 0) %>%
+#       #    st_intersection(vect_ISO1) %>%
+#       #    mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
+#       
+#       vect(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined1_pot.shp")) %>%
+#         tidyterra::mutate(LC = factor(layer, labels = c("Cropland"))) %>%
+#         dplyr::filter(layer > 0) %>%
+#         terra::intersect(unwrap(vect_ISO1)) %>%
+#         tidyterra::mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_')) %>% wrap()
+#       
+#     } else if (identical(rast_crop_ISO_lc_rcl_combined_values_pot,
+#                          rast_crop_ISO_lc_rcl_combined_values_vec2)) {
+#       #  st_read(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined1.shp")) %>%
+#       #    st_make_valid() %>%
+#       #    mutate(LC = factor(layer,
+#       #                       labels = c(paste0("'", crop, "'")))) %>%
+#       #    dplyr::filter(layer > 0) %>%
+#       #    st_intersection(vect_ISO1) %>%
+#       #    mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
+#       
+#       vect(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined1_pot.shp")) %>%
+#         tidyterra::mutate(LC = factor(layer, labels = c(paste0("'", crop, "'")))) %>%
+#         dplyr::filter(layer > 0) %>%
+#         terra::intersect(unwrap(vect_ISO1)) %>%
+#         tidyterra::mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_')) %>% wrap()
+#       
+#     } else if (identical(rast_crop_ISO_lc_rcl_combined_values_pot,
+#                          rast_crop_ISO_lc_rcl_combined_values_vec01)) {
+#       #  st_read(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined1.shp")) %>%
+#       #    st_make_valid() %>%
+#       #    mutate(LC = factor(layer,
+#       #                       labels = c("Not Cropland", "Cropland"))) %>%
+#       #    dplyr::filter(layer > 0) %>%
+#       #    st_intersection(vect_ISO1) %>%
+#       #    mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
+#       
+#       vect(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined1_pot.shp")) %>%
+#         tidyterra::mutate(LC = factor(layer, labels = c("Not Cropland","Cropland"))) %>%
+#         dplyr::filter(layer > 0) %>%
+#         terra::intersect(unwrap(vect_ISO1)) %>%
+#         tidyterra::mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_')) %>% wrap()
+#       
+#       ## A Farrow 31/03/2023 reached here     
+#       
+#       
+#     } else if (identical(rast_crop_ISO_lc_rcl_combined_values_pot,
+#                          rast_crop_ISO_lc_rcl_combined_values_vec02)) {
+#       #st_read(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined1.shp")) %>%
+#       #  st_make_valid() %>%
+#       #  mutate(LC = factor(layer,
+#       #                     labels = c("Not Cropland", paste0("'", crop, "'")))) %>%
+#       #  dplyr::filter(layer > 0) %>%
+#       #  st_intersection(vect_ISO1) %>%
+#       #  mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
+#       
+#       vect(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined1_pot.shp")) %>%
+#         tidyterra::mutate(LC = factor(layer, labels = c("Not Cropland", paste0("'", crop, "'")))) %>%
+#         dplyr::filter(layer > 0) %>%
+#         terra::intersect(unwrap(vect_ISO1)) %>%
+#         tidyterra::mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_')) %>% wrap()
+#       
+#     } else {
+#       # st_read(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined1.shp")) %>%
+#       #  st_make_valid() %>%
+#       #  mutate(LC = factor(layer,
+#       #                      labels = c("Cropland", paste0("'", crop, "'")))) %>%
+#       #  dplyr::filter(layer > 0) %>%
+#       #  st_intersection(vect_ISO1) %>%
+#       #  mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_'))
+#       
+#       vect(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined1_pot.shp")) %>%
+#         tidyterra::mutate(LC = factor(layer, labels = c("Cropland", paste0("'", crop, "'")))) %>%
+#         dplyr::filter(layer > 0) %>%
+#         terra::intersect(unwrap(vect_ISO1)) %>%
+#         tidyterra::mutate(crop_ISO1 = paste(NAME_1, LC, sep = '_')) %>% wrap()
+#     }
+#   }
+
 
 sf::sf_use_s2(FALSE)
 
-# results in vect_crop_ISO_lc_rcl_agg_file2
-vect_crop_ISO_lc_rcl_agg2_make_write_f <-
-  function(vect_crop_ISO_lc_rcl_agg,  ISO, crop) {
-    unwrap(vect_crop_ISO_lc_rcl_agg) %>%
+# results in vect_crop_ISO_lc_rcl_combined_file2
+vect_crop_ISO_lc_rcl_combined2_make_write_f <-
+  function(vect_crop_ISO_lc_rcl_combined,  ISO, crop) {
+    unwrap(vect_crop_ISO_lc_rcl_combined) %>%
     #  st_as_sf %>%
-    #  write_sf(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg.shp"),
+    #  write_sf(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined.shp"),
     #           overwrite = TRUE)
-    writeVector(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg.shp"),
+    writeVector(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined.shp"),
                   overwrite = TRUE)
   }
 
-# results in vect_crop_ISO_lc_rcl_agg_plot
-vect_crop_ISO_lc_rcl_agg_plot_f <-
-  function(vect_crop_ISO_lc_rcl_agg,  vect_ISO1, ISO, crop)  {
+# # results in vect_crop_ISO_lc_rcl_combined_file2_pot
+# vect_crop_ISO_lc_rcl_combined2_pot_make_write_f <-
+#   function(vect_crop_ISO_lc_rcl_combined_pot,  ISO, crop) {
+#     unwrap(vect_crop_ISO_lc_rcl_combined_pot) %>%
+#       #  st_as_sf %>%
+#       #  write_sf(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined.shp"),
+#       #           overwrite = TRUE)
+#       writeVector(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined_pot.shp"),
+#                   overwrite = TRUE)
+#   }
+
+# results in vect_crop_ISO_lc_rcl_combined_plot
+vect_crop_ISO_lc_rcl_combined_plot_f <-
+  function(vect_crop_ISO_lc_rcl_combined,  vect_ISO1, ISO, crop)  {
     ggplot() +
   #    geom_sf(
-  #      data = vect_crop_ISO_lc_rcl_agg,
+  #      data = vect_crop_ISO_lc_rcl_combined,
   #      aes(fill = crop_ISO1),
   #      col = NA,
   #      na.rm = TRUE,
@@ -890,7 +1418,7 @@ vect_crop_ISO_lc_rcl_agg_plot_f <-
         inherit.aes = FALSE
       ) +
       geom_spatvector(
-        data = unwrap(vect_crop_ISO_lc_rcl_agg),
+        data = unwrap(vect_crop_ISO_lc_rcl_combined),
         aes(fill = crop_ISO1),
         na.rm = TRUE,
         inherit.aes = FALSE
@@ -915,6 +1443,51 @@ vect_crop_ISO_lc_rcl_agg_plot_f <-
       guides(fill = "none") +
       labs(title = paste0("Sourcing Areas - ", ISO, " - ", crop))
   }
+
+# # results in vect_crop_ISO_lc_rcl_combined_pot_plot
+# vect_crop_ISO_lc_rcl_combined_pot_plot_f <-
+#   function(vect_crop_ISO_lc_rcl_combined_pot,  vect_ISO1, ISO, crop)  {
+#     ggplot() +
+#       #    geom_sf(
+#       #      data = vect_crop_ISO_lc_rcl_combined,
+#       #      aes(fill = crop_ISO1),
+#       #      col = NA,
+#       #      na.rm = TRUE,
+#       #      inherit.aes = FALSE
+#       #    )  
+#       geom_spatvector(
+#         data = unwrap(vect_ISO1),
+#         aes(fill = NA),
+#         col = 'darkred',
+#         na.rm = TRUE,
+#         inherit.aes = FALSE
+#       ) +
+#       geom_spatvector(
+#         data = unwrap(vect_crop_ISO_lc_rcl_combined_pot),
+#         aes(fill = crop_ISO1),
+#         na.rm = TRUE,
+#         inherit.aes = FALSE
+#       ) +
+#       #      geom_sf(
+#       #        data = unwrap(vect_ISO1),
+#       #        fill = NA,
+#       #        col = 'black',
+#       #        na.rm = TRUE,
+#       #        inherit.aes = FALSE
+#       #      )  +
+#       #scale_fill_manual(values = c("Cropland"  = rgb(255, 0, 0, maxColorValue = 255))) +
+#       scale_fill_viridis_d() +
+#       geom_spatvector_text(
+#         data = unwrap(vect_ISO1),
+#         aes(label = NAME_1),
+#         fontface = "bold",
+#         size = 2,
+#         color = "darkred",
+#         check_overlap = T
+#       ) +
+#       guides(fill = "none") +
+#       labs(title = paste0("Sourcing Areas - ", ISO, " - ", crop))
+#   }
 
 ### ----- Project the crop/landuse vector to Equal Area projection and get stats----- ###
 
@@ -965,34 +1538,51 @@ crs_lam_make_f <- function(wkt_lam) {
   terra::crs(wkt_lam)
 }
 
-# results in vect_crop_ISO_lc_rcl_agg_proj_file
-vect_crop_ISO_lc_rcl_agg_proj_file_make_write_f <-
-  function(vect_crop_ISO_lc_rcl_agg, crs_lam, ISO, crop) {
-    #st_transform(vect_crop_ISO_lc_rcl_agg, crs_lam) %>%
-    #  write_sf(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg_proj.shp"),
+# results in vect_crop_ISO_lc_rcl_combined_proj_file
+vect_crop_ISO_lc_rcl_combined_proj_file_make_write_f <-
+  function(vect_crop_ISO_lc_rcl_combined, crs_lam, ISO, crop) {
+    #st_transform(vect_crop_ISO_lc_rcl_combined, crs_lam) %>%
+    #  write_sf(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined_proj.shp"),
     #           overwrite = TRUE)
-    terra::project(unwrap(vect_crop_ISO_lc_rcl_agg), crs_lam) %>% 
-      writeVector(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg_proj.shp"), overwrite = TRUE)
+    terra::project(unwrap(vect_crop_ISO_lc_rcl_combined), crs_lam) %>% 
+      writeVector(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined_proj.shp"), overwrite = TRUE)
 }
 
-# results in vect_crop_ISO_lc_rcl_agg_proj
-vect_crop_ISO_lc_rcl_agg_proj_get_f <-
-  function(vect_crop_ISO_lc_rcl_agg_proj_file,
+# # results in vect_crop_ISO_lc_rcl_combined_proj_pot_file
+# vect_crop_ISO_lc_rcl_combined_proj_pot_file_make_write_f <-
+#   function(vect_crop_ISO_lc_rcl_combined_pot, crs_lam, ISO, crop) {
+#     terra::project(unwrap(vect_crop_ISO_lc_rcl_combined_pot), crs_lam) %>% 
+#       writeVector(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined_proj_pot.shp"), overwrite = TRUE)
+#   }
+
+# results in vect_crop_ISO_lc_rcl_combined_proj
+vect_crop_ISO_lc_rcl_combined_proj_get_f <-
+  function(vect_crop_ISO_lc_rcl_combined_proj_file,
            ISO,
            crop) {
-    #st_read(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg_proj.shp"))
-    vect(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_agg_proj.shp")) %>% wrap()
+    #st_read(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined_proj.shp"))
+    vect(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined_proj.shp")) %>% wrap()
   }
 
-# results in dB_crop_ISO_lc_rcl_agg_proj
-dB_crop_ISO_lc_rcl_agg_proj_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg_proj,
+# # results in vect_crop_ISO_lc_rcl_combined_proj_pot
+# vect_crop_ISO_lc_rcl_combined_proj_pot_get_f <-
+#   function(vect_crop_ISO_lc_rcl_combined_proj_pot_file,
+#            ISO,
+#            crop) {
+#     #st_read(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined_proj.shp"))
+#     vect(paste0("data/", ISO, "/", crop, "/vect_crop_ISO_lc_rcl_combined_proj_pot.shp")) %>% wrap()
+#   }
+
+
+# results in dB_crop_ISO_lc_rcl_combined_proj
+dB_crop_ISO_lc_rcl_combined_proj_make_f <-
+  function(vect_crop_ISO_lc_rcl_combined_proj,
            vect_ISO1,
            ISO,
            crop) {
-    unwrap(vect_crop_ISO_lc_rcl_agg_proj) %>%
+    unwrap(vect_crop_ISO_lc_rcl_combined_proj) %>%
       #mutate(land_km2  = geometry %>% st_area() %>% set_units(km ^ 2) %>% as.integer()) %>%
-      tidyterra::mutate(land_km2 = expanse( unwrap(vect_crop_ISO_lc_rcl_agg_proj), unit="km", transform=TRUE)) %>%
+      tidyterra::mutate(land_km2 = expanse( unwrap(vect_crop_ISO_lc_rcl_combined_proj), unit="km", transform=TRUE)) %>%
       as_tibble() %>%
       dplyr::select(
         !c(
@@ -1024,18 +1614,64 @@ dB_crop_ISO_lc_rcl_agg_proj_make_f <-
           #geometry
         )
       ) %T>%
-      write_excel_csv(paste0("data/", ISO, "/", crop, "/dB_crop_ISO_lc_rcl_agg_proj.csv"), na = "0", quote = "all",
+      write_excel_csv(paste0("data/", ISO, "/", crop, "/dB_crop_ISO_lc_rcl_combined_proj.csv"), na = "0", quote = "all",
                       append = FALSE)
   }
+
+
+# # results in dB_crop_ISO_lc_rcl_combined_proj_pot
+# dB_crop_ISO_lc_rcl_combined_proj_pot_make_f <-
+#   function(vect_crop_ISO_lc_rcl_combined_proj_pot,
+#            vect_ISO1,
+#            ISO,
+#            crop) {
+#     unwrap(vect_crop_ISO_lc_rcl_combined_proj_pot) %>%
+#       #mutate(land_km2  = geometry %>% st_area() %>% set_units(km ^ 2) %>% as.integer()) %>%
+#       tidyterra::mutate(land_km2 = expanse( unwrap(vect_crop_ISO_lc_rcl_combined_proj_pot), unit="km", transform=TRUE)) %>%
+#       as_tibble() %>%
+#       dplyr::select(
+#         !c(
+#           GID_0,
+#           GID_1,
+#           VARNAME_1,
+#           NL_NAME_1,
+#           TYPE_1,
+#           ENGTYPE_1,
+#           CC_1,
+#           HASC_1,
+#           New_ID
+#           #geometry
+#         )
+#       ) %>%
+#       #right_join(dplyr::select(vect_ISO1,!geometry)) %>%
+#       right_join(as_tibble(unwrap(vect_ISO1))) %>%
+#       dplyr::select(
+#         !c(
+#           GID_0,
+#           GID_1,
+#           VARNAME_1,
+#           NL_NAME_1,
+#           TYPE_1,
+#           ENGTYPE_1,
+#           CC_1,
+#           HASC_1,
+#           New_ID
+#           #geometry
+#         )
+#       ) %T>%
+#       write_excel_csv(paste0("data/", ISO, "/", crop, "/dB_crop_ISO_lc_rcl_combined_proj_pot.csv"), na = "0", quote = "all",
+#                       append = FALSE)
+#   }
+
 
 ## A Farrow 14/04/2023 reached here
 
 
-# results in dB_crop_ISO_lc_rcl_agg_proj_plot
-dB_crop_ISO_lc_rcl_agg_proj_plot_f <-
-  function(dB_crop_ISO_lc_rcl_agg_proj) {
+# results in dB_crop_ISO_lc_rcl_combined_proj_plot
+dB_crop_ISO_lc_rcl_combined_proj_plot_f <-
+  function(dB_crop_ISO_lc_rcl_combined_proj) {
     
-    ggplot(dB_crop_ISO_lc_rcl_agg_proj,                  # Barplot using ggplot2
+    ggplot(dB_crop_ISO_lc_rcl_combined_proj,                  # Barplot using ggplot2
            aes(x = crop_ISO1,
                y = land_km2,
                fill = crop_ISO1)) +
@@ -1059,6 +1695,33 @@ dB_crop_ISO_lc_rcl_agg_proj_plot_f <-
       
   }
 
+# # results in dB_crop_ISO_lc_rcl_combined_proj_pot_plot
+# dB_crop_ISO_lc_rcl_combined_proj_pot_plot_f <-
+#   function(dB_crop_ISO_lc_rcl_combined_proj_pot) {
+#     
+#     ggplot(dB_crop_ISO_lc_rcl_combined_proj_pot,                  # Barplot using ggplot2
+#            aes(x = crop_ISO1,
+#                y = land_km2,
+#                fill = crop_ISO1)) +
+#       geom_bar(stat = "identity", show.legend = FALSE) +
+#       scale_y_continuous(labels = comma) +
+#       labs(title = "Sourcing Areas - Land Area") +
+#       labs(y = "Land Area (km^2)") +
+#       labs(x = "Sourcing Area") +
+#       geom_text(y = 0, aes(label = paste(land_km2), angle = 90), hjust = 0) +
+#       theme(
+#         legend.text = element_text(size = 7),
+#         panel.grid.major.x = element_line(colour = "grey"),
+#         panel.grid.minor.x = element_blank(),
+#         axis.text.x = element_text(
+#           angle = 90,
+#           hjust = 1,
+#           size = 7
+#         )
+#       ) 
+#     
+#     
+#   }
 
 ### ----- Trimmed Climate Mask ----- ###
 
@@ -1311,7 +1974,7 @@ rast_duration_change_get_f <-
 rast_rainfallc_plot_f <-
   function(rast_rainfallc,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -1342,28 +2005,28 @@ rast_rainfallc_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -1396,7 +2059,7 @@ rast_rainfallc_plot_f <-
 rast_rainfallf_plot_f <-
   function(rast_rainfallf,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -1427,28 +2090,28 @@ rast_rainfallf_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -1481,7 +2144,7 @@ rast_rainfallf_plot_f <-
 rast_tempc_plot_f <-
   function(rast_tempc,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -1512,28 +2175,28 @@ rast_tempc_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -1566,7 +2229,7 @@ rast_tempc_plot_f <-
 rast_tempf_plot_f <-
   function(rast_tempf,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -1597,28 +2260,28 @@ rast_tempf_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -1651,7 +2314,7 @@ rast_tempf_plot_f <-
 rast_onsetc_plot_f <-
   function(rast_onsetc,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -1682,28 +2345,28 @@ rast_onsetc_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -1736,7 +2399,7 @@ rast_onsetc_plot_f <-
 rast_onsetf_plot_f <-
   function(rast_onsetf,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -1767,28 +2430,28 @@ rast_onsetf_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -1821,7 +2484,7 @@ rast_onsetf_plot_f <-
 rast_durationc_plot_f <-
   function(rast_durationc,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -1852,28 +2515,28 @@ rast_durationc_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -1906,7 +2569,7 @@ rast_durationc_plot_f <-
 rast_durationf_plot_f <-
   function(rast_durationf,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -1937,28 +2600,28 @@ rast_durationf_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -1993,7 +2656,7 @@ rast_durationf_plot_f <-
 rast_rainfall_change_plot_f <-
   function(rast_rainfall_change,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -2024,28 +2687,28 @@ rast_rainfall_change_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -2078,7 +2741,7 @@ rast_rainfall_change_plot_f <-
 rast_temp_change_plot_f <-
   function(rast_temp_change,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -2109,28 +2772,28 @@ rast_temp_change_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -2163,7 +2826,7 @@ rast_temp_change_plot_f <-
 rast_onset_change_plot_f <-
   function(rast_onset_change,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -2194,28 +2857,28 @@ rast_onset_change_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -2248,7 +2911,7 @@ rast_onset_change_plot_f <-
 rast_duration_change_plot_f <-
   function(rast_duration_change,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -2279,28 +2942,28 @@ rast_duration_change_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -2489,7 +3152,7 @@ rast_flood_change_get_f <-
 rast_droughtc_plot_f <-
   function(rast_droughtc,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -2521,28 +3184,28 @@ rast_droughtc_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -2577,7 +3240,7 @@ rast_droughtc_plot_f <-
 rast_droughtf_plot_f <-
   function(rast_droughtf,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -2609,28 +3272,28 @@ rast_droughtf_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -2665,7 +3328,7 @@ rast_droughtf_plot_f <-
 rast_drought_change_plot_f <-
   function(rast_drought_change,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -2697,28 +3360,28 @@ rast_drought_change_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -2753,7 +3416,7 @@ rast_drought_change_plot_f <-
 rast_heatc_plot_f <-
   function(rast_heatc,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -2785,28 +3448,28 @@ rast_heatc_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -2841,7 +3504,7 @@ rast_heatc_plot_f <-
 rast_heatf_plot_f <-
   function(rast_heatf,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -2873,28 +3536,28 @@ rast_heatf_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -2929,7 +3592,7 @@ rast_heatf_plot_f <-
 rast_heat_change_plot_f <-
   function(rast_heat_change,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -2961,28 +3624,28 @@ rast_heat_change_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -3018,7 +3681,7 @@ rast_heat_change_plot_f <-
 rast_floodc_plot_f <-
   function(rast_floodc,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -3050,28 +3713,28 @@ rast_floodc_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -3106,7 +3769,7 @@ rast_floodc_plot_f <-
 rast_floodf_plot_f <-
   function(rast_floodf,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -3138,28 +3801,28 @@ rast_floodf_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -3194,7 +3857,7 @@ rast_floodf_plot_f <-
 rast_flood_change_plot_f <-
   function(rast_flood_change,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -3226,28 +3889,28 @@ rast_flood_change_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -3284,10 +3947,10 @@ rast_flood_change_plot_f <-
 
 # results in dB_rainfallc_summary
 #dB_rainfallc_summary_make_f <-
-#  function(rast_rainfallc, vect_crop_ISO_lc_rcl_agg) {
+#  function(rast_rainfallc, vect_crop_ISO_lc_rcl_combined) {
 #    exact_extract(
 #      unwrap(rast_rainfallc),
-#     unwrap(vect_crop_ISO_lc_rcl_agg),
+#     unwrap(vect_crop_ISO_lc_rcl_combined),
 #      fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
 #      quantiles = c(0.25, 0.75),
 #      append_cols = c("crop_ISO1")
@@ -3304,10 +3967,10 @@ rast_flood_change_plot_f <-
 
 # results in dB_rainfallc_summary
 dB_rainfallc_summary_make_f <-
-  function(rast_rainfallc, vect_crop_ISO_lc_rcl_agg) {
+  function(rast_rainfallc, vect_crop_ISO_lc_rcl_combined) {
     exact_extract(
       unwrap(rast_rainfallc),
-      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -3322,10 +3985,10 @@ dB_rainfallc_summary_make_f <-
 
 # results in dB_rainfallf_summary
 dB_rainfallf_summary_make_f <-
-  function(rast_rainfallf, vect_crop_ISO_lc_rcl_agg) {
+  function(rast_rainfallf, vect_crop_ISO_lc_rcl_combined) {
     exact_extract(
       unwrap(rast_rainfallf),
-      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -3340,10 +4003,10 @@ dB_rainfallf_summary_make_f <-
 # results in dB_rainfall_change_summary
 dB_rainfall_change_summary_make_f <-
   function(rast_rainfall_change,
-           vect_crop_ISO_lc_rcl_agg) {
+           vect_crop_ISO_lc_rcl_combined) {
     exact_extract(
       unwrap(rast_rainfall_change),
-      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -3359,10 +4022,10 @@ dB_rainfall_change_summary_make_f <-
 
 # results in dB_tempc_summary
 dB_tempc_summary_make_f <-
-  function(rast_tempc, vect_crop_ISO_lc_rcl_agg) {
+  function(rast_tempc, vect_crop_ISO_lc_rcl_combined) {
     exact_extract(
       unwrap(rast_tempc),
-      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -3376,10 +4039,10 @@ dB_tempc_summary_make_f <-
 
 # results in dB_tempf_summary
 dB_tempf_summary_make_f <-
-  function(rast_tempf, vect_crop_ISO_lc_rcl_agg) {
+  function(rast_tempf, vect_crop_ISO_lc_rcl_combined) {
     exact_extract(
       unwrap(rast_tempf),
-      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -3393,10 +4056,10 @@ dB_tempf_summary_make_f <-
 
 # results in dB_temp_change_summary
 dB_temp_change_summary_make_f <-
-  function(rast_temp_change, vect_crop_ISO_lc_rcl_agg) {
+  function(rast_temp_change, vect_crop_ISO_lc_rcl_combined) {
     exact_extract(
       unwrap(rast_temp_change),
-      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -3412,10 +4075,10 @@ dB_temp_change_summary_make_f <-
 
 # results in dB_onsetc_summary
 dB_onsetc_summary_make_f <-
-  function(rast_onsetc, vect_crop_ISO_lc_rcl_agg) {
+  function(rast_onsetc, vect_crop_ISO_lc_rcl_combined) {
     exact_extract(
       unwrap(rast_onsetc),
-      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -3429,10 +4092,10 @@ dB_onsetc_summary_make_f <-
 
 # results in dB_onsetf_summary
 dB_onsetf_summary_make_f <-
-  function(rast_onsetf, vect_crop_ISO_lc_rcl_agg) {
+  function(rast_onsetf, vect_crop_ISO_lc_rcl_combined) {
     exact_extract(
       unwrap(rast_onsetf),
-      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -3446,10 +4109,10 @@ dB_onsetf_summary_make_f <-
 
 # results in dB_onset_change_summary
 dB_onset_change_summary_make_f <-
-  function(rast_onset_change, vect_crop_ISO_lc_rcl_agg) {
+  function(rast_onset_change, vect_crop_ISO_lc_rcl_combined) {
     exact_extract(
       unwrap(rast_onset_change),
-      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -3465,10 +4128,10 @@ dB_onset_change_summary_make_f <-
 
 # results in dB_durationc_summary
 dB_durationc_summary_make_f <-
-  function(rast_durationc, vect_crop_ISO_lc_rcl_agg) {
+  function(rast_durationc, vect_crop_ISO_lc_rcl_combined) {
     exact_extract(
       unwrap(rast_durationc),
-      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -3482,10 +4145,10 @@ dB_durationc_summary_make_f <-
 
 # results in dB_durationf_summary
 dB_durationf_summary_make_f <-
-  function(rast_durationf, vect_crop_ISO_lc_rcl_agg) {
+  function(rast_durationf, vect_crop_ISO_lc_rcl_combined) {
     exact_extract(
       unwrap(rast_durationf),
-      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -3500,10 +4163,10 @@ dB_durationf_summary_make_f <-
 # results in dB_duration_change_summary
 dB_duration_change_summary_make_f <-
   function(rast_duration_change,
-           vect_crop_ISO_lc_rcl_agg) {
+           vect_crop_ISO_lc_rcl_combined) {
     exact_extract(
       unwrap(rast_duration_change),
-      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -3519,10 +4182,10 @@ dB_duration_change_summary_make_f <-
 
 # results in dB_droughtc_summary
 dB_droughtc_summary_make_f <-
-  function(rast_droughtc, vect_crop_ISO_lc_rcl_agg) {
+  function(rast_droughtc, vect_crop_ISO_lc_rcl_combined) {
     exact_extract(
       unwrap(rast_droughtc),
-      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -3536,10 +4199,10 @@ dB_droughtc_summary_make_f <-
 
 # results in dB_droughtf_summary
 dB_droughtf_summary_make_f <-
-  function(rast_droughtf, vect_crop_ISO_lc_rcl_agg) {
+  function(rast_droughtf, vect_crop_ISO_lc_rcl_combined) {
     exact_extract(
       unwrap(rast_droughtf),
-      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -3553,10 +4216,10 @@ dB_droughtf_summary_make_f <-
 
 # results in dB_drought_change_summary
 dB_drought_change_summary_make_f <-
-  function(rast_drought_change, vect_crop_ISO_lc_rcl_agg) {
+  function(rast_drought_change, vect_crop_ISO_lc_rcl_combined) {
     exact_extract(
       unwrap(rast_drought_change),
-      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -3572,10 +4235,10 @@ dB_drought_change_summary_make_f <-
 
 # results in dB_heatc_summary
 dB_heatc_summary_make_f <-
-  function(rast_heatc, vect_crop_ISO_lc_rcl_agg) {
+  function(rast_heatc, vect_crop_ISO_lc_rcl_combined) {
     exact_extract(
       unwrap(rast_heatc),
-      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -3589,10 +4252,10 @@ dB_heatc_summary_make_f <-
 
 # results in dB_heatf_summary
 dB_heatf_summary_make_f <-
-  function(rast_heatf, vect_crop_ISO_lc_rcl_agg) {
+  function(rast_heatf, vect_crop_ISO_lc_rcl_combined) {
     exact_extract(
       unwrap(rast_heatf),
-      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -3606,10 +4269,10 @@ dB_heatf_summary_make_f <-
 
 # results in dB_heat_change_summary
 dB_heat_change_summary_make_f <-
-  function(rast_heat_change, vect_crop_ISO_lc_rcl_agg) {
+  function(rast_heat_change, vect_crop_ISO_lc_rcl_combined) {
     exact_extract(
       unwrap(rast_heat_change),
-      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -3625,10 +4288,10 @@ dB_heat_change_summary_make_f <-
 
 # results in dB_floodc_summary
 dB_floodc_summary_make_f <-
-  function(rast_floodc, vect_crop_ISO_lc_rcl_agg) {
+  function(rast_floodc, vect_crop_ISO_lc_rcl_combined) {
     exact_extract(
       unwrap(rast_floodc),
-      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -3642,10 +4305,10 @@ dB_floodc_summary_make_f <-
 
 # results in dB_floodf_summary
 dB_floodf_summary_make_f <-
-  function(rast_floodf, vect_crop_ISO_lc_rcl_agg) {
+  function(rast_floodf, vect_crop_ISO_lc_rcl_combined) {
     exact_extract(
       unwrap(rast_floodf),
-      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -3659,10 +4322,10 @@ dB_floodf_summary_make_f <-
 
 # results in dB_flood_change_summary
 dB_flood_change_summary_make_f <-
-  function(rast_flood_change, vect_crop_ISO_lc_rcl_agg) {
+  function(rast_flood_change, vect_crop_ISO_lc_rcl_combined) {
     exact_extract(
       unwrap(rast_flood_change),
-      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -8077,7 +8740,7 @@ rast_droughtf_u_heatf_u_floodf_l_max_get_f <-
 rast_droughtc_l_heatc_l_max_plot_f <-
   function(rast_droughtc_l_heatc_l_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -8112,28 +8775,28 @@ rast_droughtc_l_heatc_l_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -8181,7 +8844,7 @@ rast_droughtc_l_heatc_l_max_plot_f <-
 rast_droughtc_l_floodc_l_max_plot_f <-
   function(rast_droughtc_l_floodc_l_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -8215,28 +8878,28 @@ rast_droughtc_l_floodc_l_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -8284,7 +8947,7 @@ rast_droughtc_l_floodc_l_max_plot_f <-
 rast_heatc_l_floodc_l_max_plot_f <-
   function(rast_heatc_l_floodc_l_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -8318,28 +8981,28 @@ rast_heatc_l_floodc_l_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -8388,7 +9051,7 @@ rast_heatc_l_floodc_l_max_plot_f <-
 rast_droughtc_l_heatc_l_floodc_l_max_plot_f <-
   function(rast_droughtc_l_heatc_l_floodc_l_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -8422,28 +9085,28 @@ rast_droughtc_l_heatc_l_floodc_l_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -8496,7 +9159,7 @@ rast_droughtc_l_heatc_l_floodc_l_max_plot_f <-
 rast_droughtc_u_heatc_u_max_plot_f <-
   function(rast_droughtc_u_heatc_u_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -8530,28 +9193,28 @@ rast_droughtc_u_heatc_u_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -8599,7 +9262,7 @@ rast_droughtc_u_heatc_u_max_plot_f <-
 rast_droughtc_u_floodc_u_max_plot_f <-
   function(rast_droughtc_u_floodc_u_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -8633,28 +9296,28 @@ rast_droughtc_u_floodc_u_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -8702,7 +9365,7 @@ rast_droughtc_u_floodc_u_max_plot_f <-
 rast_heatc_u_floodc_u_max_plot_f <-
   function(rast_heatc_u_floodc_u_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -8736,28 +9399,28 @@ rast_heatc_u_floodc_u_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -8806,7 +9469,7 @@ rast_heatc_u_floodc_u_max_plot_f <-
 rast_droughtc_u_heatc_u_floodc_u_max_plot_f <-
   function(rast_droughtc_u_heatc_u_floodc_u_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -8840,28 +9503,28 @@ rast_droughtc_u_heatc_u_floodc_u_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -8915,7 +9578,7 @@ rast_droughtc_u_heatc_u_floodc_u_max_plot_f <-
 rast_droughtc_l_heatc_u_max_plot_f <-
   function(rast_droughtc_l_heatc_u_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -8950,28 +9613,28 @@ rast_droughtc_l_heatc_u_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -9022,7 +9685,7 @@ rast_droughtc_l_heatc_u_max_plot_f <-
 rast_droughtc_u_heatc_l_max_plot_f <-
   function(rast_droughtc_u_heatc_l_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -9057,28 +9720,28 @@ rast_droughtc_u_heatc_l_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -9127,7 +9790,7 @@ rast_droughtc_u_heatc_l_max_plot_f <-
 rast_droughtc_l_floodc_u_max_plot_f <-
   function(rast_droughtc_l_floodc_u_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -9162,28 +9825,28 @@ rast_droughtc_l_floodc_u_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -9231,7 +9894,7 @@ rast_droughtc_l_floodc_u_max_plot_f <-
 rast_droughtc_u_floodc_l_max_plot_f <-
   function(rast_droughtc_u_floodc_l_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -9266,28 +9929,28 @@ rast_droughtc_u_floodc_l_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -9336,7 +9999,7 @@ rast_droughtc_u_floodc_l_max_plot_f <-
 rast_heatc_l_floodc_u_max_plot_f <-
   function(rast_heatc_l_floodc_u_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -9371,28 +10034,28 @@ rast_heatc_l_floodc_u_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -9442,7 +10105,7 @@ rast_heatc_l_floodc_u_max_plot_f <-
 rast_heatc_u_floodc_l_max_plot_f <-
   function(rast_heatc_u_floodc_l_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -9477,28 +10140,28 @@ rast_heatc_u_floodc_l_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -9545,7 +10208,7 @@ rast_heatc_u_floodc_l_max_plot_f <-
 rast_droughtc_l_heatc_l_floodc_u_max_plot_f <-
   function(rast_droughtc_l_heatc_l_floodc_u_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -9580,28 +10243,28 @@ rast_droughtc_l_heatc_l_floodc_u_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -9650,7 +10313,7 @@ rast_droughtc_l_heatc_l_floodc_u_max_plot_f <-
 rast_droughtc_l_heatc_u_floodc_l_max_plot_f <-
   function(rast_droughtc_l_heatc_u_floodc_l_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -9685,28 +10348,28 @@ rast_droughtc_l_heatc_u_floodc_l_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -9755,7 +10418,7 @@ rast_droughtc_l_heatc_u_floodc_l_max_plot_f <-
 rast_droughtc_u_heatc_l_floodc_l_max_plot_f <-
   function(rast_droughtc_u_heatc_l_floodc_l_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -9790,28 +10453,28 @@ rast_droughtc_u_heatc_l_floodc_l_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -9860,7 +10523,7 @@ rast_droughtc_u_heatc_l_floodc_l_max_plot_f <-
 rast_droughtc_l_heatc_u_floodc_u_max_plot_f <-
   function(rast_droughtc_l_heatc_u_floodc_u_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -9895,28 +10558,28 @@ rast_droughtc_l_heatc_u_floodc_u_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -9965,7 +10628,7 @@ rast_droughtc_l_heatc_u_floodc_u_max_plot_f <-
 rast_droughtc_u_heatc_l_floodc_u_max_plot_f <-
   function(rast_droughtc_u_heatc_l_floodc_u_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -10000,28 +10663,28 @@ rast_droughtc_u_heatc_l_floodc_u_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -10070,7 +10733,7 @@ rast_droughtc_u_heatc_l_floodc_u_max_plot_f <-
 rast_droughtc_u_heatc_u_floodc_l_max_plot_f <-
   function(rast_droughtc_u_heatc_u_floodc_l_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -10105,28 +10768,28 @@ rast_droughtc_u_heatc_u_floodc_l_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -10178,7 +10841,7 @@ rast_droughtc_u_heatc_u_floodc_l_max_plot_f <-
 rast_droughtf_l_heatf_l_max_plot_f <-
   function(rast_droughtf_l_heatf_l_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -10213,28 +10876,28 @@ rast_droughtf_l_heatf_l_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -10282,7 +10945,7 @@ rast_droughtf_l_heatf_l_max_plot_f <-
 rast_droughtf_l_floodf_l_max_plot_f <-
   function(rast_droughtf_l_floodf_l_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -10316,28 +10979,28 @@ rast_droughtf_l_floodf_l_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -10385,7 +11048,7 @@ rast_droughtf_l_floodf_l_max_plot_f <-
 rast_heatf_l_floodf_l_max_plot_f <-
   function(rast_heatf_l_floodf_l_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -10419,28 +11082,28 @@ rast_heatf_l_floodf_l_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -10489,7 +11152,7 @@ rast_heatf_l_floodf_l_max_plot_f <-
 rast_droughtf_l_heatf_l_floodf_l_max_plot_f <-
   function(rast_droughtf_l_heatf_l_floodf_l_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -10523,28 +11186,28 @@ rast_droughtf_l_heatf_l_floodf_l_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -10597,7 +11260,7 @@ rast_droughtf_l_heatf_l_floodf_l_max_plot_f <-
 rast_droughtf_u_heatf_u_max_plot_f <-
   function(rast_droughtf_u_heatf_u_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -10631,28 +11294,28 @@ rast_droughtf_u_heatf_u_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -10700,7 +11363,7 @@ rast_droughtf_u_heatf_u_max_plot_f <-
 rast_droughtf_u_floodf_u_max_plot_f <-
   function(rast_droughtf_u_floodf_u_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -10734,28 +11397,28 @@ rast_droughtf_u_floodf_u_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -10803,7 +11466,7 @@ rast_droughtf_u_floodf_u_max_plot_f <-
 rast_heatf_u_floodf_u_max_plot_f <-
   function(rast_heatf_u_floodf_u_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -10837,28 +11500,28 @@ rast_heatf_u_floodf_u_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -10907,7 +11570,7 @@ rast_heatf_u_floodf_u_max_plot_f <-
 rast_droughtf_u_heatf_u_floodf_u_max_plot_f <-
   function(rast_droughtf_u_heatf_u_floodf_u_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -10941,28 +11604,28 @@ rast_droughtf_u_heatf_u_floodf_u_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -11016,7 +11679,7 @@ rast_droughtf_u_heatf_u_floodf_u_max_plot_f <-
 rast_droughtf_l_heatf_u_max_plot_f <-
   function(rast_droughtf_l_heatf_u_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -11051,28 +11714,28 @@ rast_droughtf_l_heatf_u_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -11123,7 +11786,7 @@ rast_droughtf_l_heatf_u_max_plot_f <-
 rast_droughtf_u_heatf_l_max_plot_f <-
   function(rast_droughtf_u_heatf_l_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -11158,28 +11821,28 @@ rast_droughtf_u_heatf_l_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -11228,7 +11891,7 @@ rast_droughtf_u_heatf_l_max_plot_f <-
 rast_droughtf_l_floodf_u_max_plot_f <-
   function(rast_droughtf_l_floodf_u_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -11263,28 +11926,28 @@ rast_droughtf_l_floodf_u_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -11332,7 +11995,7 @@ rast_droughtf_l_floodf_u_max_plot_f <-
 rast_droughtf_u_floodf_l_max_plot_f <-
   function(rast_droughtf_u_floodf_l_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -11367,28 +12030,28 @@ rast_droughtf_u_floodf_l_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -11437,7 +12100,7 @@ rast_droughtf_u_floodf_l_max_plot_f <-
 rast_heatf_l_floodf_u_max_plot_f <-
   function(rast_heatf_l_floodf_u_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -11472,28 +12135,28 @@ rast_heatf_l_floodf_u_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -11543,7 +12206,7 @@ rast_heatf_l_floodf_u_max_plot_f <-
 rast_heatf_u_floodf_l_max_plot_f <-
   function(rast_heatf_u_floodf_l_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -11578,28 +12241,28 @@ rast_heatf_u_floodf_l_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -11646,7 +12309,7 @@ rast_heatf_u_floodf_l_max_plot_f <-
 rast_droughtf_l_heatf_l_floodf_u_max_plot_f <-
   function(rast_droughtf_l_heatf_l_floodf_u_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -11681,28 +12344,28 @@ rast_droughtf_l_heatf_l_floodf_u_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -11751,7 +12414,7 @@ rast_droughtf_l_heatf_l_floodf_u_max_plot_f <-
 rast_droughtf_l_heatf_u_floodf_l_max_plot_f <-
   function(rast_droughtf_l_heatf_u_floodf_l_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -11786,28 +12449,28 @@ rast_droughtf_l_heatf_u_floodf_l_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -11856,7 +12519,7 @@ rast_droughtf_l_heatf_u_floodf_l_max_plot_f <-
 rast_droughtf_u_heatf_l_floodf_l_max_plot_f <-
   function(rast_droughtf_u_heatf_l_floodf_l_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -11891,28 +12554,28 @@ rast_droughtf_u_heatf_l_floodf_l_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -11961,7 +12624,7 @@ rast_droughtf_u_heatf_l_floodf_l_max_plot_f <-
 rast_droughtf_l_heatf_u_floodf_u_max_plot_f <-
   function(rast_droughtf_l_heatf_u_floodf_u_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -11996,28 +12659,28 @@ rast_droughtf_l_heatf_u_floodf_u_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -12066,7 +12729,7 @@ rast_droughtf_l_heatf_u_floodf_u_max_plot_f <-
 rast_droughtf_u_heatf_l_floodf_u_max_plot_f <-
   function(rast_droughtf_u_heatf_l_floodf_u_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -12101,28 +12764,28 @@ rast_droughtf_u_heatf_l_floodf_u_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -12171,7 +12834,7 @@ rast_droughtf_u_heatf_l_floodf_u_max_plot_f <-
 rast_droughtf_u_heatf_u_floodf_l_max_plot_f <-
   function(rast_droughtf_u_heatf_u_floodf_l_max,
            vect_ISO1,
-           vect_crop_ISO_lc_rcl_agg,
+           vect_crop_ISO_lc_rcl_combined,
            vect_ISO,
            world,
            ISO,
@@ -12206,28 +12869,28 @@ rast_droughtf_u_heatf_u_floodf_l_max_plot_f <-
         inherit.aes = FALSE
       )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 1),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 1),
       #        fill = NA,
       #        col = 'dark blue',
       #        na.rm = TRUE,
       #        inherit.aes = FALSE
       #      )  +
       #      geom_sf(
-      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_agg, layer == 2),
+      #        data = dplyr::filter(vect_crop_ISO_lc_rcl_combined, layer == 2),
       #        fill = NA,
       #        col = 'dark green',
     #        na.rm = TRUE,
     #        inherit.aes = FALSE
     #      )  +
     geom_spatvector(
-      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 1),
+      data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 1),
       fill = NA,
       col = 'dark blue',
       na.rm = TRUE,
       inherit.aes = FALSE
     )  +
       geom_spatvector(
-        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_agg), layer == 2),
+        data = dplyr::filter(unwrap(vect_crop_ISO_lc_rcl_combined), layer == 2),
         fill = NA,
         col = 'dark green',
         na.rm = TRUE,
@@ -12280,10 +12943,10 @@ rast_droughtf_u_heatf_u_floodf_l_max_plot_f <-
 
 # results in dB_droughtc_l_summary
 dB_droughtc_l_summary_make_f <-
-  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
+  function(rast_impact, vect_crop_ISO_lc_rcl_combined) {
     exact_extract(
       subset(unwrap(rast_impact), 2),
-      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -12336,10 +12999,10 @@ dB_droughtc_l_summary_plot_f <-
 
 # results in dB_droughtf_l_summary
 dB_droughtf_l_summary_make_f <-
-  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
+  function(rast_impact, vect_crop_ISO_lc_rcl_combined) {
     exact_extract(
       subset(unwrap(rast_impact), 8),
-      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -12392,10 +13055,10 @@ dB_droughtf_l_summary_plot_f <-
 
 # results in dB_drought_change_l_summary
 dB_drought_change_l_summary_make_f <-
-  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
+  function(rast_impact, vect_crop_ISO_lc_rcl_combined) {
     exact_extract(
       subset(unwrap(rast_impact), 14),
-      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -12453,10 +13116,10 @@ dB_drought_change_l_summary_plot_f <-
 
 # results in dB_droughtc_u_summary
 dB_droughtc_u_summary_make_f <-
-  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
+  function(rast_impact, vect_crop_ISO_lc_rcl_combined) {
     exact_extract(
       subset(unwrap(rast_impact), 68),
-      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -12509,10 +13172,10 @@ dB_droughtc_u_summary_plot_f <-
 
 # results in dB_droughtf_u_summary
 dB_droughtf_u_summary_make_f <-
-  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
+  function(rast_impact, vect_crop_ISO_lc_rcl_combined) {
     exact_extract(
       subset(unwrap(rast_impact), 74),
-      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -12565,10 +13228,10 @@ dB_droughtf_u_summary_plot_f <-
 
 # results in dB_drought_change_u_summary
 dB_drought_change_u_summary_make_f <-
-  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
+  function(rast_impact, vect_crop_ISO_lc_rcl_combined) {
     exact_extract(
       subset(unwrap(rast_impact), 80),
-      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -12628,18 +13291,18 @@ dB_drought_change_u_summary_plot_f <-
 
 # results in dB_heatc_l_summary_values
 dB_heatc_l_summary_values_make_f <-
-  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
+  function(rast_impact, vect_crop_ISO_lc_rcl_combined) {
     exact_extract(subset(unwrap(rast_impact), 4),
-                  st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+                  st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
                   include_cols = c("crop_ISO1"))
   }
 
 # results in dB_heatc_l_summary
 dB_heatc_l_summary_make_f <-
-  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
+  function(rast_impact, vect_crop_ISO_lc_rcl_combined) {
     exact_extract(
       subset(unwrap(rast_impact), 4),
-      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       default_weight = 1,
@@ -12691,10 +13354,10 @@ dB_heatc_l_summary_plot_f <-
 
 # results in dB_heatf_l_summary
 dB_heatf_l_summary_make_f <-
-  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
+  function(rast_impact, vect_crop_ISO_lc_rcl_combined) {
     exact_extract(
       subset(unwrap(rast_impact), 10),
-      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -12745,10 +13408,10 @@ dB_heatf_l_summary_plot_f <-
 
 # results in dB_heat_change_l_summary
 dB_heat_change_l_summary_make_f <-
-  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
+  function(rast_impact, vect_crop_ISO_lc_rcl_combined) {
     exact_extract(
       subset(unwrap(rast_impact), 16),
-      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -12803,10 +13466,10 @@ dB_heat_change_l_summary_plot_f <-
 
 # results in dB_heatc_u_summary
 dB_heatc_u_summary_make_f <-
-  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
+  function(rast_impact, vect_crop_ISO_lc_rcl_combined) {
     exact_extract(
       subset(unwrap(rast_impact), 70),
-      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -12857,10 +13520,10 @@ dB_heatc_u_summary_plot_f <-
 
 # results in dB_heatf_u_summary
 dB_heatf_u_summary_make_f <-
-  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
+  function(rast_impact, vect_crop_ISO_lc_rcl_combined) {
     exact_extract(
       subset(unwrap(rast_impact), 76),
-      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -12911,10 +13574,10 @@ dB_heatf_u_summary_plot_f <-
 
 # results in dB_heat_change_u_summary
 dB_heat_change_u_summary_make_f <-
-  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
+  function(rast_impact, vect_crop_ISO_lc_rcl_combined) {
     exact_extract(
       subset(unwrap(rast_impact), 82),
-      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -12970,10 +13633,10 @@ dB_heat_change_u_summary_plot_f <-
 
 # results in dB_floodc_l_summary
 dB_floodc_l_summary_make_f <-
-  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
+  function(rast_impact, vect_crop_ISO_lc_rcl_combined) {
     exact_extract(
       subset(unwrap(rast_impact), 6),
-      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -13024,10 +13687,10 @@ dB_floodc_l_summary_plot_f <-
 
 # results in dB_floodf_l_summary
 dB_floodf_l_summary_make_f <-
-  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
+  function(rast_impact, vect_crop_ISO_lc_rcl_combined) {
     exact_extract(
       subset(unwrap(rast_impact), 12),
-      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -13080,10 +13743,10 @@ dB_floodf_l_summary_plot_f <-
 
 # results in dB_flood_change_l_summary
 dB_flood_change_l_summary_make_f <-
-  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
+  function(rast_impact, vect_crop_ISO_lc_rcl_combined) {
     exact_extract(
       subset(unwrap(rast_impact), 18),
-      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -13141,10 +13804,10 @@ dB_flood_change_l_summary_plot_f <-
 
 # results in dB_floodc_u_summary
 dB_floodc_u_summary_make_f <-
-  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
+  function(rast_impact, vect_crop_ISO_lc_rcl_combined) {
     exact_extract(
       subset(unwrap(rast_impact), 72),
-      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -13195,10 +13858,10 @@ dB_floodc_u_summary_plot_f <-
 
 # results in dB_floodf_u_summary
 dB_floodf_u_summary_make_f <-
-  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
+  function(rast_impact, vect_crop_ISO_lc_rcl_combined) {
     exact_extract(
       subset(unwrap(rast_impact), 78),
-      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -13251,10 +13914,10 @@ dB_floodf_u_summary_plot_f <-
 
 # results in dB_flood_change_u_summary
 dB_flood_change_u_summary_make_f <-
-  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
+  function(rast_impact, vect_crop_ISO_lc_rcl_combined) {
     exact_extract(
       subset(unwrap(rast_impact), 84),
-      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+      st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
       fun = c('min', 'max', 'mean', 'stdev', 'median', 'quantile', 'count'),
       quantiles = c(0.25, 0.75),
       append_cols = c("crop_ISO1")
@@ -13313,7 +13976,7 @@ dB_flood_change_u_summary_plot_f <-
 
 # results in dB_profile_summary
 dB_profile_summary_make_f <-
-  function(rast_impact, vect_crop_ISO_lc_rcl_agg) {
+  function(rast_impact, vect_crop_ISO_lc_rcl_combined) {
     exact_extract(terra::subset(
       unwrap(rast_impact),
       c(
@@ -13361,17 +14024,17 @@ dB_profile_summary_make_f <-
       ),
       negate = TRUE
     ),
-    st_as_sf(unwrap(vect_crop_ISO_lc_rcl_agg)),
+    st_as_sf(unwrap(vect_crop_ISO_lc_rcl_combined)),
     fun = c('mean'))
   }
 
 # results in dB_profile_summary_file
 dB_profile_summary_file_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dB_profile_summary) %>%
       write_csv(paste0("data/", ISO, "/", crop, "/dB_profile_summary.csv"),
@@ -13386,11 +14049,11 @@ dB_profile_summary_file_make_f <-
 
 # results in dB_profilec_d_l_h_l_plot
 dB_profilec_d_l_h_l_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 1:4)) %>%
       reshape2::melt(value.name = "limits",
@@ -13433,11 +14096,11 @@ dB_profilec_d_l_h_l_plot_make_f <-
 
 # results in dB_profilec_d_l_f_l_plot
 dB_profilec_d_l_f_l_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 5:8)) %>%
       reshape2::melt(value.name = "limits",
@@ -13478,11 +14141,11 @@ dB_profilec_d_l_f_l_plot_make_f <-
 
 # results in dB_profilec_h_l_f_l_plot
 dB_profilec_h_l_f_l_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 9:12)) %>%
       reshape2::melt(value.name = "limits",
@@ -13523,11 +14186,11 @@ dB_profilec_h_l_f_l_plot_make_f <-
 
 # results in dB_profilec_d_l_h_l_f_l_plot
 dB_profilec_d_l_h_l_f_l_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 13:20)) %>%
       reshape2::melt(value.name = "limits",
@@ -13574,11 +14237,11 @@ dB_profilec_d_l_h_l_f_l_plot_make_f <-
 
 # results in dB_profilec_d_u_h_u_plot
 dB_profilec_d_u_h_u_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 41:44)) %>%
       reshape2::melt(value.name = "limits",
@@ -13619,11 +14282,11 @@ dB_profilec_d_u_h_u_plot_make_f <-
 
 # results in dB_profilec_d_u_f_u_plot
 dB_profilec_d_u_f_u_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 45:48)) %>%
       reshape2::melt(value.name = "limits",
@@ -13664,11 +14327,11 @@ dB_profilec_d_u_f_u_plot_make_f <-
 
 # results in dB_profilec_h_u_f_u_plot
 dB_profilec_h_u_f_u_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 49:52)) %>%
       reshape2::melt(value.name = "limits",
@@ -13709,11 +14372,11 @@ dB_profilec_h_u_f_u_plot_make_f <-
 
 # results in dB_profilec_d_u_h_u_f_u_plot
 dB_profilec_d_u_h_u_f_u_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 53:60)) %>%
       reshape2::melt(value.name = "limits",
@@ -13760,11 +14423,11 @@ dB_profilec_d_u_h_u_f_u_plot_make_f <-
 
 # results in dB_profilec_d_u_h_l_plot
 dB_profilec_d_u_h_l_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 85:88)) %>%
       reshape2::melt(value.name = "limits",
@@ -13805,11 +14468,11 @@ dB_profilec_d_u_h_l_plot_make_f <-
 
 # results in dB_profilec_d_l_h_u_plot
 dB_profilec_d_l_h_u_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 81:84)) %>%
       reshape2::melt(value.name = "limits",
@@ -13850,11 +14513,11 @@ dB_profilec_d_l_h_u_plot_make_f <-
 
 # results in dB_profilec_d_u_f_l_plot
 dB_profilec_d_u_f_l_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 93:96)) %>%
       reshape2::melt(value.name = "limits",
@@ -13895,11 +14558,11 @@ dB_profilec_d_u_f_l_plot_make_f <-
 
 # results in dB_profilec_d_l_f_u_plot
 dB_profilec_d_l_f_u_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 89:92)) %>%
       reshape2::melt(value.name = "limits",
@@ -13940,11 +14603,11 @@ dB_profilec_d_l_f_u_plot_make_f <-
 
 # results in dB_profilec_h_u_f_l_plot
 dB_profilec_h_u_f_l_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 101:104)) %>%
       reshape2::melt(value.name = "limits",
@@ -13986,11 +14649,11 @@ dB_profilec_h_u_f_l_plot_make_f <-
 
 # results in dB_profilec_h_l_f_u_plot
 dB_profilec_h_l_f_u_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 97:100)) %>%
       reshape2::melt(value.name = "limits",
@@ -14032,11 +14695,11 @@ dB_profilec_h_l_f_u_plot_make_f <-
 
 # results in dB_profilec_d_u_h_l_f_l_plot
 dB_profilec_d_u_h_l_f_l_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 129:136)) %>%
       reshape2::melt(value.name = "limits",
@@ -14081,11 +14744,11 @@ dB_profilec_d_u_h_l_f_l_plot_make_f <-
 
 # results in dB_profilec_d_l_h_u_f_l_plot
 dB_profilec_d_l_h_u_f_l_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 113:120)) %>%
       reshape2::melt(value.name = "limits",
@@ -14130,11 +14793,11 @@ dB_profilec_d_l_h_u_f_l_plot_make_f <-
 
 # results in dB_profilec_d_l_h_l_f_u_plot
 dB_profilec_d_l_h_l_f_u_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 105:112)) %>%
       reshape2::melt(value.name = "limits",
@@ -14179,11 +14842,11 @@ dB_profilec_d_l_h_l_f_u_plot_make_f <-
 
 # results in dB_profilec_d_u_h_u_f_l_plot
 dB_profilec_d_u_h_u_f_l_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 137:144)) %>%
       reshape2::melt(value.name = "limits",
@@ -14227,11 +14890,11 @@ dB_profilec_d_u_h_u_f_l_plot_make_f <-
   }
 # results in dB_profilec_d_u_h_l_f_u_plot
 dB_profilec_d_u_h_l_f_u_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 121:128)) %>%
       reshape2::melt(value.name = "limits",
@@ -14275,11 +14938,11 @@ dB_profilec_d_u_h_l_f_u_plot_make_f <-
   }
 # results in dB_profilec_d_l_h_u_f_u_plot
 dB_profilec_d_l_h_u_f_u_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 145:152)) %>%
       reshape2::melt(value.name = "limits",
@@ -14329,11 +14992,11 @@ dB_profilec_d_l_h_u_f_u_plot_make_f <-
 
 # results in dB_profilef_d_l_h_l_plot
 dB_profilef_d_l_h_l_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 21:24)) %>%
       reshape2::melt(value.name = "limits",
@@ -14374,11 +15037,11 @@ dB_profilef_d_l_h_l_plot_make_f <-
 
 # results in dB_profilef_d_l_f_l_plot
 dB_profilef_d_l_f_l_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 25:28)) %>%
       reshape2::melt(value.name = "limits",
@@ -14419,11 +15082,11 @@ dB_profilef_d_l_f_l_plot_make_f <-
 
 # results in dB_profilef_h_l_f_l_plot
 dB_profilef_h_l_f_l_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 29:32)) %>%
       reshape2::melt(value.name = "limits",
@@ -14464,11 +15127,11 @@ dB_profilef_h_l_f_l_plot_make_f <-
 
 # results in dB_profilef_d_l_h_l_f_l_plot
 dB_profilef_d_l_h_l_f_l_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 33:40)) %>%
       reshape2::melt(value.name = "limits",
@@ -14515,11 +15178,11 @@ dB_profilef_d_l_h_l_f_l_plot_make_f <-
 
 # results in dB_profilef_d_u_h_u_plot
 dB_profilef_d_u_h_u_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 61:64)) %>%
       reshape2::melt(value.name = "limits",
@@ -14560,11 +15223,11 @@ dB_profilef_d_u_h_u_plot_make_f <-
 
 # results in dB_profilef_d_u_f_u_plot
 dB_profilef_d_u_f_u_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 65:68)) %>%
       reshape2::melt(value.name = "limits",
@@ -14605,11 +15268,11 @@ dB_profilef_d_u_f_u_plot_make_f <-
 
 # results in dB_profilef_h_u_f_u_plot
 dB_profilef_h_u_f_u_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 69:72)) %>%
       reshape2::melt(value.name = "limits",
@@ -14650,11 +15313,11 @@ dB_profilef_h_u_f_u_plot_make_f <-
 
 # results in dB_profilef_d_u_h_u_f_u_plot
 dB_profilef_d_u_h_u_f_u_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 73:80)) %>%
       reshape2::melt(value.name = "limits",
@@ -14701,11 +15364,11 @@ dB_profilef_d_u_h_u_f_u_plot_make_f <-
 
 # results in dB_profilef_d_u_h_l_plot
 dB_profilef_d_u_h_l_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 157:160)) %>%
       reshape2::melt(value.name = "limits",
@@ -14746,11 +15409,11 @@ dB_profilef_d_u_h_l_plot_make_f <-
 
 # results in dB_profilef_d_l_h_u_plot
 dB_profilef_d_l_h_u_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 153:156)) %>%
       reshape2::melt(value.name = "limits",
@@ -14791,11 +15454,11 @@ dB_profilef_d_l_h_u_plot_make_f <-
 
 # results in dB_profilef_d_u_f_l_plot
 dB_profilef_d_u_f_l_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 165:168)) %>%
       reshape2::melt(value.name = "limits",
@@ -14836,11 +15499,11 @@ dB_profilef_d_u_f_l_plot_make_f <-
 
 # results in dB_profilef_d_l_f_u_plot
 dB_profilef_d_l_f_u_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 161:164)) %>%
       reshape2::melt(value.name = "limits",
@@ -14881,11 +15544,11 @@ dB_profilef_d_l_f_u_plot_make_f <-
 
 # results in dB_profilef_h_u_f_l_plot
 dB_profilef_h_u_f_l_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 173:176)) %>%
       reshape2::melt(value.name = "limits",
@@ -14927,11 +15590,11 @@ dB_profilef_h_u_f_l_plot_make_f <-
 
 # results in dB_profilef_h_l_f_u_plot
 dB_profilef_h_l_f_u_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 169:172)) %>%
       reshape2::melt(value.name = "limits",
@@ -14973,11 +15636,11 @@ dB_profilef_h_l_f_u_plot_make_f <-
 
 # results in dB_profilef_d_u_h_l_f_l_plot
 dB_profilef_d_u_h_l_f_l_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 201:208)) %>%
       reshape2::melt(value.name = "limits",
@@ -15022,11 +15685,11 @@ dB_profilef_d_u_h_l_f_l_plot_make_f <-
 
 # results in dB_profilef_d_l_h_u_f_l_plot
 dB_profilef_d_l_h_u_f_l_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 185:192)) %>%
       reshape2::melt(value.name = "limits",
@@ -15071,11 +15734,11 @@ dB_profilef_d_l_h_u_f_l_plot_make_f <-
 
 # results in dB_profilef_d_l_h_l_f_u_plot
 dB_profilef_d_l_h_l_f_u_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 177:184)) %>%
       reshape2::melt(value.name = "limits",
@@ -15120,11 +15783,11 @@ dB_profilef_d_l_h_l_f_u_plot_make_f <-
 
 # results in dB_profilef_d_u_h_u_f_l_plot
 dB_profilef_d_u_h_u_f_l_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 209:216)) %>%
       reshape2::melt(value.name = "limits",
@@ -15168,11 +15831,11 @@ dB_profilef_d_u_h_u_f_l_plot_make_f <-
   }
 # results in dB_profilef_d_u_h_l_f_u_plot
 dB_profilef_d_u_h_l_f_u_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 193:200)) %>%
       reshape2::melt(value.name = "limits",
@@ -15216,11 +15879,11 @@ dB_profilef_d_u_h_l_f_u_plot_make_f <-
   }
 # results in dB_profilef_d_l_h_u_f_u_plot
 dB_profilef_d_l_h_u_f_u_plot_make_f <-
-  function(vect_crop_ISO_lc_rcl_agg,
+  function(vect_crop_ISO_lc_rcl_combined,
            dB_profile_summary,
            ISO,
            crop) {
-    as_tibble(unwrap(vect_crop_ISO_lc_rcl_agg)) %>% select(crop_ISO1) %>%
+    as_tibble(unwrap(vect_crop_ISO_lc_rcl_combined)) %>% select(crop_ISO1) %>%
       `names<-`(c("Landuse")) %>%
       cbind(dplyr::select(dB_profile_summary, 217:224)) %>%
       reshape2::melt(value.name = "limits",
