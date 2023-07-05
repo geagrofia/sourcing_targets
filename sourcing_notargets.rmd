@@ -1,5 +1,5 @@
 ---
-title: "Sourcing - RWA maize"
+title: "Sourcing - MOZ maize"
 author: "A Farrow"
 date: "`r Sys.Date()`"
 header-includes:
@@ -63,7 +63,7 @@ Many parameters are defined in the cc_data file. We load this here.
 
 ```{r parameters, echo=FALSE, message=FALSE, warning=FALSE}
 
-cc_row <- 19
+cc_row <- 18
 
 ```
 
