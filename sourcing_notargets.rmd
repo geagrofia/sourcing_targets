@@ -1,5 +1,5 @@
 ---
-title: "Sourcing - MOZ maize"
+title: "Sourcing - TZA Cotton"
 author: "A Farrow"
 date: "`r Sys.Date()`"
 header-includes:
@@ -63,7 +63,7 @@ Many parameters are defined in the cc_data file. We load this here.
 
 ```{r parameters, echo=FALSE, message=FALSE, warning=FALSE}
 
-cc_row <- 18
+cc_row <- 15
 
 ```
 
@@ -291,6 +291,7 @@ rast_ISO_pot <- rast_ISO_pot_get_f(ISO, rast_ISO_pot_file)
 
 rast_lc_ISO_file <- rast_lc_ISO_make_write_f(rast_lc, rast_ISO, ISO)
 rast_lc_ISO_pot_file <- rast_lc_ISO_pot_make_write_f(rast_lc_pot, rast_ISO_pot, ISO)
+vect_lc_ISO_file <- vect_lc_ISO_make_write_f(rast_lc, rast_ISO,  ISO)
 
 ```
 
@@ -558,16 +559,20 @@ rast_crop_ISO_lc_rcl_plot
 
 ## Reclassified crop area and Land cover raster aggregated
 
-```{r spatial_data_prep_plots_e, echo=FALSE, message=FALSE, warning=FALSE}
+```{r spatial_data_prep_plots_e, results = 'asis', echo=FALSE, message=FALSE, warning=FALSE}
 
 vect_crop_ISO_lc_rcl_combined_plot <- vect_crop_ISO_lc_rcl_combined_plot_f(vect_crop_ISO_lc_rcl_combined, vect_ISO1, ISO, crop)
 # vect_crop_ISO_lc_rcl_combined_pot_plot <- vect_crop_ISO_lc_rcl_combined_pot_plot_f(vect_crop_ISO_lc_rcl_combined_pot, vect_ISO1, ISO, crop)
+
+vect_crop_ISO_lc_rcl_combined_plot
 
 ```
 
 ```{r, message = FALSE, fig.width = 8, fig.height = 6}
 
-vect_crop_ISO_lc_rcl_combined_plot
+
+exit_early <- exit_early_f(vect_crop_ISO_lc_rcl_combined)
+exit_early
 # vect_crop_ISO_lc_rcl_combined_pot_plot
 
 ```

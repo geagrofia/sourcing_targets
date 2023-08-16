@@ -14,7 +14,7 @@ output:
 params:
   INT: NA
   Agg: 1
-  INN1: malt_barley_ET
+  INN1: malt_barley_RW
   RES1: 3
   GRS1: 1
   SUBDIV1: RK_NAME
@@ -196,7 +196,7 @@ kable(digits = 3) %>% kable_styling("striped", full_width = T) %>%
   row_spec(0, angle = -45) %>%  scroll_box(height = "500px")
 
 # set the cc_row value for the different innovations
-cc_row <- 3
+cc_row <- 7
 
 ISO <- ISO_get_f(cc_data, cc_row)
 
@@ -503,7 +503,7 @@ v_ISO_plot <-
 
 v_ISO_plot
 
-#v_validation <- st_read(paste0("data//coffee/Coffee_locations_all_.shp"))
+#v_validation <- st_read(paste0("data/RWA/coffee/Coffee_locations_all_RWA.shp"))
 #v_validation$lat <- v_validation$Lattitude
 #v_validation$long <- v_validation$Longitude
 
@@ -639,7 +639,6 @@ vect_ISO_proj_extent <- terra::ext(vect_ISO_proj)
 
 vect_ISO_cropland_proj <- terra::project(vect_ISO_cropland, wkt_lam)
 
-
 # make a basic raster with dimensions of 900 * 700 with 2km resolution 
 # and projected crs 
 
@@ -662,6 +661,7 @@ rast_ISO_cropland_mask_proj <- terra::rasterize(
       field = 1,
       background = NA
     )
+
 
 # crs(rast_ISO_cropland_mask_proj) <- proj4_lam
 
@@ -1027,7 +1027,7 @@ for (i in 1:(nrow(growth_stages_req))) {
 # load growth period rasters
 
 assign(paste0("rast_period_m_", period_name,"_original"),   
-rast(paste0("D:/repos/sourcing_targets/data/ETH/barley/mth_", period_name,"_r.tif"))) 
+rast(paste0("D:/repos/sourcing_targets/data/RWA/barley/mth_", period_name,"_r.tif"))) 
   
 # reproject growth period rasters
 
@@ -1099,7 +1099,7 @@ for (i in 1:(nrow(growth_stages_req))) {
 # load growth period rasters
 
 assign(paste0("rast_period_d_", period_name,"_original"),   
-rast(paste0("D:/repos/sourcing_targets/data/ETH/barley/dek_", period_name,"_r.tif"))) 
+rast(paste0("D:/repos/sourcing_targets/data/RWA/barley/dek_", period_name,"_r.tif"))) 
   
 # reproject growth period rasters
 

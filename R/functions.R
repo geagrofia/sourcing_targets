@@ -471,12 +471,22 @@ rast_ISO_pot_get_f <- function(ISO, rast_ISO_pot_file) {
 rast_lc_ISO_make_write_f  <- function(rast_lc, rast_ISO,  ISO) {
   (unwrap(rast_lc) * unwrap(rast_ISO)) %>% writeRaster(paste0("data/", ISO, "/rast_lc_ISO.tif"), overwrite = TRUE)
 }
- 
+
+# results in vect_lc_ISO_file
+vect_lc_ISO_make_write_f  <- function(rast_lc, rast_ISO,  ISO) {
+  (unwrap(rast_lc) * unwrap(rast_ISO)) %>%  
+    classify( matrix(c(-0.5, 2.5, NA, 2.5, 3.5, 1 ), ncol = 3,  byrow = TRUE)) %>%
+    as.polygons() %>%
+    
+    writeVector(paste0("data/", ISO, "/vect_crop_ISO_lc_rcl.shp"), overwrite = TRUE)
+}
+
 # results in rast_lc_ISO_pot_file
 rast_lc_ISO_pot_make_write_f  <- function(rast_lc_pot, rast_ISO_pot,  ISO) {
   (unwrap(rast_lc_pot) * unwrap(rast_ISO_pot)) %>% writeRaster(paste0("data/", ISO, "/rast_lc_ISO_pot.tif"), overwrite = TRUE)
 }
 
+      
 # results in rast_lc_ISO
 rast_lc_ISO_get_f <- function(ISO, rast_lc_ISO_file) {
   rast(paste0("data/", ISO, "/rast_lc_ISO.tif")) %>% wrap()
@@ -1402,6 +1412,9 @@ vect_crop_ISO_lc_rcl_combined2_make_write_f <-
 # results in vect_crop_ISO_lc_rcl_combined_plot
 vect_crop_ISO_lc_rcl_combined_plot_f <-
   function(vect_crop_ISO_lc_rcl_combined,  vect_ISO1, ISO, crop)  {
+    
+    if (dim(unwrap(vect_crop_ISO_lc_rcl_combined))[1] != 0) {  
+    
     ggplot() +
   #    geom_sf(
   #      data = vect_crop_ISO_lc_rcl_combined,
@@ -1442,7 +1455,20 @@ vect_crop_ISO_lc_rcl_combined_plot_f <-
       ) +
       guides(fill = "none") +
       labs(title = paste0("Sourcing Areas - ", ISO, " - ", crop))
+  
+    } else {
+      cat(paste("No area suitable"))
+      
+    }
   }
+
+# results in exit_early 
+exit_early_f <- function(vect_crop_ISO_lc_rcl_combined) {
+    if (dim(unwrap(vect_crop_ISO_lc_rcl_combined))[1] == 0) {  
+    knitr::knit_exit()
+  }
+}
+
 
 # # results in vect_crop_ISO_lc_rcl_combined_pot_plot
 # vect_crop_ISO_lc_rcl_combined_pot_plot_f <-
@@ -8471,7 +8497,7 @@ rast_impact_file_make_f <- function(rast_impact, ISO, crop) {
 # results in impact_cat_table
 impact_cat_table_make_f <-
   function() {
-    tibble(id=c(0, 1, 2, 3, 4, 5, 6,7, 8), risk_cat = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix"))
+    data.frame(id = 0:8, risk_cat = c("No Risk", "D", "H", "F", "DH", "DF", "HF", "DHF", "Mix"))
   }
 
 

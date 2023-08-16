@@ -544,6 +544,31 @@ v_ISO_plot
 
 #v_validation_plot 
 
+# get the latlong cropland shapefile
+
+vect_ISO_cropland <- vect(paste0("data/",ISO, "/vect_crop_ISO_lc_rcl.shp"))
+
+vect_ISO_cropland_plot <- 
+  ggplot() +
+    geom_spatvector(
+      data = vect_ISO_cropland,
+      fill = 'dark green',
+      col = NA,
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+        geom_sf(
+      data = v_ISO1,
+      fill = NA,
+      col = 'black',
+      na.rm = TRUE,
+      inherit.aes = FALSE
+    )  +
+  labs( title = "vect_ISO_cropland")
+    
+
+vect_ISO_cropland_plot
+
 ```
 
 ## Raster Data
@@ -610,6 +635,9 @@ vect_ISO_proj <- terra::vect(v_ISO_proj)
 v_ISO_proj_extent <- extent(v_ISO_proj)
 vect_ISO_proj_extent <- terra::ext(vect_ISO_proj)
 
+# project the cropland to LAM
+
+vect_ISO_cropland_proj <- terra::project(vect_ISO_cropland, wkt_lam)
 
 # make a basic raster with dimensions of 900 * 700 with 2km resolution 
 # and projected crs 
@@ -625,12 +653,6 @@ rast_ISO_mask_proj <- terra::rasterize(
       background = NA
     ) 
 
-# get the projected cropland shapefile
-
-v_ISO_cropland_proj <- st_read(paste0("data/",ISO,"/",crop, "/v_crop_ISO_lc_rcl_agg_proj.shp"))
-
-vect_ISO_cropland_proj <- terra::vect(v_ISO_cropland_proj)
-
 # make the mask based on the cropland
 
 rast_ISO_cropland_mask_proj <- terra::rasterize(
@@ -639,6 +661,7 @@ rast_ISO_cropland_mask_proj <- terra::rasterize(
       field = 1,
       background = NA
     )
+
 
 # crs(rast_ISO_cropland_mask_proj) <- proj4_lam
 
@@ -10552,7 +10575,7 @@ cat("#### Biophysical Aptitude - one class Leaflet")
 ```
 
 <div class="fold o"> 
-```{r classified_ba_membership_maps02c , cache = TRUE, cache.whatever=params$Agg, warning=FALSE, timeit = TRUE, eval=ba_crit}
+```{r classified_ba_membership_maps02c , fig.width=12, out.width="100%", cache = TRUE, cache.whatever=params$Agg, warning=FALSE, timeit = TRUE, eval=ba_crit}
 
 if (params$RES1 != 2) {
   
@@ -10569,11 +10592,60 @@ dB_ba_rclmat <- matrix(dB_ba_m, ncol=3, byrow=TRUE)
 dB_ba_rcl <- classify(dB_ba$optimal, dB_ba_rclmat, include.lowest=TRUE)
   
 dB_ba_rcl_geo <- terra::project(dB_ba_rcl, "epsg:4326", method = "near")
-
-plot(dB_ba_rcl_geo, main = paste0("Not sub-optimal ", params$INN1," 4 CRASA pipeline"))
-
 writeRaster(dB_ba_rcl_geo, paste0("data/r_", params$INN1,"_pot-N.tif"), overwrite=TRUE)
 
+#plot(dB_ba_rcl_geo, main = paste0("Not sub-optimal ", params$INN1," 4 CRASA pipeline"))
+
+levels(dB_ba_rcl_geo) <- data.frame(id = c(0, 1, 3), opt = c("No Cropland", "Unsuitable", "Suitable"))
+
+cols <- c("No Cropland" = NA, "Unsuitable" = "red", "Suitable" = "darkgreen")
+
+g <-  ggplot() +
+      geom_spatraster(data = dB_ba_rcl_geo, aes(fill = opt), alpha = 1) +
+      geom_spatvector(
+        data = unwrap(vect_ISO),
+        fill = NA,
+        col = 'black',
+        na.rm = TRUE,
+        inherit.aes = FALSE
+      )  +
+      scale_fill_manual(
+        values = cols,
+        na.translate = F
+      ) +
+      xlim ((ext(unwrap(vect_ISO))[1] - 1), (ext(unwrap(vect_ISO))[2]) + 1) +
+      ylim ((ext(unwrap(vect_ISO))[3] - 1), (ext(unwrap(vect_ISO))[4]) + 1) +
+      labs(
+        fill = paste0(
+          "--------------------\nSuitability for\n",
+          params$INN1,
+          "\n",
+          ISO,
+          "\n--------------------"
+        )
+      ) +
+      theme(
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+      ) +
+      coord_sf(expand = FALSE)
+
+g
+
+
+
+} # end RES if statement 08/12/2019
+``` 
+</div>
+
+<div class="fold o"> 
+```{r classified_ba_membership_maps02d , cache = TRUE, cache.whatever=params$Agg, warning=FALSE, timeit = TRUE, eval=ba_crit}
+
+
+if (params$RES1 != 2) {
+  
   leaflet_widget <- leaflet(st_as_sf(v_dB_ba_geo), width = "100%") %>%
     addProviderTiles(providers$OpenStreetMap.HOT, group = "OSM (HOT)") %>%
     addPolygons(

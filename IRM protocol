@@ -1,0 +1,32 @@
+change cc_data aggregation levels for potential
+change cc_data potential raster name
+
+change sourcing_notargets title to include new country
+change sourcing_notargets cc_data row number
+run rows in sourcing_notargets up to 580 (# Climate Base Data)
+check plot to make sure all cropland included
+
+use winmerge to compare IRM ZAF with the new country and change where necessary
+
+change the priorities and thresholds to be consistent with non-suitable thresholds in Sys
+change name of the IRM script for the new country
+
+ensure sowing date csv is in the crop/country folder - if not create this
+ensure sowing date script has been created for the crop/country combination - if not create this
+
+ensure separate growth stages csv is in the data folder and is consistent with the growth stages in the priorities and that this has prec and temp columns
+ensure USDA soil texture file is in the data/input folder
+
+run IRM and inspect results
+copy image, crop and insert in doc file
+
+change cc_data aggregation levels for potential
+change cc_data potential raster name
+
+change previous sourcing pdf name
+re-run sourcing_notargets script
+rename sourcing_notargets script
+
+zip new files
+upload to teams in 2023_new_pot_method folder
+
