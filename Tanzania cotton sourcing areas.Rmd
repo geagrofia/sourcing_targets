@@ -1,0 +1,368 @@
+---
+title: "Tanzania cotton sourcing areas"
+author: "A Farrow"
+date: "`r Sys.Date()`"
+header-includes:
+   - \usepackage[default]{sourcesanspro}
+   - \usepackage[T1]{fontenc}
+   - \usepackage{float}
+   - \pagenumbering{gobble}
+mainfont: SourceSansPro
+output:
+  pdf_document:
+    dev: png
+fontsize: 12pt
+papersize: a4
+classoption: landscape
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>",  dpi = 300,
+  echo = FALSE,
+  results = 'hide' ,
+  message = FALSE,
+  warning = FALSE)
+```
+
+```{r initialise01, cache = FALSE, echo=FALSE, message=FALSE, warning=FALSE}
+
+# initialisation
+  library(tidyverse)
+  library(tidyterra)
+  library(dplyr)
+  library(rnaturalearth)
+  library(sf)
+  library(terra)
+  library(rasterVis)
+  library(exactextractr)
+  library(scales)
+  library(irm)
+  library(fuZR)
+  library(kableExtra)
+  library(units)
+  library(magrittr)
+  library(geodata)
+  library(here)
+  library(knitr)
+  library(raster)
+  library(maptools)
+  library(knitr)
+  library(rgdal)
+  library(tinytex)
+  library(ggplot2)
+  library(conflicted)
+  library(tibble)
+  library(rnaturalearthdata)
+  library(lubridate)
+
+```
+
+# Load Spatial Data
+
+Here we load all the spatial data. The data are used in different chunks below but it is easier to modify filenames if all the spatial data are imported in the same chunk.
+
+## Vector data
+
+```{r spatialdataload_vector_01, warning=FALSE}
+
+#vect_countries <- vect(ne_countries(scale = "medium", returnclass = "sf"))
+GADM_query1 <- paste0("SELECT * FROM ADM_0 WHERE GID_0 = 'TZA' OR  GID_0 = 'RWA' OR  GID_0 = 'BDI' OR  GID_0 = 'COD' OR  GID_0 = 'ZMB' OR  GID_0 = 'MWI' OR  GID_0 = 'MOZ' OR  GID_0 = 'KEN' OR  GID_0 = 'UGA'")
+vect_countries <- vect("D:/DatosProyecto/SpatialData/Global/Socioeconomico/Admin boundaries/GADM41/gadm_410-levels.gpkg", query = GADM_query1, crs="+proj=longlat +datum=WGS84" )
+
+GADM_query2 <- paste0("SELECT * FROM ADM_0 WHERE GID_0 = 'TZA'")
+vect_TZA_0 <- vect("D:/DatosProyecto/SpatialData/Global/Socioeconomico/Admin boundaries/GADM41/gadm_410-levels.gpkg", query = GADM_query2, crs="+proj=longlat +datum=WGS84" )
+vect_TZA_extent <- ext(vect_TZA_0)
+
+GADM_query3 <- paste0("SELECT * FROM ADM_2 WHERE GID_0 = 'TZA'")
+vect_TZA_2 <- vect("D:/DatosProyecto/SpatialData/Global/Socioeconomico/Admin boundaries/GADM41/gadm_410-levels.gpkg", query = GADM_query3, crs="+proj=longlat +datum=WGS84" )
+
+
+db_crop_locations <- read.csv("data/TZA/cotton/cotton_production_zones.csv", fileEncoding="latin1")
+vect_crop_locations <- vect(db_crop_locations, geom=c("X", "Y"), crs="+proj=longlat +datum=WGS84")
+
+vect_crop_districts <- vect("data/TZA/cotton/cotton_production_zones_districts.shp", crs="+proj=longlat +datum=WGS84")
+vect_crop_districts_extent <-  ext(vect_crop_districts)
+vect_crop_districts$crop_value <-  factor(vect_crop_districts$crop_value, levels = c(1), ordered = TRUE)
+
+vect_ISO_cropland <- vect(paste0("data/TZA/vect_crop_ISO_lc_rcl.shp"), crs="+proj=longlat +datum=WGS84")
+
+vect_MAPSPAM_cotton <- vect(paste0("data/v_cotton_africa.shp"), crs="+proj=longlat +datum=WGS84")
+vect_MAPSPAM_cotton_buf <- buffer(vect_MAPSPAM_cotton, 0)
+vect_MAPSPAM_cotton_TZA <- terra::crop(vect_MAPSPAM_cotton_buf, vect_TZA_0)
+
+vect_MAPSPAM_cotton_TZA$crop_value <-  factor(vect_MAPSPAM_cotton_TZA$crop_value, levels = c(1), ordered = TRUE)
+
+```
+
+# Plot Spatial Data
+
+
+```{r spatialdataplot_vector_01, results='asis', warning=FALSE}
+
+vect_crop_districts_plot <-
+  ggplot() +
+    geom_spatvector(
+    data = vect_countries,
+    fill = 'light grey',
+    col = 'black',
+    na.rm = TRUE,
+    inherit.aes = FALSE
+  )  +
+  geom_spatvector(
+    data = vect_TZA_0,
+    fill = NA,
+    col = 'dark grey',
+    na.rm = TRUE,
+    inherit.aes = FALSE
+  )  +
+  geom_spatvector(
+    data = vect_TZA_2,
+    fill = 'white',
+    col = ' grey',
+    na.rm = TRUE,
+    inherit.aes = FALSE
+  )  +
+  geom_spatvector(
+    data = vect_crop_districts,
+    aes(fill = crop_value),
+    alpha = 0.5,
+    na.rm = TRUE,
+    inherit.aes = FALSE
+  ) +
+  geom_spatvector(
+    data = vect_crop_locations,
+    aes(shape = Production.location.zones, col = Production.location.zones),
+    na.rm = TRUE,
+    inherit.aes = FALSE
+  )  +
+  geom_spatvector(
+    data = vect_countries,
+    fill = NA,
+    col = 'black',
+    na.rm = TRUE,
+    inherit.aes = FALSE
+  )  +
+  scale_fill_manual(
+    values = c("green"),
+    name = "Sourcing\nAreas",
+    breaks = c(1),
+    labels = c("Districts")
+  ) +
+  scale_shape_manual(
+    values = c(21, 22),
+    name = "Production\nLocation\nZones",
+    breaks = c(
+      "Western Cotton Growing Zone (WCGZ)",
+      "Eastern Cotton Growing Zone"
+    ),
+    labels = c("WCGZ", "ECGZ")
+  ) +
+  scale_colour_manual(
+    values = c("red", "blue"),
+    name = "Production\nLocation\nZones",
+    breaks = c(
+      "Western Cotton Growing Zone (WCGZ)",
+      "Eastern Cotton Growing Zone"
+    ),
+    labels = c("WCGZ", "ECGZ")
+  ) +
+  coord_sf(expand = FALSE) +
+  xlim ((vect_TZA_extent[1] - 0.5), (vect_TZA_extent[2]) + 0.5) +
+  ylim ((vect_TZA_extent[3] - 0.5), (vect_TZA_extent[4]) + 0.5) +
+  labs(title = "Tanzania Cotton Production Districts") +
+  theme(
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  ) +
+  coord_sf(expand = FALSE)
+
+vect_crop_districts_plot
+
+```
+
+```{r spatialdataplot_vector_02, results='asis', warning=FALSE}
+
+vect_cotton_mapspam_plot <-
+  ggplot() +
+    geom_spatvector(
+    data = vect_countries,
+    fill = 'light grey',
+    col = 'black',
+    na.rm = TRUE,
+    inherit.aes = FALSE
+  )  +
+  geom_spatvector(
+    data = vect_TZA_0,
+    fill = NA,
+    col = 'dark grey',
+    na.rm = TRUE,
+    inherit.aes = FALSE
+  )  +
+  geom_spatvector(
+    data = vect_TZA_2,
+    fill = 'white',
+    col = ' grey',
+    na.rm = TRUE,
+    inherit.aes = FALSE
+  )  +
+  geom_spatvector(
+    data = vect_MAPSPAM_cotton_TZA,
+    aes(fill = crop_value),
+    alpha = 0.5,
+    na.rm = TRUE,
+    inherit.aes = FALSE
+  ) +
+  geom_spatvector(
+    data = vect_crop_locations,
+    aes(shape = Production.location.zones, col = Production.location.zones),
+    na.rm = TRUE,
+    inherit.aes = FALSE
+  )  +
+  geom_spatvector(
+    data = vect_countries,
+    fill = NA,
+    col = 'black',
+    na.rm = TRUE,
+    inherit.aes = FALSE
+  )  +
+  scale_fill_manual(
+    values = c("green"),
+    name = "Sourcing\nAreas",
+    breaks = c(1),
+    labels = c("MAPSPAM\nHarvested\nAreas\n>250Ha")
+  ) +
+  scale_shape_manual(
+    values = c(21, 22),
+    name = "Production\nLocation\nZones",
+    breaks = c(
+      "Western Cotton Growing Zone (WCGZ)",
+      "Eastern Cotton Growing Zone"
+    ),
+    labels = c("WCGZ", "ECGZ")
+  ) +
+  scale_colour_manual(
+    values = c("red", "blue"),
+    name = "Production\nLocation\nZones",
+    breaks = c(
+      "Western Cotton Growing Zone (WCGZ)",
+      "Eastern Cotton Growing Zone"
+    ),
+    labels = c("WCGZ", "ECGZ")
+  ) +
+  coord_sf(expand = FALSE) +
+  xlim ((vect_TZA_extent[1] - 0.5), (vect_TZA_extent[2]) + 0.5) +
+  ylim ((vect_TZA_extent[3] - 0.5), (vect_TZA_extent[4]) + 0.5) +
+  labs(title = "Tanzania Cotton MAPSPAM Harvested Areas") +
+  theme(
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  ) +
+  coord_sf(expand = FALSE)
+
+vect_cotton_mapspam_plot
+
+```
+
+# Combine Spatial Data
+
+```{r spatialdataload_vector_02, warning=FALSE}
+
+vect_cotton_mapspam_combine <-  terra::union(vect_crop_districts, vect_MAPSPAM_cotton_TZA) %>% dplyr::select(crop_value) %>% mutate(crop_value = 1) %>% terra::aggregate(by="crop_value", dissolve=TRUE, fun="mean")
+
+vect_cotton_mapspam_combine$crop_value <-  factor(vect_cotton_mapspam_combine$crop_value, levels = c(1), ordered = TRUE)
+
+writeVector(vect_cotton_mapspam_combine, paste0("data/vect_cotton_mapspam_combine_tza.shp"), overwrite = TRUE)
+
+
+```
+
+```{r spatialdataplot_vector_03, results='asis', warning=FALSE}
+
+vect_cotton_mapspam_combine_plot <-
+  ggplot() +
+    geom_spatvector(
+    data = vect_countries,
+    fill = 'light grey',
+    col = 'black',
+    na.rm = TRUE,
+    inherit.aes = FALSE
+  )  +
+  geom_spatvector(
+    data = vect_TZA_0,
+    fill = NA,
+    col = 'dark grey',
+    na.rm = TRUE,
+    inherit.aes = FALSE
+  )  +
+  geom_spatvector(
+    data = vect_TZA_2,
+    fill = 'white',
+    col = ' grey',
+    na.rm = TRUE,
+    inherit.aes = FALSE
+  )  +
+  geom_spatvector(
+    data = vect_cotton_mapspam_combine,
+    aes(fill = crop_value),
+    alpha = 0.5,
+    na.rm = TRUE,
+    inherit.aes = FALSE
+  ) +
+  geom_spatvector(
+    data = vect_crop_locations,
+    aes(shape = Production.location.zones, col = Production.location.zones),
+    na.rm = TRUE,
+    inherit.aes = FALSE
+  )  +
+  geom_spatvector(
+    data = vect_countries,
+    fill = NA,
+    col = 'black',
+    na.rm = TRUE,
+    inherit.aes = FALSE
+  )  +
+  scale_fill_manual(
+    values = c("green"),
+    name = "Sourcing\nAreas",
+    breaks = c(1),
+    labels = c("Combined\nProduction\nDistricts\n& MAPSPAM\n")
+  ) +
+  scale_shape_manual(
+    values = c(21, 22),
+    name = "Production\nLocation\nZones",
+    breaks = c(
+      "Western Cotton Growing Zone (WCGZ)",
+      "Eastern Cotton Growing Zone"
+    ),
+    labels = c("WCGZ", "ECGZ")
+  ) +
+  scale_colour_manual(
+    values = c("red", "blue"),
+    name = "Production\nLocation\nZones",
+    breaks = c(
+      "Western Cotton Growing Zone (WCGZ)",
+      "Eastern Cotton Growing Zone"
+    ),
+    labels = c("WCGZ", "ECGZ")
+  ) +
+  coord_sf(expand = FALSE) +
+  xlim ((vect_TZA_extent[1] - 0.5), (vect_TZA_extent[2]) + 0.5) +
+  ylim ((vect_TZA_extent[3] - 0.5), (vect_TZA_extent[4]) + 0.5) +
+  labs(title = "Tanzania Cotton Combined Sourcing Areas") +
+  theme(
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  ) +
+  coord_sf(expand = FALSE)
+
+vect_cotton_mapspam_combine_plot
+
+```
+
+
