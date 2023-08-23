@@ -1787,9 +1787,9 @@ rast_rainfallc_make_write_f <-
            cc_data,
            cc_row,
            rast_clim_mask_trim) {
-    (rast(paste0(
-      "data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 14])
-    )) * unwrap(rast_clim_mask_trim)) %>%
+    (terra::crop(rast(
+      paste0("data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 14]))
+    ), unwrap(rast_clim_mask_trim)) * unwrap(rast_clim_mask_trim)) %>%
       writeRaster(paste0("data/", ISO, "/", crop, "/rast_rainfallc.tif"),
                   overwrite = TRUE)
   }
@@ -1807,9 +1807,9 @@ rast_rainfallf_make_write_f <-
            cc_data,
            cc_row,
            rast_clim_mask_trim) {
-    (rast(paste0(
-      "data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 15])
-    )) * unwrap(rast_clim_mask_trim)) %>%
+    (terra::crop(rast(
+      paste0("data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 15]))
+    ), unwrap(rast_clim_mask_trim)) * unwrap(rast_clim_mask_trim)) %>%
       writeRaster(paste0("data/", ISO, "/", crop, "/rast_rainfallf.tif"),
                   overwrite = TRUE)
   }
@@ -1830,9 +1830,9 @@ rast_tempc_make_write_f <-
            cc_data,
            cc_row,
            rast_clim_mask_trim) {
-    (rast(paste0(
-      "data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 16])
-    )) * unwrap(rast_clim_mask_trim)) %>%
+    (terra::crop(rast(
+      paste0("data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 16]))
+    ), unwrap(rast_clim_mask_trim)) * unwrap(rast_clim_mask_trim)) %>%
       writeRaster(paste0("data/", ISO, "/", crop, "/rast_tempc.tif"), overwrite = TRUE)
   }
 
@@ -1848,9 +1848,9 @@ rast_tempf_make_write_f <-
            cc_data,
            cc_row,
            rast_clim_mask_trim) {
-    (rast(paste0(
-      "data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 17])
-    )) * unwrap(rast_clim_mask_trim)) %>%
+    (terra::crop(rast(
+      paste0("data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 17]))
+    ), unwrap(rast_clim_mask_trim)) * unwrap(rast_clim_mask_trim)) %>%
       writeRaster(paste0("data/", ISO, "/", crop, "/rast_tempf.tif"), overwrite = TRUE)
   }
 
@@ -1868,9 +1868,9 @@ rast_onsetc_make_write_f <-
            cc_data,
            cc_row,
            rast_clim_mask_trim) {
-    (rast(paste0(
-      "data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 18])
-    )) * unwrap(rast_clim_mask_trim)) %>%
+    (terra::crop(rast(
+      paste0("data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 18]))
+    ), unwrap(rast_clim_mask_trim)) * unwrap(rast_clim_mask_trim)) %>%
       writeRaster(paste0("data/", ISO, "/", crop, "/rast_onsetc.tif"), overwrite = TRUE)
   }
 
@@ -1886,9 +1886,9 @@ rast_onsetf_make_write_f <-
            cc_data,
            cc_row,
            rast_clim_mask_trim) {
-    (rast(paste0(
-      "data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 19])
-    )) * unwrap(rast_clim_mask_trim)) %>%
+    (terra::crop(rast(
+      paste0("data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 19]))
+    ), unwrap(rast_clim_mask_trim)) * unwrap(rast_clim_mask_trim)) %>%
       writeRaster(paste0("data/", ISO, "/", crop, "/rast_onsetf.tif"), overwrite = TRUE)
   }
 
@@ -1906,9 +1906,9 @@ rast_durationc_make_write_f <-
            cc_data,
            cc_row,
            rast_clim_mask_trim) {
-    (rast(paste0(
-      "data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 20])
-    )) * unwrap(rast_clim_mask_trim)) %>%
+    (terra::crop(rast(
+      paste0("data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 20]))
+    ), unwrap(rast_clim_mask_trim)) * unwrap(rast_clim_mask_trim)) %>%
       writeRaster(paste0("data/", ISO, "/", crop, "/rast_durationc.tif"),
                   overwrite = TRUE)
   }
@@ -1925,9 +1925,9 @@ rast_durationf_make_write_f <-
            cc_data,
            cc_row,
            rast_clim_mask_trim) {
-    (rast(paste0(
-      "data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 21])
-    )) * unwrap(rast_clim_mask_trim)) %>%
+    (terra::crop(rast(
+      paste0("data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 21]))
+    ), unwrap(rast_clim_mask_trim)) * unwrap(rast_clim_mask_trim)) %>%
       writeRaster(paste0("data/", ISO, "/", crop, "/rast_durationf.tif"),
                   overwrite = TRUE)
   }
@@ -3028,9 +3028,9 @@ rast_droughtc_make_write_f <-
            cc_data,
            cc_row,
            rast_clim_mask_trim) {
-    (rast(paste0(
-      "data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 6])
-    )) * unwrap(rast_clim_mask_trim)) %>%
+    (terra::crop(rast(
+      paste0("data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 6]))
+    ), unwrap(rast_clim_mask_trim)) * unwrap(rast_clim_mask_trim)) %>%
       writeRaster(paste0("data/", ISO, "/", crop, "/rast_droughtc.tif"),
                   overwrite = TRUE)
   }
@@ -3047,9 +3047,9 @@ rast_droughtf_make_write_f <-
            cc_data,
            cc_row,
            rast_clim_mask_trim) {
-    (rast(paste0(
-      "data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 7])
-    )) * unwrap(rast_clim_mask_trim)) %>%
+    (terra::crop(rast(
+      paste0("data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 7]))
+    ), unwrap(rast_clim_mask_trim)) * unwrap(rast_clim_mask_trim)) %>%
       writeRaster(paste0("data/", ISO, "/", crop, "/rast_droughtf.tif"),
                   overwrite = TRUE)
   }
@@ -3066,9 +3066,9 @@ rast_heatc_make_write_f <-
            cc_data,
            cc_row,
            rast_clim_mask_trim) {
-    (rast(paste0(
-      "data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 9])
-    )) * unwrap(rast_clim_mask_trim)) %>%
+    (terra::crop(rast(
+      paste0("data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 9]))
+    ), unwrap(rast_clim_mask_trim)) * unwrap(rast_clim_mask_trim)) %>%
       writeRaster(paste0("data/", ISO, "/", crop, "/rast_heatc.tif"), overwrite = TRUE)
   }
 
@@ -3084,9 +3084,9 @@ rast_heatf_make_write_f <-
            cc_data,
            cc_row,
            rast_clim_mask_trim) {
-    (rast(paste0(
-      "data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 10])
-    )) * unwrap(rast_clim_mask_trim)) %>%
+    (terra::crop(rast(
+      paste0("data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 10]))
+    ), unwrap(rast_clim_mask_trim)) * unwrap(rast_clim_mask_trim)) %>%
       writeRaster(paste0("data/", ISO, "/", crop, "/rast_heatf.tif"), overwrite = TRUE)
   }
 
@@ -3102,9 +3102,9 @@ rast_floodc_make_write_f <-
            cc_data,
            cc_row,
            rast_clim_mask_trim) {
-    (rast(paste0(
-      "data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 12])
-    )) * unwrap(rast_clim_mask_trim)) %>%
+    (terra::crop(rast(
+      paste0("data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 12]))
+    ), unwrap(rast_clim_mask_trim)) * unwrap(rast_clim_mask_trim)) %>%
       writeRaster(paste0("data/", ISO, "/", crop, "/rast_floodc.tif"), overwrite = TRUE)
   }
 
@@ -3120,9 +3120,9 @@ rast_floodf_make_write_f <-
            cc_data,
            cc_row,
            rast_clim_mask_trim) {
-    (rast(paste0(
-      "data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 13])
-    )) * unwrap(rast_clim_mask_trim)) %>%
+    (terra::crop(rast(
+      paste0("data/", ISO, "/", crop, "/", paste(cc_data[cc_row, 13]))
+    ), unwrap(rast_clim_mask_trim)) * unwrap(rast_clim_mask_trim)) %>%
       writeRaster(paste0("data/", ISO, "/", crop, "/rast_floodf.tif"), overwrite = TRUE)
   }
 
